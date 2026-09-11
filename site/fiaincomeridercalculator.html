@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIA Income Rider Calculator | Quote-Bot</title>
+<meta name="description" content="Model a fixed indexed annuity income rider: set the roll-up rate, roll-up period, payout factor and rider charge, and see the lifetime income alongside the real account value.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap">
+<script src="/js/quotebot-capture.js"
+        data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
+        data-tool="fia-income-rider"></script>
+<style>
+:root {
+  --primary: #1a3d6b; --primary-dark: #0f2540; --primary-mid: #1e4d85;
+  --accent: #4a90d9; --accent-light: #e8f2fb;
+  --teal: #0d9488; --teal-light: #ccfbf1;
+  --gold: #b45309; --gold-mid: #d97706; --gold-light: #fef3c7; --gold-bright: #f59e0b;
+  --green: #16a34a; --green-light: #dcfce7;
+  --red: #dc2626; --red-light: #fee2e2;
+  --white: #ffffff; --off-white: #f7f9fc; --gray-light: #eef1f6;
+  --gray-mid: #8a9ab5; --gray-dark: #2c3e58; --text: #1c2a3a; --border: #d8e2f0;
+  --shadow: 0 4px 24px rgba(26,61,107,0.10); --shadow-lg: 0 16px 56px rgba(26,61,107,0.16);
+  --radius: 12px; --radius-lg: 20px; --radius-xl: 28px; --transition: 0.2s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--off-white);line-height:1.6;-webkit-font-smoothing:antialiased;}
+
+/* ---------- MASTHEAD ---------- */
+.masthead{background:linear-gradient(160deg,var(--primary-dark) 0%,var(--primary) 62%,var(--primary-mid) 100%);color:var(--white);padding:44px 24px 52px;}
+.masthead-inner{max-width:1160px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:12px;}
+.masthead h1{font-family:'Fraunces',Georgia,serif;font-weight:700;font-size:clamp(28px,4.4vw,44px);line-height:1.08;letter-spacing:-0.8px;margin-bottom:14px;max-width:20ch;}
+.masthead p{font-size:15px;color:rgba(255,255,255,0.72);max-width:62ch;}
+
+/* ---------- LAYOUT ---------- */
+.calc-wrapper{max-width:1160px;margin:-30px auto 0;padding:0 24px 64px;}
+.calc-grid{display:grid;grid-template-columns:400px 1fr;gap:22px;align-items:start;}
+.calc-grid.results-revealed{grid-template-columns:1fr;}
+.calc-grid.results-revealed .results-col{max-width:900px;margin:0 auto;width:100%;position:static;}
+.inputs-col.col-hidden{display:none;}
+@media(max-width:960px){.calc-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow);padding:26px;}
+.results-col{position:relative;}
+.results-panel{position:relative;}
+
+.sec-title{font-family:'Fraunces',Georgia,serif;font-size:18px;font-weight:700;color:var(--primary-dark);margin-bottom:4px;}
+.sec-sub{font-size:12.5px;color:var(--gray-mid);margin-bottom:18px;line-height:1.55;}
+.divider{height:1px;background:var(--border);margin:22px 0;}
+
+/* ---------- FIELDS ---------- */
+.field{margin-bottom:15px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--gray-dark);margin-bottom:6px;}
+.field .hint{font-weight:400;color:var(--gray-mid);font-size:11px;}
+.field input,.field select{width:100%;padding:10px 12px;font-family:inherit;font-size:14px;color:var(--text);background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);transition:var(--transition);}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+.field.has-error input,.field.has-error select{border-color:var(--red);background:var(--red-light);}
+.field-err{font-size:11px;color:var(--red);margin-top:4px;min-height:14px;}
+.has-prefix{position:relative;}
+.has-prefix span.pfx{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--gray-mid);pointer-events:none;}
+.has-prefix input{padding-left:26px;}
+.has-suffix{position:relative;}
+.has-suffix span.sfx{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gray-mid);pointer-events:none;}
+.has-suffix input{padding-right:30px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* segmented control */
+.seg{display:flex;background:var(--gray-light);border-radius:var(--radius);padding:3px;gap:3px;}
+.seg button{flex:1;padding:8px 6px;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--gray-dark);background:transparent;border:none;border-radius:9px;cursor:pointer;transition:var(--transition);}
+.seg button.active{background:var(--white);color:var(--primary);box-shadow:0 1px 4px rgba(26,61,107,0.12);}
+
+/* slider */
+.slider-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px;}
+.slider-val{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:700;color:var(--primary);}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:var(--gray-light);outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:19px;height:19px;border-radius:50%;background:var(--accent);border:3px solid var(--white);box-shadow:0 1px 5px rgba(26,61,107,0.35);cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:19px;height:19px;border-radius:50%;background:var(--accent);border:3px solid var(--white);cursor:pointer;}
+
+.design-block{background:var(--accent-light);border:1px solid #c9e0f6;border-radius:var(--radius-lg);padding:18px;margin-bottom:16px;}
+.design-block .sec-title{font-size:15px;}
+
+/* ---------- LOCK ---------- */
+#results-content{transition:filter 0.6s ease;}
+/* While locked, cap the panel so the unlock form sits in view on landing —
+   the full results are tall enough that a centred overlay would otherwise
+   open below the fold. */
+#results-content.locked{filter:blur(5px);pointer-events:none;user-select:none;max-height:600px;overflow:hidden;}
+#results-lock-overlay{position:absolute;inset:0;z-index:20;border-radius:var(--radius-xl);background:linear-gradient(160deg,rgba(10,28,52,0.97) 0%,rgba(15,48,95,0.95) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity .5s ease,visibility .5s ease;}
+#results-lock-overlay.unlocked{opacity:0;visibility:hidden;pointer-events:none;}
+.lock-icon-wrap{width:60px;height:60px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:16px;}
+.lock-title{font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:700;color:var(--white);margin-bottom:8px;}
+.lock-sub{font-size:13px;color:rgba(255,255,255,0.52);line-height:1.65;max-width:250px;margin:0 auto 20px;}
+.lock-form{width:100%;max-width:290px;text-align:left;}
+.lock-form input,.lock-form select{width:100%;padding:9px 11px;margin-bottom:8px;font-family:inherit;font-size:13.5px;border:1.5px solid rgba(255,255,255,0.18);border-radius:10px;background:rgba(255,255,255,0.07);color:var(--white);}
+.lock-form input::placeholder{color:rgba(255,255,255,0.4);}
+.lock-form input:focus,.lock-form select:focus{outline:none;border-color:var(--accent);background:rgba(255,255,255,0.12);}
+.lock-form select option{color:var(--text);}
+.lock-form .field.has-error input,.lock-form .field.has-error select{border-color:#f87171;}
+.lock-dots{display:flex;gap:8px;margin:14px 0 6px;justify-content:center;}
+.lock-dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);transition:all .25s ease;}
+.lock-dot.done{background:#22c55e;border-color:#16a34a;box-shadow:0 0 8px rgba(34,197,94,0.6);}
+.lock-count{font-size:11.5px;color:rgba(255,255,255,0.38);}
+.unlock-btn{width:100%;max-width:290px;margin-top:12px;padding:13px;font-family:inherit;font-size:14px;font-weight:700;color:var(--white);background:rgba(255,255,255,0.14);border:1.5px solid rgba(255,255,255,0.2);border-radius:var(--radius);cursor:pointer;transition:var(--transition);}
+.unlock-btn.btn-ready{background:var(--gold-mid);border-color:var(--gold-bright);box-shadow:0 4px 18px rgba(217,119,6,0.42);}
+.consent-note{font-size:10.5px;color:rgba(255,255,255,0.42);line-height:1.6;margin-top:12px;max-width:290px;}
+.consent-note a{color:rgba(255,255,255,0.7);}
+
+/* ---------- RESULTS ---------- */
+.hero{background:linear-gradient(160deg,var(--primary-dark),var(--primary-mid));border-radius:var(--radius-lg);padding:26px 24px;color:var(--white);margin-bottom:20px;}
+.hero-label{font-size:11.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:8px;}
+.hero-num{font-family:'Fraunces',Georgia,serif;font-size:clamp(38px,5.6vw,58px);font-weight:700;line-height:1;letter-spacing:-1.6px;}
+.hero-unit{font-size:12.5px;color:rgba(255,255,255,0.62);margin-top:7px;}
+.hero-split{display:flex;gap:26px;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.14);flex-wrap:wrap;}
+.hero-item .hi-num{font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:700;}
+.hero-item .hi-lbl{font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+@media(max-width:640px){.compare{grid-template-columns:1fr;}}
+.cmp{border-radius:var(--radius-lg);padding:18px;border:1.5px solid;}
+.cmp.phantom{background:var(--gold-light);border-color:#f0d089;}
+.cmp.real{background:var(--teal-light);border-color:#8fd8cd;}
+.cmp-tag{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;margin-bottom:7px;}
+.cmp.phantom .cmp-tag{color:var(--gold);}
+.cmp.real .cmp-tag{color:#0f766e;}
+.cmp-num{font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:700;color:var(--primary-dark);line-height:1.1;}
+.cmp-note{font-size:11.5px;color:var(--gray-dark);margin-top:8px;line-height:1.55;}
+
+.callout{border-left:3px solid var(--gold-mid);background:var(--gold-light);border-radius:0 var(--radius) var(--radius) 0;padding:14px 16px;margin-bottom:20px;}
+.callout strong{color:var(--primary-dark);}
+.callout p{font-size:12.5px;color:var(--gray-dark);line-height:1.6;}
+
+.chart-wrap{background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:20px;overflow-x:auto;}
+.chart-legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:11.5px;color:var(--gray-dark);}
+.chart-legend span{display:flex;align-items:center;gap:6px;}
+.swatch{width:14px;height:3px;border-radius:2px;display:inline-block;}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:20px;}
+table.sched{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px;}
+table.sched th{background:var(--gray-light);text-align:right;padding:9px 12px;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--gray-dark);white-space:nowrap;}
+table.sched th:first-child,table.sched td:first-child{text-align:left;}
+table.sched td{padding:8px 12px;text-align:right;border-top:1px solid var(--border);font-variant-numeric:tabular-nums;color:var(--gray-dark);}
+table.sched tr.start-row td{background:var(--accent-light);font-weight:700;color:var(--primary-dark);}
+
+.disclosures{font-size:11.5px;color:var(--gray-mid);line-height:1.7;border-top:1px solid var(--border);padding-top:16px;}
+.disclosures p{margin-bottom:9px;}
+.disclosures strong{color:var(--gray-dark);}
+
+footer{background:var(--primary-dark);color:rgba(255,255,255,0.6);padding:34px 24px;font-size:12px;}
+.footer-inner{max-width:1160px;margin:0 auto;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+.footer-logo-text{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:700;color:var(--white);}
+.footer-links a{color:rgba(255,255,255,0.62);text-decoration:none;}
+.footer-links a:hover{color:var(--white);text-decoration:underline;}
+.footer-links .sep{margin:0 8px;color:rgba(255,255,255,0.25);}
+.footer-link-row{margin-bottom:6px;}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow">Fixed Indexed Annuity</div>
+    <h1>Design an income rider and see what it actually pays</h1>
+    <p>Set the roll-up rate, the roll-up period and the payout factor yourself, rather than taking one carrier's design as given. The calculator shows the guaranteed lifetime income beside the account value you would actually own — two numbers that are easy to confuse and mean very different things.</p>
+  </div>
+</div>
+
+<div class="calc-wrapper">
+<div class="calc-grid" id="calcGrid">
+
+  <!-- ============ INPUTS ============ -->
+  <div class="inputs-col">
+    <div class="panel">
+      <div class="sec-title">Your situation</div>
+      <div class="sec-sub">The money going in, and when income should start.</div>
+
+      <div class="field has-prefix">
+        <label for="premium">Premium <span class="hint">— single deposit</span></label>
+        <span class="pfx">$</span><input type="text" id="premium" value="250,000" inputmode="numeric">
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="curAge">Current age</label>
+          <input type="number" id="curAge" value="58" min="40" max="85">
+        </div>
+        <div class="field">
+          <label for="incAge">Income starts at</label>
+          <input type="number" id="incAge" value="68" min="50" max="90">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Income for</label>
+        <div class="seg" id="lifeSeg">
+          <button type="button" class="active" data-val="single">Single life</button>
+          <button type="button" data-val="joint">Joint life</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="design-block">
+        <div class="sec-title">Rider design</div>
+        <div class="sec-sub">These are the levers a carrier sets. Change them to match a product you are comparing, or to see how sensitive the income really is.</div>
+
+        <div class="field">
+          <div class="slider-row"><label for="rollRate">Roll-up rate</label><span class="slider-val" id="rollRateVal">7.0%</span></div>
+          <input type="range" id="rollRate" min="0" max="12" step="0.25" value="7">
+        </div>
+
+        <div class="field">
+          <label>Roll-up type</label>
+          <div class="seg" id="rollTypeSeg">
+            <button type="button" class="active" data-val="simple">Simple</button>
+            <button type="button" data-val="compound">Compound</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="slider-row"><label for="rollYears">Roll-up period</label><span class="slider-val" id="rollYearsVal">10 yrs</span></div>
+          <input type="range" id="rollYears" min="1" max="20" step="1" value="10">
+        </div>
+
+        <div class="field">
+          <div class="slider-row"><label for="bonus">Premium bonus to benefit base</label><span class="slider-val" id="bonusVal">10%</span></div>
+          <input type="range" id="bonus" min="0" max="30" step="1" value="10">
+        </div>
+
+        <div class="field">
+          <div class="slider-row"><label for="payout">Payout factor at income age</label><span class="slider-val" id="payoutVal">5.4%</span></div>
+          <input type="range" id="payout" min="2" max="9" step="0.1" value="5.4">
+          <div class="field-err" id="payoutAuto" style="color:var(--gray-mid);"></div>
+        </div>
+
+        <div class="field">
+          <div class="slider-row"><label for="riderFee">Rider charge <span class="hint">— annual, on benefit base</span></label><span class="slider-val" id="riderFeeVal">1.05%</span></div>
+          <input type="range" id="riderFee" min="0" max="2" step="0.05" value="1.05">
+        </div>
+
+        <div class="field" style="margin-bottom:0;">
+          <div class="slider-row"><label for="credit">Assumed index credit <span class="hint">— not guaranteed</span></label><span class="slider-val" id="creditVal">4.0%</span></div>
+          <input type="range" id="credit" min="0" max="8" step="0.25" value="4">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="lifeExp">Show income through age <span class="hint">— for lifetime totals</span></label>
+        <input type="number" id="lifeExp" value="90" min="70" max="105">
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RESULTS ============ -->
+  <div class="results-col">
+    <div class="results-panel panel">
+
+      <div id="results-lock-overlay">
+        <div class="lock-icon-wrap">&#128274;</div>
+        <div class="lock-title">Unlock Your Illustration</div>
+        <div class="lock-sub">Tell us where to send it and the full year-by-year schedule opens below.</div>
+        <div class="lock-form">
+          <div class="field" id="f-first"><input type="text" id="first" placeholder="First name"></div>
+          <div class="field" id="f-last"><input type="text" id="last" placeholder="Last name"></div>
+          <div class="field" id="f-email"><input type="email" id="email" placeholder="you@email.com"></div>
+          <div class="field" id="f-phone"><input type="tel" id="phone" placeholder="(555) 123-4567"></div>
+          <div class="field" id="f-state">
+            <select id="state"><option value="">Select your state</option></select>
+          </div>
+        </div>
+        <div class="lock-dots">
+          <div class="lock-dot" id="ldot-1"></div><div class="lock-dot" id="ldot-2"></div>
+          <div class="lock-dot" id="ldot-3"></div><div class="lock-dot" id="ldot-4"></div>
+          <div class="lock-dot" id="ldot-5"></div>
+        </div>
+        <div class="lock-count" id="lock-count">0 of 5 fields complete</div>
+        <button class="unlock-btn" id="unlock-btn" type="button"><span id="unlock-btn-text">&#128274; Complete All Fields to Unlock</span></button>
+        <p class="consent-note" id="qb-consent">By clicking <strong>See My Illustration</strong> you acknowledge that we will only call, SMS, or email to follow up on this request. You also agree to our <a href="https://quote-bot.com/Privacy-Policy" target="_blank">Privacy Policy</a> &amp; <a href="https://quote-bot.com/Terms-Conditions" target="_blank">Terms of Service</a>.</p>
+      </div>
+
+      <div id="results-content" class="locked">
+
+        <div class="hero">
+          <div class="hero-label">Guaranteed lifetime income from age <span id="heroAge">68</span></div>
+          <div class="hero-num" id="heroIncome">$0</div>
+          <div class="hero-unit">per year &mdash; <span id="heroMonthly">$0</span> per month, for as long as you live</div>
+          <div class="hero-split">
+            <div class="hero-item"><div class="hi-num" id="heroDefer">0</div><div class="hi-lbl">Years deferred</div></div>
+            <div class="hero-item"><div class="hi-num" id="heroBB">$0</div><div class="hi-lbl">Benefit base at start</div></div>
+            <div class="hero-item"><div class="hi-num" id="heroTotal">$0</div><div class="hi-lbl">Total income to age <span id="heroLE">90</span></div></div>
+            <div class="hero-item"><div class="hi-num" id="heroBreak">&mdash;</div><div class="hi-lbl">Premium recovered by age</div></div>
+          </div>
+        </div>
+
+        <div class="compare">
+          <div class="cmp phantom">
+            <div class="cmp-tag">Benefit base &mdash; income only</div>
+            <div class="cmp-num" id="cmpBB">$0</div>
+            <div class="cmp-note">Grows at the roll-up rate you set. This figure exists only to calculate income. It is <strong>not</strong> money you can withdraw, surrender, or leave to heirs.</div>
+          </div>
+          <div class="cmp real">
+            <div class="cmp-tag">Account value &mdash; your money</div>
+            <div class="cmp-num" id="cmpAV">$0</div>
+            <div class="cmp-note">What the contract is actually worth at the same date, after index credits and rider charges. This is what a surrender or a death benefit is based on.</div>
+          </div>
+        </div>
+
+        <div class="callout" id="gapCallout">
+          <p></p>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="sec-title" style="font-size:15px;margin-bottom:2px;">Benefit base against account value</div>
+          <div class="sec-sub" style="margin-bottom:14px;">Both lines start at the same premium. The gap between them is the part that only ever converts into income.</div>
+          <div id="chart"></div>
+          <div class="chart-legend">
+            <span><i class="swatch" style="background:var(--gold-mid);"></i> Benefit base</span>
+            <span><i class="swatch" style="background:var(--teal);"></i> Account value</span>
+            <span><i class="swatch" style="background:var(--accent);"></i> Income begins</span>
+          </div>
+        </div>
+
+        <div class="sec-title" style="font-size:15px;">Year by year</div>
+        <div class="sec-sub">Income shown is what the rider would pay if you turned it on that year instead.</div>
+        <div class="tbl-wrap"><table class="sched" id="schedule"></table></div>
+
+        <div class="disclosures">
+          <p><strong>This is a hypothetical illustration, not a quote or an offer.</strong> Every figure follows from assumptions you selected on this page. It does not represent any specific annuity contract, and no carrier has agreed to these terms.</p>
+          <p><strong>The benefit base is not an account value.</strong> It is a calculation figure used to determine lifetime income. It cannot be withdrawn as a lump sum, is generally not payable as a death benefit, and has no cash value.</p>
+          <p><strong>Index credits are not guaranteed.</strong> The assumed credit rate drives the account value line only. Actual credits depend on index performance and on caps, participation rates and spreads set by the carrier, which can change.</p>
+          <p><strong>Rider charges are typically deducted from the account value</strong> and continue whether or not the index credits anything, which is why the account value can decline in flat years. Guarantees are backed by the claims-paying ability of the issuing insurer.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<footer role="contentinfo">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo-text">Quote-Bot</div>
+      <div style="margin-top:6px;">Copyright &copy; 2026 Quote Bot LLC.<br>All Rights Reserved.</div>
+    </div>
+    <div class="footer-links">
+      <div class="footer-link-row">
+        <a href="https://quote-bot.com/Terms-Conditions" target="_blank">Terms of Use</a><span class="sep">|</span>
+        <a href="https://quote-bot.com/Privacy-Policy" target="_blank">Privacy Policy</a><span class="sep">|</span>
+        <a href="https://quote-bot.com/disclaimer/" target="_blank">Disclaimer</a>
+      </div>
+      <div class="footer-link-row">
+        <a href="https://quote-bot.com/cookie-policy/" target="_blank">Cookie Policy</a><span class="sep">|</span>
+        <a href="https://trust.quote-bot.com/" target="_blank">Trust Center</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   FIA INCOME RIDER — model
+   ============================================================ */
+var STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+
+var STATE = { lifeMode:'single', rollType:'simple', payoutTouched:false };
+
+function $(id){ return document.getElementById(id); }
+function num(v){ return parseFloat(String(v).replace(/[^0-9.\-]/g,'')) || 0; }
+function money(n){ return '$' + Math.round(n).toLocaleString('en-US'); }
+function moneyShort(n){
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(n >= 1e7 ? 1 : 2) + 'M';
+  if (n >= 1e3) return '$' + Math.round(n/1e3) + 'k';
+  return '$' + Math.round(n);
+}
+
+/**
+ * Typical industry shape: the payout factor rises with the age income starts,
+ * and a joint payout is lower because two lives must be covered. Editable —
+ * an agent comparing a real product should override it with that product's
+ * actual factor.
+ */
+function autoPayout(age, mode){
+  var f = 4.00 + 0.10 * (age - 55);
+  f = Math.max(3.0, Math.min(7.5, f));
+  if (mode === 'joint') f -= 0.50;
+  return Math.round(f * 10) / 10;
+}
+
+/**
+ * Project both tracks year by year from today to the income age.
+ *
+ * Benefit base: premium plus bonus, rolled up for the roll-up period only,
+ * then flat. Simple roll-up accrues on the bonused premium; compound accrues
+ * on the running base — the difference compounds badly over ten years, which
+ * is exactly what this tool exists to make visible.
+ *
+ * Account value: the real money. Index credits applied to the account value,
+ * rider charge deducted off the benefit base (the common design, and the
+ * reason a flat index year still costs the contract money).
+ */
+function project(inp){
+  var rows = [];
+  var bb0 = inp.premium * (1 + inp.bonus / 100);
+  var bb = bb0, av = inp.premium;
+
+  for (var y = 0; y <= inp.deferYears; y++){
+    var age = inp.curAge + y;
+    if (y > 0){
+      if (y <= inp.rollYears){
+        if (inp.rollType === 'compound') bb = bb * (1 + inp.rollRate / 100);
+        else bb = bb0 * (1 + (inp.rollRate / 100) * y);
+      }
+      av = av * (1 + inp.credit / 100) - bb * (inp.riderFee / 100);
+      if (av < 0) av = 0;
+    }
+    rows.push({
+      year: y, age: age, benefitBase: bb, accountValue: av,
+      rollingStill: y < inp.rollYears,
+      incomeIfStartedNow: bb * (autoPayoutFor(age) / 100)
+    });
+  }
+  return rows;
+}
+
+function autoPayoutFor(age){
+  // Used for the "if you started this year instead" column only. The headline
+  // number always uses the payout factor showing on the slider.
+  return autoPayout(age, STATE.lifeMode);
+}
+
+function getInputs(){
+  var curAge = Math.max(18, Math.round(num($('curAge').value)));
+  var incAge = Math.max(curAge, Math.round(num($('incAge').value)));
+  return {
+    premium: num($('premium').value),
+    curAge: curAge,
+    incAge: incAge,
+    deferYears: incAge - curAge,
+    lifeMode: STATE.lifeMode,
+    rollRate: num($('rollRate').value),
+    rollType: STATE.rollType,
+    rollYears: Math.round(num($('rollYears').value)),
+    bonus: num($('bonus').value),
+    payout: num($('payout').value),
+    riderFee: num($('riderFee').value),
+    credit: num($('credit').value),
+    lifeExp: Math.round(num($('lifeExp').value))
+  };
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function calculate(){
+  var inp = getInputs();
+  var rows = project(inp);
+  var last = rows[rows.length - 1];
+
+  var income = last.benefitBase * (inp.payout / 100);
+  var yearsPaid = Math.max(0, inp.lifeExp - inp.incAge);
+  var totalIncome = income * yearsPaid;
+
+  // Age at which cumulative income has returned the original premium.
+  var breakAge = null;
+  if (income > 0){
+    var yrs = Math.ceil(inp.premium / income);
+    breakAge = inp.incAge + yrs;
+  }
+
+  $('heroAge').textContent = inp.incAge;
+  $('heroIncome').textContent = money(income);
+  $('heroMonthly').textContent = money(income / 12);
+  $('heroDefer').textContent = inp.deferYears;
+  $('heroBB').textContent = moneyShort(last.benefitBase);
+  $('heroTotal').textContent = moneyShort(totalIncome);
+  $('heroLE').textContent = inp.lifeExp;
+  $('heroBreak').textContent = breakAge ? breakAge : '—';
+
+  $('cmpBB').textContent = money(last.benefitBase);
+  $('cmpAV').textContent = money(last.accountValue);
+
+  var gap = last.benefitBase - last.accountValue;
+  var pct = last.benefitBase > 0 ? (gap / last.benefitBase * 100) : 0;
+  $('gapCallout').querySelector('p').innerHTML =
+    'At age <strong>' + inp.incAge + '</strong> the benefit base is <strong>' + money(last.benefitBase) +
+    '</strong> but the contract is worth <strong>' + money(last.accountValue) + '</strong>. That ' +
+    money(gap) + ' difference — ' + pct.toFixed(0) + '% of the headline figure — is not money in the account. ' +
+    'It buys income and nothing else: it cannot be surrendered, and it is generally not what heirs receive.';
+
+  renderChart(rows, inp);
+  renderSchedule(rows, inp);
+}
+
+function renderSchedule(rows, inp){
+  var html = '<thead><tr><th>Age</th><th>Year</th><th>Benefit base</th><th>Account value</th><th>Roll-up</th><th>Income if started</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var isStart = r.age === inp.incAge;
+    html += '<tr class="' + (isStart ? 'start-row' : '') + '">' +
+      '<td>' + r.age + (isStart ? ' &larr; income starts' : '') + '</td>' +
+      '<td>' + r.year + '</td>' +
+      '<td>' + money(r.benefitBase) + '</td>' +
+      '<td>' + money(r.accountValue) + '</td>' +
+      '<td>' + (r.rollingStill ? 'accruing' : 'ended') + '</td>' +
+      '<td>' + money(isStart ? r.benefitBase * (inp.payout/100) : r.incomeIfStartedNow) + '</td>' +
+      '</tr>';
+  });
+  $('schedule').innerHTML = html + '</tbody>';
+}
+
+/**
+ * Hand-drawn SVG so both series sit on one scale and every gridline label
+ * names a value the chart actually reaches.
+ */
+function renderChart(rows, inp){
+  var W = 640, H = 260, PAD_L = 62, PAD_R = 16, PAD_T = 14, PAD_B = 34;
+  var iw = W - PAD_L - PAD_R, ih = H - PAD_T - PAD_B;
+  var maxV = 0;
+  rows.forEach(function(r){ maxV = Math.max(maxV, r.benefitBase, r.accountValue); });
+  if (maxV <= 0) maxV = 1;
+  var ceil = Math.ceil(maxV / 50000) * 50000;
+  var n = Math.max(1, rows.length - 1);
+
+  var x = function(i){ return PAD_L + (i / n) * iw; };
+  var y = function(v){ return PAD_T + ih - (v / ceil) * ih; };
+
+  var grid = '', ticks = 4;
+  for (var g = 0; g <= ticks; g++){
+    var val = (ceil / ticks) * g, yy = y(val);
+    grid += '<line x1="' + PAD_L + '" y1="' + yy + '" x2="' + (W - PAD_R) + '" y2="' + yy +
+            '" stroke="#d8e2f0" stroke-width="1"/>' +
+            '<text x="' + (PAD_L - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="10" fill="#8a9ab5" font-family="Plus Jakarta Sans,sans-serif">' +
+            moneyShort(val) + '</text>';
+  }
+
+  var pathBB = '', pathAV = '';
+  rows.forEach(function(r, i){
+    pathBB += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(r.benefitBase).toFixed(1) + ' ';
+    pathAV += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(r.accountValue).toFixed(1) + ' ';
+  });
+
+  var xlabels = '';
+  rows.forEach(function(r, i){
+    if (i === 0 || i === rows.length - 1 || (rows.length > 6 && i === Math.floor(n/2))){
+      xlabels += '<text x="' + x(i) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="10" fill="#8a9ab5" font-family="Plus Jakarta Sans,sans-serif">Age ' + r.age + '</text>';
+    }
+  });
+
+  var startX = x(n);
+  var marker = '<line x1="' + startX + '" y1="' + PAD_T + '" x2="' + startX + '" y2="' + (PAD_T + ih) +
+               '" stroke="#4a90d9" stroke-width="1.5" stroke-dasharray="4 3"/>';
+
+  $('chart').innerHTML =
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Benefit base and account value from age ' +
+    inp.curAge + ' to ' + inp.incAge + '" style="display:block;min-width:520px;">' +
+    grid + marker +
+    '<path d="' + pathAV + '" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<path d="' + pathBB + '" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<circle cx="' + startX + '" cy="' + y(rows[rows.length-1].benefitBase) + '" r="4" fill="#d97706"/>' +
+    '<circle cx="' + startX + '" cy="' + y(rows[rows.length-1].accountValue) + '" r="4" fill="#0d9488"/>' +
+    xlabels + '</svg>';
+}
+
+/* ============================================================
+   LEAD GATE
+   ============================================================ */
+var FIELDS = ['first','last','email','phone','state'];
+
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function isValidPhone(v){ return v.replace(/\D/g,'').length >= 10; }
+
+function fieldStatus(id){
+  var v = $(id).value.trim();
+  if (id === 'email') return isValidEmail(v);
+  if (id === 'phone') return isValidPhone(v);
+  return v.length > 0;
+}
+
+function updateFormProgress(){
+  var done = FIELDS.filter(fieldStatus).length;
+  FIELDS.forEach(function(id, i){ $('ldot-' + (i+1)).classList.toggle('done', fieldStatus(id)); });
+  $('lock-count').textContent = done + ' of 5 fields complete';
+  var btn = $('unlock-btn'), txt = $('unlock-btn-text');
+  if (done === 5){ btn.classList.add('btn-ready'); txt.innerHTML = '&#128275; See My Illustration &rarr;'; }
+  else { btn.classList.remove('btn-ready'); txt.innerHTML = '&#128274; Complete All Fields to Unlock'; }
+}
+
+function tryUnlock(){
+  var allOk = true;
+  FIELDS.forEach(function(id){
+    var ok = fieldStatus(id);
+    $('f-' + id).classList.toggle('has-error', !ok);
+    if (!ok) allOk = false;
+  });
+  updateFormProgress();
+  if (allOk) unlockResults();
+}
+
+/* ---- Quote Bot lead capture -------------------------------------------- */
+function qbCaptureLead(){
+  if (!window.QuoteBot) return;
+  try {
+    var inp = getInputs();
+    var rows = project(inp);
+    var last = rows[rows.length - 1];
+    var income = last.benefitBase * (inp.payout / 100);
+    var consent = $('qb-consent');
+    window.QuoteBot.capture({
+      email: $('email').value.trim(),
+      phone: $('phone').value.trim(),
+      firstName: $('first').value.trim(),
+      lastName: $('last').value.trim(),
+      productLine: 'ANNUITY_INDEXED',
+      inputs: {
+        state: $('state').value,
+        initialDeposit: inp.premium,
+        currentAge: inp.curAge,
+        incomeStartAge: inp.incAge,
+        deferralYears: inp.deferYears,
+        lifeMode: inp.lifeMode,
+        rollUpRatePercent: inp.rollRate,
+        rollUpType: inp.rollType,
+        rollUpPeriodYears: inp.rollYears,
+        premiumBonusPercent: inp.bonus,
+        payoutFactorPercent: inp.payout,
+        riderChargePercent: inp.riderFee,
+        assumedIndexCreditPercent: inp.credit
+      },
+      results: {
+        benefitBaseAtIncome: last.benefitBase,
+        accountValueAtIncome: last.accountValue,
+        guaranteedAnnualIncome: income,
+        guaranteedMonthlyIncome: income / 12,
+        totalIncomeToAge: income * Math.max(0, inp.lifeExp - inp.incAge),
+        throughAge: inp.lifeExp
+      },
+      consentText: consent ? consent.textContent.replace(/\s+/g,' ').trim() : null
+    });
+  } catch (e) { /* capture must never break the calculator */ }
+}
+
+function unlockResults(){
+  qbCaptureLead();
+  $('results-lock-overlay').classList.add('unlocked');
+  $('results-content').classList.remove('locked');
+  document.querySelector('.inputs-col').classList.add('col-hidden');
+  $('calcGrid').classList.add('results-revealed');
+  setTimeout(function(){
+    document.querySelector('.calc-wrapper').scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 200);
+}
+
+/* ============================================================
+   WIRING
+   ============================================================ */
+function syncPayoutHint(){
+  var inp = getInputs();
+  var auto = autoPayout(inp.incAge, STATE.lifeMode);
+  $('payoutAuto').textContent = STATE.payoutTouched
+    ? 'Typical for age ' + inp.incAge + ': ' + auto.toFixed(1) + '%'
+    : 'Set automatically from age ' + inp.incAge + ' — drag to override';
+  if (!STATE.payoutTouched){
+    $('payout').value = auto;
+    $('payoutVal').textContent = auto.toFixed(1) + '%';
+  }
+}
+
+function refreshLabels(){
+  $('rollRateVal').textContent  = num($('rollRate').value).toFixed(2).replace(/\.?0+$/,'') + '%';
+  $('rollYearsVal').textContent = Math.round(num($('rollYears').value)) + ' yrs';
+  $('bonusVal').textContent     = Math.round(num($('bonus').value)) + '%';
+  $('payoutVal').textContent    = num($('payout').value).toFixed(1) + '%';
+  $('riderFeeVal').textContent  = num($('riderFee').value).toFixed(2) + '%';
+  $('creditVal').textContent    = num($('credit').value).toFixed(2).replace(/\.?0+$/,'') + '%';
+}
+
+function liveUpdate(){ refreshLabels(); syncPayoutHint(); refreshLabels(); calculate(); }
+
+document.addEventListener('DOMContentLoaded', function(){
+  STATES.forEach(function(s){
+    var o = document.createElement('option'); o.value = s; o.textContent = s; $('state').appendChild(o);
+  });
+
+  ['premium','curAge','incAge','lifeExp','rollRate','rollYears','bonus','riderFee','credit'].forEach(function(id){
+    $(id).addEventListener('input', liveUpdate);
+  });
+  $('payout').addEventListener('input', function(){ STATE.payoutTouched = true; liveUpdate(); });
+
+  $('premium').addEventListener('blur', function(){
+    var v = num(this.value); this.value = v ? v.toLocaleString('en-US') : '';
+    liveUpdate();
+  });
+
+  [['lifeSeg','lifeMode'],['rollTypeSeg','rollType']].forEach(function(pair){
+    $(pair[0]).addEventListener('click', function(e){
+      var b = e.target.closest('button'); if (!b) return;
+      this.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      STATE[pair[1]] = b.dataset.val;
+      if (pair[1] === 'lifeMode') STATE.payoutTouched = false;
+      liveUpdate();
+    });
+  });
+
+  FIELDS.forEach(function(id){
+    $(id).addEventListener('input', function(){
+      if (id === 'phone'){
+        var d = this.value.replace(/\D/g,'').slice(0,10);
+        this.value = d.length > 6 ? '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6)
+                   : d.length > 3 ? '(' + d.slice(0,3) + ') ' + d.slice(3)
+                   : d;
+      }
+      updateFormProgress();
+    });
+    $(id).addEventListener('change', updateFormProgress);
+  });
+
+  $('unlock-btn').addEventListener('click', tryUnlock);
+
+  liveUpdate();
+  updateFormProgress();
+});
+</script>
+</body>
+</html>

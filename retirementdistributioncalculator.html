@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax-Free Retirement Strategy Calculator 2026 | Quote-Bot</title>
+<meta name="description" content="See how life insurance cash value can pay your retirement tax bill — preserving your qualified and non-qualified accounts to compound longer and deliver more income for life.">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --primary: #1a3d6b; --primary-dark: #0f2540; --primary-mid: #1e4d85;
+  --accent: #4a90d9; --accent-light: #e8f2fb;
+  --teal: #0d9488; --teal-light: #ccfbf1;
+  --gold: #b45309; --gold-mid: #d97706; --gold-light: #fef3c7; --gold-bright: #f59e0b;
+  --green: #16a34a; --green-light: #dcfce7;
+  --white: #ffffff; --off-white: #f7f9fc; --gray-light: #eef1f6;
+  --gray-mid: #8a9ab5; --gray-dark: #2c3e58; --text: #1c2a3a; --border: #d8e2f0;
+  --shadow: 0 4px 24px rgba(26,61,107,0.10); --shadow-lg: 0 16px 56px rgba(26,61,107,0.16);
+  --radius: 12px; --radius-lg: 20px; --radius-xl: 28px; --transition: 0.2s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--white); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+
+/* TOPBAR */
+.topbar { background: var(--primary-dark); color: rgba(255,255,255,0.8); font-size: 12.5px; padding: 7px 32px; display: flex; align-items: center; justify-content: space-between; }
+.topbar a { color: #9ec9f0; font-weight: 600; }
+.topbar strong { color: #fff; }
+
+/* NAV */
+nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); box-shadow: 0 1px 16px rgba(26,61,107,0.07); }
+.nav-inner { max-width: 1240px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; height: 70px; gap: 24px; }
+.nav-logo { display: flex; align-items: center; flex-shrink: 0; cursor: pointer; margin-right: 16px; }
+.nav-logo-text { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--primary-dark); letter-spacing: -0.3px; }
+.nav-logo-text span { color: var(--accent); }
+.nav-links { display: flex; align-items: center; gap: 2px; flex: 1; list-style: none; }
+.nav-links a { display: flex; align-items: center; padding: 8px 12px; font-size: 14px; font-weight: 500; color: var(--gray-dark); border-radius: 8px; transition: background var(--transition), color var(--transition); white-space: nowrap; }
+.nav-links a:hover { background: var(--accent-light); color: var(--primary); }
+.nav-links a.active { color: var(--primary); font-weight: 700; background: var(--accent-light); }
+.nav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.btn-primary { padding: 10px 22px; border-radius: 10px; background: var(--primary); color: var(--white); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; display: inline-block; transition: background var(--transition), box-shadow var(--transition); white-space: nowrap; text-decoration: none; }
+.btn-primary:hover { background: var(--primary-dark); box-shadow: 0 4px 18px rgba(26,61,107,0.28); }
+
+/* BREADCRUMB */
+.breadcrumb { background: var(--off-white); border-bottom: 1px solid var(--border); padding: 14px 32px; }
+.breadcrumb-inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray-mid); }
+.breadcrumb a { color: var(--accent); font-weight: 500; cursor: pointer; }
+.breadcrumb a:hover { text-decoration: underline; }
+
+/* HERO */
+.calc-hero { background: var(--primary-dark); padding: 36px 32px 40px; position: relative; overflow: hidden; }
+.calc-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 55% 80% at 15% 50%, rgba(74,144,217,0.22) 0%, transparent 65%), radial-gradient(ellipse 40% 60% at 80% 20%, rgba(26,61,107,0.6) 0%, transparent 60%); }
+.calc-hero::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 48px 48px; }
+.calc-hero-inner { max-width: 860px; margin: 0 auto; position: relative; z-index: 1; }
+.article-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 12px; border-radius: 100px; margin-bottom: 12px; }
+.calc-hero h1 { font-family: 'Fraunces', serif; font-size: clamp(20px, 2.5vw, 28px); font-weight: 700; color: var(--white); line-height: 1.15; letter-spacing: -0.3px; margin-bottom: 10px; }
+.calc-hero h1 em { font-style: italic; color: #93c5fd; }
+.calc-hero-sub { font-size: 14px; color: rgba(255,255,255,0.72); line-height: 1.6; margin-bottom: 0; max-width: 620px; }
+
+/* LAYOUT — two-panel */
+.page-layout { max-width: 1440px; margin: 0 auto; padding: 0; display: grid; grid-template-columns: 380px 1fr; min-height: calc(100vh - 120px); align-items: start; transition: grid-template-columns 0.3s ease; }
+.page-layout.inputs-hidden { grid-template-columns: 0px 1fr; }
+.left-panel { position: sticky; top: 0; height: 100vh; overflow-y: auto; overflow-x: hidden; background: var(--off-white); border-right: 1.5px solid var(--border); padding: 16px 14px 28px; display: flex; flex-direction: column; gap: 0; transition: padding 0.3s ease, opacity 0.2s ease; }
+.page-layout.inputs-hidden .left-panel { padding: 0; opacity: 0; pointer-events: none; border-right: none; }
+.edit-inputs-bar { display: none; align-items: center; justify-content: space-between; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 16px; margin-bottom: 14px; }
+.edit-inputs-bar.visible { display: flex; }
+.edit-inputs-label { font-size: 11px; color: var(--gray-mid); }
+.edit-inputs-label strong { color: var(--primary-dark); font-weight: 600; }
+.edit-inputs-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--primary); background: var(--accent-light); border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px; cursor: pointer; transition: background var(--transition); white-space: nowrap; }
+.edit-inputs-btn:hover { background: #d1e8f9; }
+.left-panel::-webkit-scrollbar { width: 4px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.right-panel { padding: 20px 24px 60px; min-width: 0; }
+.calc-body { display: contents; }
+
+/* RESULTS LOCK */
+.results-locked { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 40px; text-align: center; color: var(--gray-mid); }
+.results-locked-icon { font-size: 48px; margin-bottom: 16px; opacity: .4; }
+.results-locked-title { font-family: "Fraunces", serif; font-size: 20px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px; opacity: .5; }
+.results-locked-sub { font-size: 14px; line-height: 1.6; max-width: 320px; }
+
+/* TOOLTIP */
+.info-tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
+.info-icon { width: 18px; height: 18px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.85); cursor: default; margin-left: 8px; flex-shrink: 0; line-height: 1; }
+.info-tooltip { position: fixed; width: 200px; background: var(--primary-dark); color: rgba(255,255,255,0.8); font-size: 10.5px; line-height: 1.5; padding: 8px 10px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); z-index: 9999; display: none; pointer-events: none; }
+.info-tooltip::before { display: none; }
+/* tooltip shown via JS */
+
+@media(max-width:900px) {
+  .page-layout { grid-template-columns: 1fr; }
+  .left-panel { position: static; height: auto; border-right: none; border-bottom: 1.5px solid var(--border); }
+  .right-panel { padding: 24px 20px 60px; }
+}
+
+/* SECTION CARDS */
+.input-section { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 10px; }
+.input-section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.input-section-icon { width: 26px; height: 26px; background: var(--accent-light); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.input-section-title { font-family: 'Fraunces', serif; font-size: 13px; font-weight: 700; color: var(--primary-dark); }
+.input-section-sub { font-size: 13px; color: var(--gray-mid); margin-top: 2px; }
+
+/* GRIDS */
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* FIELD */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-mid); }
+.field input[type=number], .field input[type=range], .field select {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px; color: var(--text);
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  width: 100%;
+}
+.field input[type=number]:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,144,217,0.15); }
+.field input[type=range] { padding: 4px 0; border: none; background: transparent; cursor: pointer; }
+.field .field-note { font-size: 10px; color: var(--gray-mid); line-height: 1.4; }
+.field-value { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--primary); }
+
+/* ACCOUNT BLOCK */
+.acct-block { border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 10px 12px; margin-bottom: 8px; background: var(--white); }
+.acct-block:last-child { margin-bottom: 0; }
+.acct-block-header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.acct-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; padding: 3px 7px; border-radius: 100px; }
+.pill-qual { background: #e8f2fb; color: #1a3d6b; }
+.pill-roth { background: var(--green-light); color: #15803d; }
+.pill-nonq { background: var(--gold-light); color: var(--gold); }
+.acct-block-title { font-size: 12px; font-weight: 700; color: var(--primary-dark); }
+.acct-block-sub { font-size: 12px; color: var(--gray-mid); margin-top: 1px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.tax-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--green-light); color: var(--green); font-size: 10px; font-weight: 700; padding: 4px 7px; border-radius: 6px; margin-top: 2px; }
+.tax-badge-warn { background: #fef2f2; color: #dc2626; }
+
+/* DRAG LIST */
+.drag-list { display: flex; flex-direction: column; gap: 8px; }
+.drag-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--white); border: 1px solid var(--border); border-radius: 8px; cursor: grab; user-select: none; transition: box-shadow var(--transition), border-color var(--transition); }
+.drag-item:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+.drag-item.dragging { opacity: 0.4; }
+.drag-item.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.drag-handle { font-size: 14px; color: var(--gray-mid); }
+.drag-rank { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: var(--gray-mid); width: 18px; flex-shrink: 0; }
+.drag-info { flex: 1; }
+.drag-name { font-size: 12px; font-weight: 700; color: var(--primary-dark); }
+.drag-sub { font-size: 10px; color: var(--gray-mid); }
+
+/* TAX SLIDER */
+.tax-slider-wrap { display: flex; flex-direction: column; gap: 8px; }
+.tax-slider-header { display: flex; justify-content: space-between; align-items: baseline; }
+.tax-slider-header label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-mid); }
+.tax-rate-display { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--primary); }
+.tax-rate-display small { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 500; color: var(--gray-mid); }
+input[type=range].tax-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--val,55%), var(--border) var(--val,55%), var(--border) 100%); border-radius: 3px; outline: none; border: none !important; padding: 0 !important; }
+input[type=range].tax-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--white); border: 2px solid var(--primary); cursor: pointer; box-shadow: 0 1px 4px rgba(26,61,107,0.2); }
+input[type=range].tax-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--white); border: 2.5px solid var(--primary); cursor: pointer; }
+
+/* RUN BUTTON */
+.run-btn { width: 100%; padding: 11px 18px; background: var(--primary); color: var(--white); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700; border: none; border-radius: 10px; cursor: pointer; transition: background var(--transition), box-shadow var(--transition), transform var(--transition); display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px; }
+.run-btn:hover { background: var(--primary-dark); box-shadow: 0 6px 24px rgba(26,61,107,0.3); transform: translateY(-1px); }
+.run-btn:active { transform: translateY(0); }
+
+/* RESULTS */
+.results-area { display: none; margin-top: 16px; }
+.results-area.visible { display: block; }
+
+/* SUMMARY STRIP */
+.summary-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 16px; }
+.summary-card { background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 10px 12px; }
+.summary-card.accent { background: var(--primary-dark); border-color: var(--primary-dark); }
+.summary-card.green { background: var(--green-light); border-color: rgba(22,163,74,0.25); }
+.summary-card.red { background: #fef2f2; border-color: rgba(220,38,38,0.2); }
+.s-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-mid); margin-bottom: 3px; }
+.summary-card.accent .s-label { color: rgba(255,255,255,0.55); }
+.summary-card.green .s-label { color: #15803d; }
+.summary-card.red .s-label { color: #dc2626; }
+.s-value { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--primary-dark); line-height: 1; }
+.summary-card.accent .s-value { color: var(--white); }
+.summary-card.green .s-value { color: #15803d; }
+.summary-card.red .s-value { color: #dc2626; }
+.s-sub { font-size: 10px; color: var(--gray-mid); margin-top: 2px; }
+.summary-card.accent .s-sub { color: rgba(255,255,255,0.5); }
+
+/* CHART CARD */
+.chart-card { background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 12px; }
+.chart-card-header { margin-bottom: 10px; }
+.chart-card-title { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: var(--primary-dark); margin-bottom: 2px; }
+.chart-card-sub { font-size: 11px; color: var(--gray-mid); }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--gray-dark); }
+.legend-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* TABLE */
+.table-scroll { overflow-x: auto; margin-top: 10px; border-radius: var(--radius); border: 1px solid var(--border); }
+table.dist-table { width: 100%; border-collapse: collapse; font-size: 10.5px; min-width: 560px; }
+table.dist-table thead th { padding: 6px 8px; background: var(--primary-dark); color: rgba(255,255,255,0.7); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; text-align: right; white-space: nowrap; }
+table.dist-table thead th:first-child { text-align: left; }
+table.dist-table tbody td { padding: 5px 8px; border-bottom: 1px solid var(--gray-light); color: var(--gray-dark); text-align: right; }
+table.dist-table tbody td:first-child { text-align: left; color: var(--gray-mid); font-weight: 600; }
+table.dist-table tbody tr:nth-child(even) td { background: var(--white); }
+table.dist-table tbody tr:last-child td { border-bottom: none; font-weight: 700; color: var(--primary-dark); background: var(--off-white); }
+.td-tax { color: #dc2626; font-weight: 600; }
+.td-green { color: var(--green); font-weight: 700; }
+.td-zero { color: var(--gray-mid); }
+
+/* CALLOUT */
+.callout { background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 10px 14px; margin-bottom: 10px; }
+.callout.info { background: var(--accent-light); border-color: rgba(74,144,217,0.3); }
+.callout.success { background: var(--green-light); border-color: rgba(22,163,74,0.2); }
+.callout.warning { background: var(--gold-light); border-color: rgba(180,83,9,0.2); }
+.callout-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 7px; color: var(--accent); }
+.callout.success .callout-label { color: var(--green); }
+.callout.warning .callout-label { color: var(--gold); }
+.callout p { font-size: 11px; color: var(--gray-dark); line-height: 1.55; margin: 0; }
+
+/* DISCLAIMER */
+.disclaimer { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-top: 16px; }
+.disclaimer p { font-size: 10px; color: var(--gray-mid); line-height: 1.55; margin: 0; }
+
+/* SIDEBAR */
+aside { position: sticky; top: 90px; display: flex; flex-direction: column; gap: 20px; }
+.sidebar-cta { background: linear-gradient(145deg, var(--primary-dark) 0%, var(--primary-mid) 100%); border-radius: var(--radius-xl); padding: 28px 24px; position: relative; overflow: hidden; }
+.sidebar-cta::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 80% 20%, rgba(74,144,217,0.25) 0%, transparent 60%); }
+.sidebar-cta-inner { position: relative; z-index: 1; }
+.sidebar-cta-eyebrow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 10px; }
+.sidebar-cta h3 { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 700; color: var(--white); margin-bottom: 8px; line-height: 1.3; }
+.sidebar-cta p { font-size: 13.5px; color: rgba(255,255,255,0.65); margin-bottom: 20px; line-height: 1.6; }
+.sidebar-cta a { display: block; padding: 13px; background: var(--white); color: var(--primary); border-radius: 10px; font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 10px; transition: box-shadow var(--transition); }
+.sidebar-cta a:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.sidebar-info { background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 22px; }
+.sidebar-info-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-mid); margin-bottom: 14px; }
+.info-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+.info-item:last-child { margin-bottom: 0; }
+.info-icon { width: 30px; height: 30px; background: var(--accent-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.info-text { font-size: 13px; color: var(--gray-dark); line-height: 1.55; }
+.info-text strong { color: var(--primary-dark); display: block; margin-bottom: 2px; font-size: 13.5px; }
+
+/* CTA */
+.cta-section { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 60%, #1d5290 100%); border-radius: var(--radius-xl); padding: 28px 32px; position: relative; overflow: hidden; margin: 16px 0 0; }
+.cta-section::before { content: ''; position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(74,144,217,0.2) 0%, transparent 70%); top: -180px; left: -100px; }
+.cta-section-inner { position: relative; z-index: 1; text-align: center; }
+.cta-section h2 { font-family: 'Fraunces', serif; font-size: clamp(24px, 3vw, 34px); font-weight: 700; color: var(--white); margin-bottom: 12px; }
+.cta-section p { font-size: 15px; color: rgba(255,255,255,0.7); margin-bottom: 28px; max-width: 460px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+.cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.btn-hero-white { padding: 13px 26px; border-radius: 11px; background: var(--white); color: var(--primary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: transform var(--transition), box-shadow var(--transition); text-decoration: none; }
+.btn-hero-white:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+.btn-ghost-white { padding: 13px 26px; border-radius: 11px; background: transparent; color: rgba(255,255,255,0.88); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; border: 1.5px solid rgba(255,255,255,0.35); display: inline-flex; align-items: center; gap: 8px; transition: all var(--transition); text-decoration: none; }
+.btn-ghost-white:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.7); }
+
+/* FOOTER */
+footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding: 68px 32px 0; margin-top: 80px; }
+.footer-inner { max-width: 1240px; margin: 0 auto; }
+.footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 52px; border-bottom: 1px solid rgba(255,255,255,0.09); }
+.footer-brand p { font-size: 14px; line-height: 1.7; max-width: 270px; margin-bottom: 22px; margin-top: 18px; }
+.footer-col h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.38); margin-bottom: 16px; }
+.footer-col a { display: block; font-size: 13.5px; color: rgba(255,255,255,0.55); margin-bottom: 11px; transition: color var(--transition); }
+.footer-col a:hover { color: var(--white); }
+.footer-bottom { padding: 26px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: 12px; color: rgba(255,255,255,0.3); border-top: 1px solid rgba(255,255,255,0.09); }
+.footer-bottom a { color: rgba(255,255,255,0.35); transition: color var(--transition); }
+.footer-bottom a:hover { color: rgba(255,255,255,0.65); }
+.footer-bottom-links { display: flex; gap: 18px; flex-wrap: wrap; }
+.footer-logo-text { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--white); }
+.footer-logo-text span { color: #93c5fd; }
+.footer-contact { display: flex; flex-direction: column; gap: 8px; }
+.footer-contact a { color: rgba(255,255,255,0.65); font-size: 13.5px; }
+
+/* RESPONSIVE */
+@media(max-width:1000px) {
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .summary-strip { grid-template-columns: 1fr 1fr; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:640px) {
+  .topbar { display: none; }
+  .page-layout { padding: 32px 20px 60px; }
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-4 { grid-template-columns: 1fr; }
+  .summary-strip { grid-template-columns: 1fr; }
+  .input-section { padding: 20px; }
+  .footer-top { grid-template-columns: 1fr; }
+  .cta-section { padding: 36px 24px; }
+}
+/* CONTACT INPUTS */
+#contactFirst:focus, #contactLast:focus, #contactEmail:focus, #contactPhone:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(74,144,217,0.15);
+}
+
+/* COLLAPSIBLE CHART CARDS */
+.chart-card.collapsible .chart-card-header { cursor: pointer; user-select: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.chart-card.collapsible .chart-card-header:hover .chart-card-title { color: var(--accent); }
+.collapsible-toggle { flex-shrink: 0; width: 20px; height: 20px; background: var(--off-white); border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gray-mid); transition: transform var(--transition), background var(--transition); margin-top: 2px; }
+.chart-card.collapsible.open .collapsible-toggle { transform: rotate(180deg); background: var(--accent-light); color: var(--primary); }
+.collapsible-body { display: none; }
+.chart-card.collapsible.open .collapsible-body { display: block; }
+</style>
+  <script src="/js/quotebot-capture.js"
+          data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
+          data-tool="tax-free-retirement"></script>
+  <!-- The assistant. Never opens itself on a timer; see the file header. -->
+  <script src="/js/quotebot-chat.js"
+          data-endpoint="https://im62dp4hwe34ez7lmhvtfk75xa0zkkxv.lambda-url.us-east-2.on.aws/"
+          data-tool="tax-free-retirement" data-context></script>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="calc-hero">
+  <div class="calc-hero-inner">
+    <div class="article-eyebrow">🛡️ Tax-Free Retirement Strategy · 2026</div>
+    <h1>See How Life Insurance Can Pay Your <em>Retirement Tax Bill</em></h1>
+    <p class="calc-hero-sub">Most retirees withdraw more than they need from qualified accounts just to cover taxes — silently eroding the balance that should be compounding. This calculator shows you what changes when life insurance cash value pays those taxes instead, letting your qualified and non-qualified accounts grow undisturbed and deliver more income for life.</p>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="page-layout">
+
+  <!-- LEFT PANEL: INPUTS -->
+  <div class="left-panel">
+
+    <!-- STEP 1: TIMELINE -->
+    <div class="input-section">
+      <div class="input-section-header">
+        <div class="input-section-icon">📅</div>
+        <div>
+<div style="display:flex;align-items:center;gap:6px;">
+              <div class="input-section-title">Your Timeline</div>
+              <div class="info-tooltip-wrap">
+                <div class="info-icon" style="background:var(--accent-light);border:1px solid var(--border);color:var(--primary);width:12px;height:12px;font-size:7px;margin-left:4px;">i</div>
+                <div class="info-tooltip" style="background:var(--primary-dark);">Set your current age, when you plan to retire, and how long you want the plan to run.</div>
+              </div>
+            </div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Current Age</label>
+          <input type="number" id="curAge" value="45" min="18" max="80">
+        </div>
+        <div class="field">
+          <label>Retirement Age</label>
+          <input type="number" id="retAge" value="65" min="30" max="90">
+        </div>
+        <div class="field">
+          <label>Plan Ending Age</label>
+          <input type="number" id="endAge" value="90" min="50" max="110">
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: ACCOUNTS -->
+    <div class="input-section">
+      <div class="input-section-header">
+        <div class="input-section-icon">🏦</div>
+        <div>
+<div style="display:flex;align-items:center;gap:6px;">
+              <div class="input-section-title">Account Values &amp; Growth Rates</div>
+              <div class="info-tooltip-wrap">
+                <div class="info-icon" style="background:var(--accent-light);border:1px solid var(--border);color:var(--primary);width:12px;height:12px;font-size:7px;margin-left:4px;">i</div>
+                <div class="info-tooltip" style="background:var(--primary-dark);">Enter current balances and set the annual growth rate used during accumulation. Actual S&amp;P 500 returns are applied during distribution.</div>
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- QUALIFIED -->
+      <div class="acct-block">
+        <div class="acct-block-header">
+          <span class="acct-pill pill-qual">Qualified</span>
+          <div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div class="acct-block-title">401(k) / Traditional IRA</div>
+              <div class="info-tooltip-wrap"><div class="info-icon" style="background:#e8f2fb;border:1px solid var(--border);color:var(--primary);width:11px;height:11px;font-size:7px;margin-left:3px;">i</div><div class="info-tooltip">Pre-tax contributions — every dollar withdrawn is taxed as ordinary income at your selected tax rate.</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:8px;">
+          <div class="field">
+            <label>Current Value</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">$</span>
+              <input type="text" id="qualValDisplay" value="500,000" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
+              <input type="hidden" id="qualVal" value="500000">
+            </div>
+          </div>
+          <div class="field">
+            <label>Growth % / yr</label>
+            <div style="position:relative;">
+              <input type="text" id="qualGrowAccDisplay" value="6.0%" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
+              <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">%</span>
+              <input type="hidden" id="qualGrowAcc" value="6">
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="tax-badge tax-badge-warn" id="qualTaxBadge" style="margin-top:0;">25% ordinary income tax</div>
+          <span style="font-size:9px;color:var(--gray-mid);font-style:italic;line-height:1.3;">Gross distribution required to net your income target</span>
+        </div>
+      </div>
+
+      <!-- ROTH -->
+      <div class="acct-block">
+        <div class="acct-block-header">
+          <span class="acct-pill pill-roth">Roth IRA</span>
+          <div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div class="acct-block-title">Roth IRA — Tax-Free</div>
+              <div class="info-tooltip-wrap"><div class="info-icon" style="background:var(--green-light);border:1px solid var(--border);color:#15803d;width:11px;height:11px;font-size:7px;margin-left:3px;">i</div><div class="info-tooltip">After-tax contributions. Qualified withdrawals (5+ year rule) are 100% income-tax-free — no gross-up needed.</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:8px;">
+          <div class="field">
+            <label>Current Value</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">$</span>
+              <input type="text" id="rothValDisplay" value="150,000" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
+              <input type="hidden" id="rothVal" value="150000">
+            </div>
+          </div>
+          <div class="field">
+            <label>Growth % / yr</label>
+            <div style="position:relative;">
+              <input type="text" id="rothGrowAccDisplay" value="6.0%" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
+              <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">%</span>
+              <input type="hidden" id="rothGrowAcc" value="6">
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="tax-badge" style="margin-top:0;">✓ 0% — Tax-Free</div>
+          <span style="font-size:9px;color:var(--gray-mid);font-style:italic;line-height:1.3;">Assumes 5+ year seasoning rule met</span>
+        </div>
+      </div>
+
+      <!-- NON-QUALIFIED -->
+      <div class="acct-block">
+        <div class="acct-block-header">
+          <span class="acct-pill pill-nonq" style="font-size:8px;padding:2px 6px;">Non-Qualified</span>
+          <div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div class="acct-block-title" style="font-size:11px;">Brokerage / Savings / Cash Value</div>
+              <div class="info-tooltip-wrap"><div class="info-icon" style="background:var(--gold-light);border:1px solid var(--border);color:var(--gold);width:11px;height:11px;font-size:7px;margin-left:3px;">i</div><div class="info-tooltip">After-tax contributions. Growth is taxed at the long-term capital gains rate you select — 0%, 15%, 20%, or 23.8% (including the 3.8% Net Investment Income Tax for higher earners).</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:8px;">
+          <div class="field">
+            <label>Current Value</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">$</span>
+              <input type="text" id="nonqValDisplay" value="200,000" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
+              <input type="hidden" id="nonqVal" value="200000">
+            </div>
+          </div>
+          <div class="field">
+            <label>Growth % / yr</label>
+            <div style="position:relative;">
+              <input type="text" id="nonqGrowAccDisplay" value="4.0%" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
+              <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">%</span>
+              <input type="hidden" id="nonqGrowAcc" value="4">
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-mid);">LTCG Rate</label>
+          <select id="ltcgRate" style="font-size:11px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;background:var(--gold-light);color:var(--gold);font-weight:700;cursor:pointer;">
+            <option value="0">0%</option>
+            <option value="0.15" selected>15%</option>
+            <option value="0.20">20%</option>
+            <option value="0.238">23.8% (incl. NIIT)</option>
+          </select>
+          <span style="font-size:9px;color:var(--gray-mid);font-style:italic;line-height:1.3;">Long-term capital gains rate applied to non-qualified distributions</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: INCOME & TAX -->
+    <div class="input-section">
+      <div class="input-section-header">
+        <div class="input-section-icon">💰</div>
+        <div>
+<div style="display:flex;align-items:center;gap:6px;">
+              <div class="input-section-title">Retirement Income &amp; Tax Rate</div>
+              <div class="info-tooltip-wrap">
+                <div class="info-icon" style="background:var(--accent-light);border:1px solid var(--border);color:var(--primary);width:12px;height:12px;font-size:7px;margin-left:4px;">i</div>
+                <div class="info-tooltip" style="background:var(--primary-dark);">Set your target retirement income in today's dollars, an annual inflation rate, and your hypothetical blended tax rate.</div>
+              </div>
+            </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="field">
+          <label>Target Retirement Income (Year 1)</label>
+          <div style="position:relative;">
+            <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">$</span>
+            <input type="text" id="targetIncomeDisplay" value="80,000" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
+            <input type="hidden" id="targetIncome" value="80000">
+          </div>
+          <span class="field-note">First-year income need, in today's dollars. Grows with inflation each year.</span>
+        </div>
+        <div class="field">
+          <label>Annual Inflation Rate &nbsp;<strong id="inflDisp" style="color:var(--primary);font-size:12px;">3%</strong></label>
+          <input type="range" id="inflSlider" min="0" max="8" value="3" step="0.5" style="width:100%;margin-top:4px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray-mid);margin-top:2px;">
+            <span>0%</span><span>2%</span><span>4%</span><span>6%</span><span>8%</span>
+          </div>
+          <span class="field-note" style="margin-top:2px;">At 3%, $80k/yr becomes $<span id="inflExample">145k</span>/yr by year 20.</span>
+          <span style="font-size:9px;color:var(--gray-mid);font-style:italic;line-height:1.3;margin-top:2px;display:block;">⚠ Based on historical U.S. CPI averages — adjust to your own assumption.</span>
+        </div>
+        <div>
+          <div class="tax-slider-wrap">
+            <div class="tax-slider-header">
+              <label>Hypothetical Tax Rate</label>
+              <div class="tax-rate-display"><span id="taxPct">25</span>%<small> ordinary income</small></div>
+            </div>
+            <input type="range" class="tax-slider" id="taxSlider" min="0" max="45" value="25" step="1">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray-mid);margin-top:2px;">
+              <span>0%</span><span>15%</span><span>25%</span><span>35%</span><span>45%</span>
+            </div>
+            <span style="font-size:9px;color:var(--gray-mid);font-style:italic;line-height:1.3;">Roth: 0% · Non-Qual: ½ this rate · Qualified: full rate</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: DISTRIBUTION ORDER -->
+    <div class="input-section">
+      <div class="input-section-header">
+        <div class="input-section-icon">📋</div>
+        <div>
+<div style="display:flex;align-items:center;gap:6px;">
+              <div class="input-section-title">Distribution Order</div>
+              <div class="info-tooltip-wrap">
+                <div class="info-icon" style="background:var(--accent-light);border:1px solid var(--border);color:var(--primary);width:12px;height:12px;font-size:7px;margin-left:4px;">i</div>
+                <div class="info-tooltip" style="background:var(--primary-dark);">Drag to set which account gets drawn down first. The first account listed will be fully depleted before moving to the next.</div>
+              </div>
+            </div>
+        </div>
+      </div>
+      <div class="drag-list" id="dragList">
+        <div class="drag-item" draggable="true" data-acct="qual">
+          <span class="drag-handle">⠿</span>
+          <span class="drag-rank" id="rank-qual">1</span>
+          <div class="drag-info">
+            <div class="drag-name">Qualified Account</div>
+            <div class="drag-sub">401(k) / Traditional IRA — taxed at full income rate on withdrawal</div>
+          </div>
+          <span class="acct-pill pill-qual">Qualified</span>
+        </div>
+        <div class="drag-item" draggable="true" data-acct="nonq">
+          <span class="drag-handle">⠿</span>
+          <span class="drag-rank" id="rank-nonq">2</span>
+          <div class="drag-info">
+            <div class="drag-name">Non-Qualified Account</div>
+            <div class="drag-sub">Brokerage / savings — cap gains treatment on distributed growth</div>
+          </div>
+          <span class="acct-pill pill-nonq">Non-Qual</span>
+        </div>
+        <div class="drag-item" draggable="true" data-acct="roth">
+          <span class="drag-handle">⠿</span>
+          <span class="drag-rank" id="rank-roth">3</span>
+          <div class="drag-info">
+            <div class="drag-name">Roth IRA</div>
+            <div class="drag-sub">Tax-free qualified distributions — save this for last to maximize tax-free compounding</div>
+          </div>
+          <span class="acct-pill pill-roth">Roth</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT INFO (required) -->
+    <div class="input-section" style="border-color:var(--accent);background:var(--accent-light);">
+      <div class="input-section-header">
+        <div class="input-section-icon" style="background:var(--primary);color:#fff;">👤</div>
+        <div>
+          <div class="input-section-title" style="color:var(--primary);">Your Information</div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:8px;gap:8px;">
+        <div class="field">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);">First Name</label>
+          <input type="text" id="contactFirst" placeholder="Jane" autocomplete="given-name"
+            style="font-family:inherit;font-size:12px;color:var(--text);background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;width:100%;transition:border-color .2s,box-shadow .2s;">
+        </div>
+        <div class="field">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);">Last Name</label>
+          <input type="text" id="contactLast" placeholder="Smith" autocomplete="family-name"
+            style="font-family:inherit;font-size:12px;color:var(--text);background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;width:100%;transition:border-color .2s,box-shadow .2s;">
+        </div>
+      </div>
+      <div class="grid-2" style="gap:8px;">
+        <div class="field">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);">Email Address</label>
+          <input type="email" id="contactEmail" placeholder="jane@example.com" autocomplete="email"
+            style="font-family:inherit;font-size:12px;color:var(--text);background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;width:100%;transition:border-color .2s,box-shadow .2s;">
+        </div>
+        <div class="field">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);">Phone Number</label>
+          <input type="tel" id="contactPhone" placeholder="(555) 000-0000" autocomplete="tel"
+            style="font-family:inherit;font-size:12px;color:var(--text);background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;width:100%;transition:border-color .2s,box-shadow .2s;">
+        </div>
+      </div>
+      <div id="contactError" style="display:none;color:#dc2626;font-size:10px;margin-top:6px;font-weight:600;"></div>
+    </div>
+
+    <!-- COMPLIANCE STATEMENT -->
+    <p style="font-size:9px;color:var(--gray-mid);line-height:1.5;margin:8px 2px 6px;font-style:italic;">By viewing your retirement projections using life insurance, you agree to our <a href="https://quotebot.io/Privacy-Policy" target="_blank" style="color:var(--accent);text-decoration:underline;">privacy policy</a> and <a href="https://quotebot.io/Terms-Conditions" target="_blank" style="color:var(--accent);text-decoration:underline;">terms of service</a>. We will never sell your information. You may receive a call, SMS, or email from us to follow up. You may opt out at any time.</p>
+
+    <button class="run-btn" onclick="runCalcGated()">
+      ▶ &nbsp;Calculate My Retirement Projections
+    </button>
+
+  </div><!-- /left-panel -->
+
+  <!-- RIGHT PANEL: RESULTS -->
+  <div class="right-panel">
+    <!-- EDIT INPUTS BAR — shown after first calculation -->
+    <div class="edit-inputs-bar" id="editInputsBar">
+      <div class="edit-inputs-label">Showing results for <strong id="editInputsName">your projection</strong></div>
+      <button class="edit-inputs-btn" onclick="openInputPanel()">✏️ Edit Inputs</button>
+    </div>
+
+    <!-- LOCK SCREEN shown before first run -->
+    <div id="resultsLocked" class="results-locked">
+      <div class="results-locked-icon">🔒</div>
+      <div class="results-locked-title">Your results will appear here</div>
+      <div class="results-locked-sub">Fill in your information and account details on the left, then click Calculate to see your personalized tax-free retirement projections.</div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-area" id="resultsArea">
+
+      <div style="height:8px"></div>
+
+      <!-- LIFE INSURANCE TAX STRATEGY -->
+      <div class="chart-card" style="border-color:rgba(79,70,229,0.35);background:linear-gradient(to bottom right,#fafafe,#f5f3ff);">
+        <div class="chart-card-header">
+          <div class="chart-card-title" style="color:#3730a3;">Life Insurance Tax Strategy — Comparing Outcomes</div>
+          <div class="chart-card-sub">In this strategy, your qualified account distributes only the exact income you need (no gross-up). The tax owed on that distribution is paid by life insurance cash value — preserving more of your retirement accounts. The chart and table compare both strategies side by side.</div>
+        </div>
+
+        <div style="background:rgba(79,70,229,0.07);border:1px solid rgba(79,70,229,0.18);border-radius:10px;padding:14px 18px;margin-bottom:18px;">
+          <div style="font-size:10px;font-weight:700;color:#4338ca;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">How this works</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:11px;color:#3730a3;line-height:1.5;">
+            <div><strong style="display:block;margin-bottom:2px;">Standard Strategy (Strategy A)</strong>Qualified accounts are grossed up — you withdraw more than you need so taxes are paid from the account itself. Each dollar of tax reduces the compounding balance.</div>
+            <div><strong style="display:block;margin-bottom:2px;">Life Insurance Strategy (Strategy B)</strong>Qualified accounts distribute only your target income. The tax bill is paid from life insurance cash value — keeping your qualified balance larger and compounding longer. The LI pool grows at a fixed 1.0% net rate (4.5% gross minus 3.5% expenses), independent of market returns.</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:6px;font-size:12px;font-weight:700;color:#4338ca;text-transform:uppercase;letter-spacing:.06em;">Life insurance tax fund starting balance</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <div style="position:relative;width:200px;">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:#4338ca;font-weight:600;pointer-events:none;">$</span>
+            <input type="text" id="liPoolDisplay" value="200,000" inputmode="numeric"
+              style="width:100%;padding:7px 10px 7px 22px;font-size:12px;border:1px solid rgba(79,70,229,0.3);border-radius:8px;background:#fff;color:#1c2a3a;font-family:inherit;text-align:right;">
+            <input type="hidden" id="liPool" value="200000">
+          </div>
+          <div style="font-size:13px;color:#6366f1;">Cash value available to pay taxes. Grows at the accumulation rate of your non-qualified account. Depletes as it covers annual tax bills.</div>
+        </div>
+        <div id="liSuggestedBal" style="display:none;background:linear-gradient(135deg,#1a3d6b 0%,#3730a3 100%);border:none;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#fff;line-height:1.65;box-shadow:0 4px 20px rgba(55,48,163,0.35);"></div>
+
+        <!-- COMPARISON SUMMARY CARDS -->
+        <div id="liCompareCards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;"></div>
+
+        <!-- COMPARISON CHART -->
+        <div class="chart-legend" style="margin-bottom:10px;">
+          <span class="legend-item"><span class="legend-swatch" style="background:#1a3d6b"></span>Qual. draw — Standard</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#6366f1"></span>Qual. draw — LI Strategy</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#dc2626;border-radius:50%;display:inline-block;width:10px;height:10px;"></span>Tax — Standard (line)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#7c3aed;border-radius:50%;display:inline-block;width:10px;height:10px;"></span>LI pays tax (line)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#16a34a;border-radius:50%;display:inline-block;width:10px;height:10px;"></span>Qual. bal — LI Strategy (line)</span>
+        </div>
+        <div style="position:relative;width:100%;height:180px;">
+          <canvas id="liChart" role="img" aria-label="Comparison chart showing qualified account distributions and tax paid under standard vs life insurance tax strategy">Life insurance strategy comparison chart</canvas>
+        </div>
+
+        <!-- BALANCE COMPARISON CHART -->
+        <div style="margin-top:20px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:700;color:#3730a3;margin-bottom:4px;">Qualified Account Balance: Standard vs. Life Insurance Strategy</div>
+          <div style="font-size:12px;color:#6366f1;margin-bottom:10px;">The LI strategy preserves more of your qualified balance each year. This chart shows the difference.</div>
+        </div>
+        <div class="chart-legend" style="margin-bottom:10px;">
+          <span class="legend-item"><span class="legend-swatch" style="background:#dc2626"></span>Qual. balance — Standard</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#6366f1"></span>Qual. balance — LI Strategy</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#a78bfa"></span>LI pool remaining</span>
+        </div>
+        <div style="position:relative;width:100%;height:180px;">
+          <canvas id="liBalChart" role="img" aria-label="Line chart comparing qualified account balances under standard vs life insurance strategy">Balance comparison chart</canvas>
+        </div>
+
+        <!-- DETAIL TABLES -->
+        <div style="margin-top:20px;">
+
+          <!-- TABLE 1: INVESTMENT ONLY (STRATEGY A) -->
+          <div style="border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;" id="tableAWrap">
+            <div onclick="toggleTableSection('tableAWrap')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;background:var(--off-white);user-select:none;" onmouseover="this.style.background='#eef1f6'" onmouseout="this.style.background='var(--off-white)'">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#1a3d6b;text-transform:uppercase;letter-spacing:.06em;">Strategy A — Investment Only (No Life Insurance)</div>
+                <div style="font-size:12px;color:var(--gray-mid);margin-top:3px;">Qualified distributions are grossed up to cover taxes. Taxes paid directly from the account each year. Account growth uses actual S&amp;P 500 annual returns (most recent years ending 2024).</div>
+              </div>
+              <div class="collapsible-toggle" id="tableAToggle">▼</div>
+            </div>
+            <div id="tableABody" style="display:none;">
+              <div class="table-scroll" style="margin:0;">
+                <table class="dist-table" id="liTableA">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left">Age / Year</th>
+                      <th>S&amp;P Return</th>
+                      <th>Qual. Draw</th>
+                      <th>Qual. Tax</th>
+                      <th>Roth Draw</th>
+                      <th>Non-Qual Draw</th>
+                      <th>Non-Qual Tax</th>
+                      <th>Total Tax</th>
+                      <th>After-Tax Income</th>
+                      <th>End Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody id="liTableBodyA"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABLE 2: LIFE INSURANCE STRATEGY (STRATEGY B) -->
+          <div style="border:1.5px solid rgba(79,70,229,0.3);border-radius:12px;overflow:hidden;" id="tableBWrap">
+            <div onclick="toggleTableSection('tableBWrap')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;background:#f5f3ff;user-select:none;" onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#3730a3;text-transform:uppercase;letter-spacing:.06em;">Strategy B — Life Insurance Pays Taxes</div>
+                <div style="font-size:12px;color:#6366f1;margin-top:3px;">Qualified draw equals your income target. LI covers the tax. Roth/Non-Qual draws match Strategy A — see table above for those columns.</div>
+              </div>
+              <div class="collapsible-toggle" id="tableBToggle" style="background:rgba(79,70,229,0.15);border-color:rgba(79,70,229,0.25);transform:rotate(180deg);color:#4338ca;">▼</div>
+            </div>
+            <div id="tableBBody" style="display:block;">
+              <div class="table-scroll" style="margin:0;">
+                <table class="dist-table" id="liTableB">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left">Age</th>
+                      <th>S&amp;P</th>
+                      <th style="background:#3730a3;">Withdrawal <sup style="font-size:7px;opacity:.8;">¹²³</sup></th>
+                      <th style="background:#3730a3;">Total Tax</th>
+                      <th style="background:#3730a3;">LI Pays Tax <sup style="font-size:7px;opacity:.8;">¹³</sup></th>
+                      <th style="background:#3730a3;">After-Tax</th>
+                      <th style="background:#3730a3;">End Balance</th>
+                      <th>Advantage vs A</th>
+                    </tr>
+                  </thead>
+                  <tbody id="liTableBodyB"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="disclaimer" style="margin-top:14px;background:rgba(79,70,229,0.04);border-color:rgba(79,70,229,0.2);">
+          <p style="margin-bottom:6px;"><sup style="color:#4338ca;font-weight:700;">¹</sup> <strong style="color:#1a3d6b;">Qualified (401k/IRA):</strong> Draws exactly your income target — no gross-up. Life insurance covers the ordinary income tax owed so the full withdrawal is spendable. Without LI the account would need to distribute <em>more</em> than your target to net the same after-tax income.</p>
+          <p style="margin-bottom:6px;"><sup style="color:#4338ca;font-weight:700;">²</sup> <strong style="color:#16a34a;">Roth IRA:</strong> Qualified withdrawals are 100% tax-free — no LI needed. Assumes the 5-year seasoning rule is met and you are over age 59½. Drawn only after accounts higher in your distribution order are exhausted.</p>
+          <p style="margin-bottom:8px;"><sup style="color:#4338ca;font-weight:700;">³</sup> <strong style="color:#d97706;">Non-Qualified:</strong> Draws exactly your remaining income need — no gross-up. Life insurance covers the long-term capital gains tax owed on distributed growth so the full withdrawal is spendable. Without LI the account would gross up to cover the LTCG tax internally. If the LI pool is exhausted, both qualified and non-qualified distributions revert to the standard gross-up method.</p>
+          <p>Account growth during distribution uses actual S&amp;P 500 annual total returns (with dividends reinvested) sourced from 1928–2024, applying the most recent consecutive years that fit your distribution window. If your plan exceeds 97 years of available data, the remaining years fall back to your selected accumulation growth rate. Strategy B assumes life insurance cash value is available to pay income taxes on qualified distributions each year; the LI pool grows and declines at a fixed 1.0% net rate (4.5% gross minus 3.5% expenses), independent of market returns. This is a hypothetical stress-test illustration only — actual portfolios are diversified and returns will differ. Not investment, tax, or legal advice. Consult a licensed advisor before implementing any strategy.</p>
+        </div>
+      </div>
+
+      <!-- CTA ABOVE SUMMARY -->
+      <div class="cta-section" style="margin-top:16px;margin-bottom:0;border-radius:var(--radius-xl);">
+        <div class="cta-section-inner">
+          <h2>Ready to Build a Tax-Free Income Layer?</h2>
+          <p>Life insurance cash value can supplement these accounts with tax-free income — helping you reduce your total tax burden and protect against sequence-of-returns risk.</p>
+          <div class="cta-actions">
+            <a href="https://app.quotebot.io/public/life-insurance" target="_blank" class="btn-hero-white">Get a Free Quote →</a>
+            <a href="#" class="btn-ghost-white">📞 Talk to an Advisor</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUMMARY STRIP -->
+      <div style="height:24px"></div>
+      <div class="summary-strip" id="summaryStrip"></div>
+
+      <!-- CALLOUT (dynamic) -->
+      <div id="dynamicCallout"></div>
+      <div class="chart-card collapsible" id="accumCard">
+        <div class="chart-card-header" onclick="toggleCard('accumCard','accumChart')">
+          <div>
+            <div class="chart-card-title">Accumulation Phase — Account Growth to Retirement</div>
+            <div class="chart-card-sub">Year-by-year account values from today through retirement age, stacked by account type.</div>
+          </div>
+          <div class="collapsible-toggle">▼</div>
+        </div>
+        <div class="collapsible-body">
+          <div class="chart-legend" style="margin-top:14px;">
+            <span class="legend-item"><span class="legend-swatch" style="background:#1a3d6b"></span>Qualified (401k/IRA)</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#16a34a"></span>Roth IRA</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#d97706"></span>Non-Qualified</span>
+          </div>
+          <div style="position:relative;width:100%;height:200px;">
+            <canvas id="accumChart" role="img" aria-label="Stacked bar chart showing account growth by year during accumulation phase">Account accumulation chart</canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- DISTRIBUTION CHART -->
+      <div class="chart-card collapsible" id="distCard">
+        <div class="chart-card-header" onclick="toggleCard('distCard','distChart')">
+          <div>
+            <div class="chart-card-title">Distribution Phase — Annual Withdrawals &amp; Tax Due</div>
+            <div class="chart-card-sub">Annual draw from each account type (stacked bars) with total tax due shown separately in red. Income target grows with inflation each year.</div>
+          </div>
+          <div class="collapsible-toggle">▼</div>
+        </div>
+        <div class="collapsible-body">
+          <div class="chart-legend" style="margin-top:14px;">
+            <span class="legend-item"><span class="legend-swatch" style="background:#1a3d6b"></span>Qualified withdrawal</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#16a34a"></span>Roth withdrawal (tax-free)</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#d97706"></span>Non-Qualified withdrawal</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#dc2626"></span>Total tax due</span>
+          </div>
+          <div style="position:relative;width:100%;height:200px;">
+            <canvas id="distChart" role="img" aria-label="Grouped bar chart showing annual retirement distributions by account type and tax due">Distribution chart</canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- BALANCE CHART -->
+      <div class="chart-card collapsible" id="balCard">
+        <div class="chart-card-header" onclick="toggleCard('balCard','balChart')">
+          <div>
+            <div class="chart-card-title">Remaining Balances During Retirement — Standard Strategy</div>
+            <div class="chart-card-sub">Shows when each account type runs to zero based on your distribution order and income target, with taxes paid from the distributing account.</div>
+          </div>
+          <div class="collapsible-toggle">▼</div>
+        </div>
+        <div class="collapsible-body">
+          <div class="chart-legend" style="margin-top:14px;">
+            <span class="legend-item"><span class="legend-swatch" style="background:#1a3d6b"></span>Qualified</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#16a34a"></span>Roth IRA</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#d97706"></span>Non-Qualified</span>
+          </div>
+          <div style="position:relative;width:100%;height:180px;">
+            <canvas id="balChart" role="img" aria-label="Line chart showing remaining account balances throughout retirement">Balance chart</canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-section">
+        <div class="cta-section-inner">
+          <h2>Ready to Build a Tax-Free Income Layer?</h2>
+          <p>Life insurance cash value can supplement these accounts with tax-free income — helping you reduce your total tax burden and protect against sequence-of-returns risk.</p>
+          <div class="cta-actions">
+            <a href="https://app.quotebot.io/public/life-insurance" target="_blank" class="btn-hero-white">Get a Free Quote →</a>
+            <a href="#" class="btn-ghost-white">📞 Talk to an Advisor</a>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /results -->
+
+  </div><!-- /right-panel -->
+
+</div><!-- /page-layout -->
+
+<!-- FOOTER -->
+<footer role="contentinfo">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo-text">Quote<span>-Bot</span></div>
+        <p>Fast, transparent insurance — buy online with or without an agent.</p>
+        <div class="footer-contact">
+          <a href="tel:8888048590">📞 (888) 804-8590</a>
+          <a href="mailto:info@quotebot.io">✉ info@quotebot.io</a>
+          <p style="font-size:12.5px;margin-top:6px;color:rgba(255,255,255,0.35);">Buy online 24/7 · Licensed agents available Mon–Fri</p>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Solutions</h4>
+        <a href="https://app.quotebot.io/public/life-insurance" target="_blank">Life Insurance</a>
+        <a href="#">Disability Insurance</a>
+        <a href="#">Long-Term Care</a>
+        <a href="#">Annuities</a>
+        <a href="https://app.quotebot.io/public/life-insurance" target="_blank">Get a Quote</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="#">Our Licenses</a>
+        <a href="#">Editorial Standards</a>
+        <a href="#">Careers</a>
+        <a href="https://trust.quotebot.io/" target="_blank">Trust Center</a>
+      </div>
+      <div class="footer-col">
+        <h4>Education &amp; Ideas</h4>
+        <a href="https://quotebot.io/education" target="_blank">Education Center</a>
+        <a href="#">How Much Do I Need?</a>
+        <a href="#">Ideas &amp; Articles</a>
+        <a href="#">Retirement Funding Gaps</a>
+        <a href="#">Tax-Free Retirement Guide</a>
+      </div>
+      <div class="footer-col">
+        <h4>Partners</h4>
+        <a href="#">P&amp;C Agents</a>
+        <a href="#">Investment Advisors</a>
+        <a href="#">Attorneys &amp; CPAs</a>
+        <a href="#">Financial Planners</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 QB Insurance LLC dba Quote-Bot. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="https://quotebot.io/Privacy-Policy" target="_blank">Privacy</a>
+        <a href="https://quotebot.io/Terms-Conditions" target="_blank">Terms</a>
+        <a href="https://quotebot.io/cookie-policy/" target="_blank">Cookies</a>
+        <a href="https://quotebot.io/disclaimer/" target="_blank">Disclaimer</a>
+        <a href="#">Licenses</a>
+        <a href="#">Do Not Sell</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── SLIDER ──────────────────────────────────────────────────────────────────
+const slider = document.getElementById('taxSlider');
+const taxPct = document.getElementById('taxPct');
+function updateSlider() {
+  const v = parseInt(slider.value);
+  const pct = (v / 45) * 100;
+  slider.style.setProperty('--val', pct + '%');
+  taxPct.textContent = v;
+  document.getElementById('qualTaxBadge').textContent = v + '% ordinary income tax';
+}
+slider.addEventListener('input', updateSlider);
+updateSlider();
+
+// ── INFLATION SLIDER ─────────────────────────────────────────────────────────
+const inflSlider = document.getElementById('inflSlider');
+function updateInflSlider() {
+  const v = parseFloat(inflSlider.value);
+  document.getElementById('inflDisp').textContent = v + '%';
+  const base = parseFloat(document.getElementById('targetIncome').value) || 80000;
+  const yr20 = Math.round(base * Math.pow(1 + v / 100, 20) / 1000);
+  document.getElementById('inflExample').textContent = yr20 + 'k';
+}
+inflSlider.addEventListener('input', updateInflSlider);
+document.getElementById('targetIncomeDisplay').addEventListener('input', updateInflSlider);
+updateInflSlider();
+
+// ── CURRENCY & PERCENT INPUT HELPERS ─────────────────────────────────────────
+function setupCurrencyInput(displayId, hiddenId) {
+  const disp = document.getElementById(displayId);
+  const hid  = document.getElementById(hiddenId);
+  disp.addEventListener('focus', () => {
+    disp.value = hid.value || '';
+  });
+  disp.addEventListener('input', () => {
+    hid.value = parseFloat(disp.value.replace(/[^0-9.]/g, '')) || 0;
+  });
+  disp.addEventListener('blur', () => {
+    const raw = parseFloat(hid.value) || 0;
+    hid.value = raw;
+    disp.value = raw > 0 ? Math.round(raw).toLocaleString('en-US') : '0';
+  });
+  disp.addEventListener('keydown', e => { if (e.key === 'Enter') disp.blur(); });
+}
+
+function setupPercentInput(displayId, hiddenId) {
+  const disp = document.getElementById(displayId);
+  const hid  = document.getElementById(hiddenId);
+  disp.addEventListener('focus', () => {
+    disp.value = hid.value || '';
+  });
+  disp.addEventListener('input', () => {
+    hid.value = parseFloat(disp.value.replace(/[^0-9.]/g, '')) || 0;
+  });
+  disp.addEventListener('blur', () => {
+    const raw = parseFloat(hid.value) || 0;
+    hid.value = raw;
+    disp.value = raw.toFixed(1) + '%';
+  });
+  disp.addEventListener('keydown', e => { if (e.key === 'Enter') disp.blur(); });
+}
+
+setupCurrencyInput('qualValDisplay',   'qualVal');
+setupCurrencyInput('rothValDisplay',   'rothVal');
+setupCurrencyInput('nonqValDisplay',   'nonqVal');
+setupCurrencyInput('targetIncomeDisplay', 'targetIncome');
+setupPercentInput('qualGrowAccDisplay',  'qualGrowAcc');
+setupPercentInput('rothGrowAccDisplay',  'rothGrowAcc');
+setupPercentInput('nonqGrowAccDisplay',  'nonqGrowAcc');
+
+// ── LI POOL CURRENCY INPUT ───────────────────────────────────────────────────
+const liPoolDisplay = document.getElementById('liPoolDisplay');
+const liPoolHidden  = document.getElementById('liPool');
+function parseCurrency(s) {
+  return parseFloat(s.replace(/[^0-9.]/g, '')) || 0;
+}
+function formatCurrency(n) {
+  return Math.round(n).toLocaleString('en-US');
+}
+let liPoolDebounce = null;
+liPoolDisplay.addEventListener('input', () => {
+  const raw = parseCurrency(liPoolDisplay.value) || 0;
+  liPoolHidden.value = raw;
+  clearTimeout(liPoolDebounce);
+  liPoolDebounce = setTimeout(() => {
+    if (document.getElementById('resultsArea').classList.contains('visible')) runLI();
+  }, 400);
+});
+liPoolDisplay.addEventListener('blur', () => {
+  clearTimeout(liPoolDebounce);
+  const raw = parseCurrency(liPoolDisplay.value) || 0;
+  liPoolHidden.value = raw;
+  liPoolDisplay.value = formatCurrency(raw);
+  if (document.getElementById('resultsArea').classList.contains('visible')) runLI();
+});
+liPoolDisplay.addEventListener('focus', () => {
+  liPoolDisplay.value = liPoolHidden.value || '';
+});
+liPoolDisplay.addEventListener('keydown', e => {
+  if (e.key === 'Enter') liPoolDisplay.blur();
+});
+
+// ── DRAG & DROP ──────────────────────────────────────────────────────────────
+let dragSrc = null;
+document.querySelectorAll('.drag-item').forEach(el => {
+  el.addEventListener('dragstart', e => { dragSrc = el; el.classList.add('dragging'); });
+  el.addEventListener('dragend', () => { dragSrc.classList.remove('dragging'); updateRanks(); });
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    el.classList.remove('drag-over');
+    if (dragSrc && dragSrc !== el) {
+      const list = document.getElementById('dragList');
+      const items = [...list.children];
+      const si = items.indexOf(dragSrc), ti = items.indexOf(el);
+      if (si < ti) list.insertBefore(dragSrc, el.nextSibling);
+      else list.insertBefore(dragSrc, el);
+      updateRanks();
+    }
+  });
+});
+function updateRanks() {
+  document.querySelectorAll('.drag-item').forEach((el, i) => {
+    const acct = el.dataset.acct;
+    const rankEl = document.getElementById('rank-' + acct);
+    if (rankEl) rankEl.textContent = i + 1;
+  });
+}
+
+// ── TOOLTIP POSITIONING ──────────────────────────────────────────────────────
+// Tooltips use position:fixed so they escape the left-panel overflow stacking
+// context and never get clipped by the right panel.
+document.querySelectorAll('.info-tooltip-wrap').forEach(wrap => {
+  const icon    = wrap.querySelector('.info-icon');
+  const tooltip = wrap.querySelector('.info-tooltip');
+  if (!icon || !tooltip) return;
+
+  function showTip() {
+    const r = icon.getBoundingClientRect();
+    tooltip.style.display = 'block';
+    // Try to position to the right of the icon; if it overflows the viewport, flip left
+    const tipW = 200;
+    const spaceRight = window.innerWidth - r.right - 8;
+    if (spaceRight >= tipW) {
+      tooltip.style.left  = (r.right + 8) + 'px';
+    } else {
+      tooltip.style.left  = Math.max(8, r.left - tipW - 8) + 'px';
+    }
+    // Vertically center on icon, clamp to viewport
+    let top = r.top + r.height / 2 - tooltip.offsetHeight / 2;
+    top = Math.max(8, Math.min(top, window.innerHeight - tooltip.offsetHeight - 8));
+    tooltip.style.top = top + 'px';
+  }
+
+  icon.addEventListener('mouseenter', showTip);
+  icon.addEventListener('mousemove', showTip);
+  icon.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+});
+
+// ── COLLAPSIBLE CARDS ────────────────────────────────────────────────────────
+function toggleCard(cardId, canvasId) {
+  const card = document.getElementById(cardId);
+  const isOpen = card.classList.toggle('open');
+  if (isOpen && canvasId) {
+    requestAnimationFrame(() => {
+      const chart = Chart.getChart(canvasId);
+      if (chart) chart.resize();
+    });
+  }
+}
+
+function toggleTableSection(wrapperId) {
+  const wrap   = document.getElementById(wrapperId);
+  const bodyId = wrapperId === 'tableAWrap' ? 'tableABody' : 'tableBBody';
+  const togId  = wrapperId === 'tableAWrap' ? 'tableAToggle' : 'tableBToggle';
+  const body   = document.getElementById(bodyId);
+  const tog    = document.getElementById(togId);
+  const isOpen = body.style.display === 'none';
+  body.style.display = isOpen ? 'block' : 'none';
+  tog.style.transform = isOpen ? 'rotate(180deg)' : '';
+  tog.style.background = isOpen
+    ? (wrapperId === 'tableBWrap' ? 'rgba(79,70,229,0.15)' : 'var(--accent-light)')
+    : (wrapperId === 'tableBWrap' ? 'rgba(79,70,229,0.08)' : 'var(--off-white)');
+  tog.style.color = isOpen
+    ? (wrapperId === 'tableBWrap' ? '#4338ca' : 'var(--primary)')
+    : 'var(--gray-mid)';
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function fmt(n) {
+  if (n === 0) return '—';
+  const abs = Math.abs(Math.round(n));
+  return (n < 0 ? '-$' : '$') + abs.toLocaleString();
+}
+function fmtFull(n) {
+  return (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString();
+}
+
+// ── S&P 500 HISTORICAL ANNUAL RETURNS 1928–2024 ───────────────────────────────
+const SP500 = {
+  1928:43.81,1929:-8.30,1930:-25.12,1931:-43.84,1932:-8.64,1933:49.98,
+  1934:-1.19,1935:46.74,1936:31.94,1937:-35.34,1938:29.28,1939:-1.10,
+  1940:-10.67,1941:-12.77,1942:19.17,1943:25.06,1944:19.03,1945:35.82,
+  1946:-8.43,1947:5.20,1948:5.70,1949:18.30,1950:30.81,1951:23.68,
+  1952:18.15,1953:-1.21,1954:52.56,1955:32.60,1956:7.44,1957:-10.46,
+  1958:43.72,1959:12.06,1960:0.34,1961:26.64,1962:-8.81,1963:22.61,
+  1964:16.42,1965:12.40,1966:-9.97,1967:23.80,1968:10.81,1969:-8.24,
+  1970:3.56,1971:14.22,1972:18.76,1973:-14.31,1974:-25.90,1975:37.00,
+  1976:23.83,1977:-6.98,1978:6.51,1979:18.52,1980:31.74,1981:-4.70,
+  1982:20.42,1983:22.34,1984:6.15,1985:31.24,1986:18.49,1987:5.81,
+  1988:16.54,1989:31.48,1990:-3.06,1991:30.23,1992:7.49,1993:9.97,
+  1994:1.33,1995:37.20,1996:22.68,1997:33.10,1998:28.34,1999:20.89,
+  2000:-9.03,2001:-11.85,2002:-21.97,2003:28.36,2004:10.74,2005:4.83,
+  2006:15.61,2007:5.48,2008:-36.55,2009:25.94,2010:14.82,2011:2.10,
+  2012:15.89,2013:32.15,2014:13.52,2015:1.38,2016:11.77,2017:21.61,
+  2018:-4.23,2019:31.21,2020:18.02,2021:28.47,2022:-18.04,2023:26.06,
+  2024:24.88
+};
+
+// ── CHART INSTANCES ──────────────────────────────────────────────────────────
+let accumCI = null, distCI = null, balCI = null, liCI = null, liBalCI = null;
+
+// ── SHARED STATE (set by runCalc, consumed by runLI) ────────────────────────
+let _retQ=0, _retR=0, _retN=0, _distYrs=0, _retAge=0, _endAge=0;
+let _target=0, _inflRate=0, _taxRate=0, _cgRate=0;
+let _qualGA=0, _rothGA=0, _nonqGA=0;
+let _order=[], _rows=[], _bQ=[], _bR=[], _bN=[], _dLabels=[], _dQW=[], _dTax=[], _shortfallYrs=0;
+let _spSeq=[], _accumYrs=0;  // S&P 500 year sequence and accumulation years
+
+// ── STRATEGY B: STANDALONE LI CALCULATOR ────────────────────────────────────
+function runLI() {
+  if (!_retQ && !_retR && !_retN) return; // runCalc hasn't fired yet
+
+  const liPoolStart = parseFloat(document.getElementById('liPool').value) || 0;
+  let liPool = liPoolStart;
+  let bq2 = _retQ, br2 = _retR, bn2 = _retN;
+  const liRows = [];
+  const bQB = [_retQ];
+  const bLI = [liPoolStart];
+
+  const LI_GROSS = 0.045;
+  const LI_EXPENSE = 0.035;
+  const LI_NET = LI_GROSS - LI_EXPENSE; // 1.0% net
+
+  for (let i = 0; i < _distYrs; i++) {
+    const age = _retAge + i;
+    const yearTarget = _target * Math.pow(1 + _inflRate, i);
+    const spRet = i < _spSeq.length ? SP500[_spSeq[i]] / 100 : _qualGA;
+    // Investment accounts grow with S&P returns
+    bq2 = Math.max(0, bq2 * (1 + spRet));
+    br2 = Math.max(0, br2 * (1 + spRet));
+    bn2 = Math.max(0, bn2 * (1 + spRet));
+    // LI pool grows at fixed net rate — completely independent of market
+    liPool = Math.max(0, liPool * (1 + LI_NET));
+
+    let q2draw = 0, r2draw = 0, n2draw = 0, q2tax = 0, n2tax = 0, liPays = 0;
+    let incomeDelivered = 0;
+
+    for (const acct of _order) {
+      if (incomeDelivered >= yearTarget - 0.01) break;
+      const stillNeed = yearTarget - incomeDelivered;
+      if (acct === 'qual' && bq2 > 0) {
+        // How much tax can LI cover this year?
+        const liAvailable = liPool;
+        if (liAvailable > 0) {
+          // LI has funds — draw only what's needed for income (no gross-up)
+          const draw = Math.min(stillNeed, bq2);
+          const taxOwed = draw * _taxRate;
+          const liCover = Math.min(taxOwed, liAvailable);
+          const uncoveredTax = taxOwed - liCover;
+          liPool = Math.max(0, liPool - liCover);
+          liPays += liCover;
+          // If LI covers all tax: full draw is spendable
+          // If LI runs out mid-year: gross up extra to cover uncovered portion
+          if (uncoveredTax > 0.01) {
+            // Need to gross up to cover the uncovered tax from the account itself
+            const extraGross = _taxRate < 1 ? uncoveredTax / (1 - _taxRate) : uncoveredTax;
+            const totalDraw = Math.min(draw + extraGross, bq2);
+            const totalTax = totalDraw * _taxRate;
+            const additionalLI = Math.min(totalTax - liCover, liPool);
+            liPool = Math.max(0, liPool - additionalLI);
+            liPays += additionalLI;
+            q2draw += totalDraw; q2tax += totalTax; bq2 = Math.max(0, bq2 - totalDraw);
+            incomeDelivered += totalDraw - (totalTax - liCover - additionalLI);
+          } else {
+            q2draw += draw; q2tax += taxOwed; bq2 = Math.max(0, bq2 - draw);
+            incomeDelivered += draw;
+          }
+        } else {
+          // No LI available — revert to standard gross-up (identical to Strategy A)
+          const gross = _taxRate < 1 ? Math.min(stillNeed / (1 - _taxRate), bq2) : Math.min(bq2, stillNeed);
+          const after = gross * (1 - _taxRate);
+          q2draw += gross; q2tax += gross * _taxRate; bq2 = Math.max(0, bq2 - gross);
+          incomeDelivered += after;
+        }
+      } else if (acct === 'roth' && br2 > 0) {
+        const take = Math.min(stillNeed, br2);
+        r2draw += take; br2 = Math.max(0, br2 - take); incomeDelivered += take;
+      } else if (acct === 'nonq' && bn2 > 0) {
+        if (liPool > 0) {
+          // Draw only the net income needed — LI covers the LTCG tax
+          const draw = Math.min(stillNeed, bn2);
+          const taxOwed = draw * _cgRate;
+          const liCover = Math.min(taxOwed, liPool);
+          const uncoveredTax = taxOwed - liCover;
+          liPool = Math.max(0, liPool - liCover);
+          liPays += liCover;
+          if (uncoveredTax > 0.01) {
+            // Gross up to cover uncovered portion from the account
+            const extraGross = _cgRate < 1 ? uncoveredTax / (1 - _cgRate) : uncoveredTax;
+            const totalDraw = Math.min(draw + extraGross, bn2);
+            const totalTax = totalDraw * _cgRate;
+            const additionalLI = Math.min(totalTax - liCover, liPool);
+            liPool = Math.max(0, liPool - additionalLI);
+            liPays += additionalLI;
+            n2draw += totalDraw; n2tax += totalTax; bn2 = Math.max(0, bn2 - totalDraw);
+            incomeDelivered += totalDraw - (totalTax - liCover - additionalLI);
+          } else {
+            n2draw += draw; n2tax += taxOwed; bn2 = Math.max(0, bn2 - draw);
+            incomeDelivered += draw;
+          }
+        } else {
+          // No LI — standard gross-up
+          const gross = _cgRate < 1 ? Math.min(stillNeed / (1 - _cgRate), bn2) : Math.min(bn2, stillNeed);
+          const after = gross * (1 - _cgRate);
+          n2draw += gross; n2tax += gross * _cgRate; bn2 = Math.max(0, bn2 - gross); incomeDelivered += after;
+        }
+      }
+    }
+    const shortfallB = incomeDelivered < yearTarget - 0.01;
+    const invBalB  = Math.max(0,bq2) + Math.max(0,br2) + Math.max(0,bn2);
+    const liPoolBal = Math.max(0, liPool);
+    const endBalB  = invBalB + liPoolBal;
+    bQB.push(Math.round(bq2));
+    bLI.push(Math.round(liPool));
+    liRows.push({ age, yearTarget, spRet: i < _spSeq.length ? SP500[_spSeq[i]] : null, calYear: _spSeq[i] || null,
+      q2draw, q2tax, liPays, r2draw, n2draw, n2tax,
+      totalD2: q2draw+r2draw+n2draw, afterTax2: incomeDelivered,
+      shortfallB, bq2, br2, bn2, liPool: liPoolBal, endBalB, invBalB });
+  }
+
+  // ── SUGGESTED LI POOL BALANCE ────────────────────────────────────────────────
+  // Goal: find the minimum cash value needed TODAY so that a life insurance
+  // policy growing at 1.0% net (4.5% gross - 3.5% expenses) can pay every
+  // year's projected tax bill throughout retirement without running out.
+  // Tax schedule = Strategy A's yearTax per year = qualified ordinary income tax
+  // + non-qualified LTCG tax combined. Both are covered by LI in Strategy B.
+  const liNetRate = LI_NET; // 1.0% net — same rate used in the simulation above
+
+  // Use Strategy A's full tax liability (qualified + non-qual LTCG) — pool-independent
+  const taxSchedule = _rows.map(row => row.yearTax);
+
+  function simulatePool(startBal) {
+    // Grow through accumulation years first
+    let pool = startBal * Math.pow(1 + liNetRate, _accumYrs);
+    // Then pay taxes year by year through distribution
+    for (let i = 0; i < taxSchedule.length; i++) {
+      pool *= (1 + liNetRate);      // grow one year
+      pool -= taxSchedule[i];       // pay that year's taxes
+      if (pool < -0.01) return false;
+    }
+    return true;
+  }
+
+  // Binary search: upper bound = sum of all taxes (no growth assumed) as safe ceiling
+  let lo = 0, hi = taxSchedule.reduce((s, t) => s + t, 0);
+  for (let iter = 0; iter < 60; iter++) {
+    const mid = (lo + hi) / 2;
+    if (simulatePool(mid)) hi = mid; else lo = mid;
+  }
+  const suggestedBal = Math.ceil(hi / 100) * 100; // round up to nearest $100
+
+  const sugEl = document.getElementById('liSuggestedBal');
+  sugEl.style.display = 'block';
+  sugEl.innerHTML = `
+    <strong style="color:#fff;font-size:15px;">💡 Suggested starting balance: ${fmtFull(suggestedBal)}</strong><br>
+    <span style="color:rgba(255,255,255,0.75);">The minimum life insurance cash value needed <em>today</em> so the policy — we are muting growth to help show a concept because your actual policy could vary greatly from our example. This means we are showing the cash value growing at 1.0% net per year (4.5% gross crediting rate minus 3.5% expenses) through ${_accumYrs} accumulation years and all ${_distYrs} retirement years — is projected to pay every projected tax bill for the years shown below. Covers both <strong style="color:#fff;">qualified ordinary income tax</strong> and <strong style="color:#fff;">non-qualified long-term capital gains tax</strong> each year.</span>
+    <span style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;">
+      <span id="liSuggestedBtn" onclick="applySuggestedBal(${suggestedBal})"
+        style="display:inline-block;padding:7px 16px;background:#fff;border-radius:8px;cursor:pointer;font-weight:700;color:#3730a3;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:opacity .15s;"
+        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        Use ${fmtFull(suggestedBal)} →
+      </span>
+      <span style="font-size:12px;color:rgba(255,255,255,0.6);">Click to apply this amount to the field above</span>
+    </span>
+  `;
+
+  // Summary cards
+  const totalTaxA   = _rows.reduce((s,r)=>s+r.yearTax, 0);
+  const totalLIPays = liRows.reduce((s,r)=>s+r.liPays, 0);
+  const shortfallB  = liRows.filter(r=>r.shortfallB).length;
+  const lastRowB    = liRows.length > 0 ? liRows[liRows.length-1] : null;
+  const endQualB    = lastRowB ? Math.max(0, lastRowB.bq2)   : 0;
+  const endRothB    = lastRowB ? Math.max(0, lastRowB.br2)   : 0;
+  const endNonqB    = lastRowB ? Math.max(0, lastRowB.bn2)   : 0;
+  const endLIPool   = lastRowB ? Math.max(0, lastRowB.liPool): 0;
+  const endTotalB   = endQualB + endRothB + endNonqB + endLIPool;
+  const endQualA    = Math.max(0, _bQ[_bQ.length-1] || 0);
+  const endRothA    = Math.max(0, _bR[_bR.length-1] || 0);
+  const endNonqA    = Math.max(0, _bN[_bN.length-1] || 0);
+  const endTotalA   = endQualA + endRothA + endNonqA;
+  const balAdvantage   = endTotalB - endTotalA;
+  const totalAdvantage = balAdvantage;
+
+  document.getElementById('liCompareCards').innerHTML = `
+    <div class="summary-card red"><div class="s-label">Strategy A — Total Tax Paid</div><div class="s-value">${fmtFull(totalTaxA)}</div><div class="s-sub">Paid from retirement accounts</div></div>
+    <div class="summary-card" style="background:#f5f3ff;border-color:rgba(99,102,241,0.3);"><div class="s-label" style="color:#6366f1;">Strategy B — LI Covers Tax</div><div class="s-value" style="color:#4338ca;">${fmtFull(totalLIPays)}</div><div class="s-sub" style="color:#6366f1;">Paid from life insurance pool</div></div>
+    <div class="summary-card" style="background:${balAdvantage>=0?'var(--green-light)':'#fef2f2'};border-color:${balAdvantage>=0?'rgba(22,163,74,.25)':'rgba(220,38,38,.2)'};"><div class="s-label" style="color:${balAdvantage>=0?'#15803d':'#dc2626'};">Balance Advantage (B vs A)</div><div class="s-value" style="color:${balAdvantage>=0?'#15803d':'#dc2626'};">${balAdvantage>=0?'+':''}${fmtFull(balAdvantage)}</div><div class="s-sub" style="color:${balAdvantage>=0?'#15803d':'#dc2626'};">Strategy B (${fmtFull(endTotalB)}) minus Strategy A (${fmtFull(endTotalA)}) at age ${_endAge}</div></div>
+    <div class="summary-card red"><div class="s-label">Strategy A — Shortfall Years</div><div class="s-value">${_shortfallYrs}</div><div class="s-sub">Years income target not met</div></div>
+    <div class="summary-card" style="background:#f5f3ff;border-color:rgba(99,102,241,0.3);"><div class="s-label" style="color:#6366f1;">Strategy B — Shortfall Years</div><div class="s-value" style="color:${shortfallB>0?'#dc2626':'#4338ca'}">${shortfallB}</div><div class="s-sub" style="color:#6366f1;">Years income target not met</div></div>
+    <div class="summary-card" style="background:${totalAdvantage>=0?'var(--green-light)':'#fef2f2'};border-color:${totalAdvantage>=0?'rgba(22,163,74,.25)':'rgba(220,38,38,.2)'};"><div class="s-label" style="color:${totalAdvantage>=0?'#15803d':'#dc2626'};">Strategy B — Total Remaining Balance</div><div class="s-value" style="color:${totalAdvantage>=0?'#15803d':'#dc2626'};">${fmtFull(endTotalB)}</div><div class="s-sub" style="color:${totalAdvantage>=0?'#15803d':'#dc2626'};">All accts + LI pool at age ${_endAge} · ${totalAdvantage>=0?'+':''}${fmtFull(totalAdvantage)} vs Strategy A (${fmtFull(endTotalA)})</div></div>
+  `;
+
+  // Charts
+  if (liCI) liCI.destroy();
+  if (liBalCI) liBalCI.destroy();
+
+  liCI = new Chart(document.getElementById('liChart'), {
+    type: 'bar',
+    data: {
+      labels: _dLabels,
+      datasets: [
+        { type:'bar',  label:'A: Qual. Draw',  data: _dQW,                                   backgroundColor:'rgba(26,61,107,0.5)',  stack:'a', yAxisID:'y', order:4 },
+        { type:'bar',  label:'B: Qual. Draw',  data: liRows.map(r=>Math.round(r.q2draw)),    backgroundColor:'rgba(99,102,241,0.7)', stack:'b', yAxisID:'y', order:3 },
+        { type:'line', label:'A: Tax Paid',    data: _dTax,                                  borderColor:'#dc2626', backgroundColor:'transparent', borderWidth:2, pointRadius:3, tension:0.3, yAxisID:'y', order:1 },
+        { type:'line', label:'B: LI Pays Tax', data: liRows.map(r=>Math.round(r.liPays)),    borderColor:'#7c3aed', backgroundColor:'transparent', borderWidth:2, pointRadius:3, tension:0.3, borderDash:[5,3], yAxisID:'y', order:2 },
+        { type:'line', label:'B: Qual. Bal.',  data: bQB.slice(1),                           borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.06)', borderWidth:2.5, pointRadius:2, tension:0.3, fill:true, yAxisID:'y2', order:0 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:'#8a9ab5', font:{size:11}, maxRotation:45 } },
+        y:{ position:'left',  ticks:{ color:'#8a9ab5', font:{size:11}, callback:v=>'$'+Math.round(v/1000)+'k' }, title:{ display:true, text:'Annual Distributions / Tax', color:'#8a9ab5', font:{size:11} } },
+        y2:{ position:'right', grid:{ drawOnChartArea:false }, ticks:{ color:'#16a34a', font:{size:11}, callback:v=>'$'+Math.round(v/1000)+'k' }, title:{ display:true, text:'Qual. Balance — Strategy B', color:'#16a34a', font:{size:11} } }
+      }
+    }
+  });
+
+  liBalCI = new Chart(document.getElementById('liBalChart'), {
+    type: 'line',
+    data: {
+      labels: [_retAge, ..._dLabels],
+      datasets: [
+        { label:'A: Qual. Balance', data: _bQ, borderColor:'#dc2626', backgroundColor:'rgba(220,38,38,0.06)', fill:true, tension:0.3, pointRadius:2, borderWidth:2.5, borderDash:[6,3] },
+        { label:'B: Qual. Balance', data: bQB, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.08)',  fill:true, tension:0.3, pointRadius:2, borderWidth:2.5 },
+        { label:'LI Pool',          data: bLI, borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.08)', fill:true, tension:0.3, pointRadius:2, borderWidth:1.5, borderDash:[3,2] }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:'#8a9ab5', font:{size:11}, maxRotation:45, maxTicksLimit:16 } },
+        y:{ ticks:{ color:'#8a9ab5', font:{size:11}, callback:v=>'$'+Math.round(v/1000)+'k' } }
+      }
+    }
+  });
+
+  // ── TWO DETAIL TABLES ────────────────────────────────────────────────────────
+  const tbodyA = document.getElementById('liTableBodyA');
+  const tbodyB = document.getElementById('liTableBodyB');
+  tbodyA.innerHTML = ''; tbodyB.innerHTML = '';
+
+  let ltAQD=0,ltAQT=0,ltARD=0,ltAND=0,ltANT=0,ltATT=0,ltAAT=0,ltAEB=0;
+  let ltBQD=0,ltBLI=0,ltBRD=0,ltBND=0,ltBNT=0,ltBTT=0,ltBAT=0,ltBEB=0,ltBInv=0,ltBLIP=0;
+
+  _rows.forEach((rowA, i) => {
+    const rowB = liRows[i];
+    if (!rowB) return;
+    const endBalA = (_bQ[i+1]||0) + (_bR[i+1]||0) + (_bN[i+1]||0);
+    const advantage = rowB.endBalB - endBalA;
+    const retA = rowA.spRet;
+    const retColor = retA != null ? (retA >= 0 ? 'color:#16a34a;font-weight:700' : 'color:#dc2626;font-weight:700') : 'color:#8a9ab5';
+    const retStr = retA != null ? (retA >= 0 ? '+' : '') + retA.toFixed(2) + '%' : '—';
+    const yearLabel = rowA.calYear ? ` <span style="color:#8a9ab5;font-size:11px;font-weight:400">(${rowA.calYear})</span>` : '';
+
+    // Strategy A row
+    const trA = document.createElement('tr');
+    if (retA != null && retA < 0) trA.style.background = '#fef9f9';
+    trA.innerHTML = `
+      <td>Age ${rowA.age}${yearLabel}</td>
+      <td style="${retColor}">${retStr}</td>
+      <td>${fmtFull(rowA.qdraw)}</td>
+      <td>${rowA.qtax > 0 ? '<span class="td-tax">'+fmtFull(rowA.qtax)+'</span>' : '<span class="td-zero">—</span>'}</td>
+      <td>${rowA.rdraw > 0 ? '<span class="td-green">'+fmtFull(rowA.rdraw)+'</span>' : '<span class="td-zero">—</span>'}</td>
+      <td>${rowA.ndraw > 0 ? fmtFull(rowA.ndraw) : '<span class="td-zero">—</span>'}</td>
+      <td>${rowA.ntax > 0 ? '<span class="td-tax">'+fmtFull(rowA.ntax)+'</span>' : '<span class="td-zero">—</span>'}</td>
+      <td><span class="td-tax">${fmtFull(rowA.yearTax)}</span></td>
+      <td><span class="td-green">${fmtFull(rowA.afterTax)}</span></td>
+      <td style="font-weight:700;color:#1a3d6b;">${fmtFull(endBalA)}</td>
+    `;
+    tbodyA.appendChild(trA);
+
+    // Strategy B row
+    const trB = document.createElement('tr');
+    if (rowB.shortfallB) trB.style.background = '#fdf4ff';
+    else if (retA != null && retA < 0) trB.style.background = '#fef9f9';
+    trB.innerHTML = `
+      <td>Age ${rowB.age}${yearLabel}${rowB.shortfallB ? ' <span style="color:#7c3aed;font-size:10px;font-weight:700">SHORTFALL</span>' : ''}</td>
+      <td style="${retColor}">${retStr}</td>
+      <td style="color:#4338ca;font-weight:600;line-height:1.6;">
+        ${rowB.q2draw > 0 ? `<span style="color:#1a3d6b;"><sup style="font-size:7px;color:#4338ca;">¹</sup> ${fmtFull(rowB.q2draw)}</span>` : ''}
+        ${rowB.r2draw > 0 ? `${rowB.q2draw > 0 ? '<br>' : ''}<span style="color:#16a34a;"><sup style="font-size:7px;color:#4338ca;">²</sup> ${fmtFull(rowB.r2draw)}</span>` : ''}
+        ${rowB.n2draw > 0 ? `${(rowB.q2draw > 0 || rowB.r2draw > 0) ? '<br>' : ''}<span style="color:#d97706;"><sup style="font-size:7px;color:#4338ca;">³</sup> ${fmtFull(rowB.n2draw)}</span>` : ''}
+        ${!rowB.q2draw && !rowB.r2draw && !rowB.n2draw ? '<span class="td-zero">—</span>' : ''}
+      </td>
+      <td>${(rowB.q2tax + rowB.n2tax) > 0 ? '<span class="td-tax">'+fmtFull(rowB.q2tax + rowB.n2tax)+'</span>' : '<span class="td-zero">—</span>'}</td>
+      <td style="color:#7c3aed;font-weight:600;">${rowB.liPays > 0 ? fmtFull(rowB.liPays) : '<span class="td-zero">—</span>'}</td>
+      <td><span class="td-green">${fmtFull(rowB.afterTax2)}</span></td>
+      <td style="font-weight:700;color:#3730a3;">${fmtFull(rowB.endBalB)}<br><span style="font-size:10px;font-weight:400;color:#6366f1;">Inv: ${fmtFull(rowB.invBalB)} + LI: ${fmtFull(rowB.liPool)}</span></td>
+      <td style="font-weight:700;color:${advantage>=0?'#16a34a':'#dc2626'}">${advantage>=0?'+':''}${fmtFull(advantage)}</td>
+    `;
+    tbodyB.appendChild(trB);
+
+    ltAQD+=rowA.qdraw; ltAQT+=rowA.qtax; ltARD+=rowA.rdraw; ltAND+=rowA.ndraw;
+    ltANT+=rowA.ntax; ltATT+=rowA.yearTax; ltAAT+=rowA.afterTax; ltAEB=endBalA;
+    ltBQD+=rowB.q2draw; ltBLI+=rowB.liPays; ltBRD+=rowB.r2draw; ltBND+=rowB.n2draw;
+    ltBNT+=rowB.n2tax; ltBTT+=(rowB.q2tax+rowB.n2tax); ltBAT+=rowB.afterTax2;
+    ltBEB=rowB.endBalB; ltBInv=rowB.invBalB; ltBLIP=rowB.liPool;
+  });
+
+  // Totals rows
+  const totA = document.createElement('tr');
+  totA.innerHTML = `
+    <td>Totals</td>
+    <td>—</td>
+    <td>${fmtFull(ltAQD)}</td>
+    <td><span class="td-tax">${fmtFull(ltAQT)}</span></td>
+    <td><span class="td-green">${fmtFull(ltARD)}</span></td>
+    <td>${fmtFull(ltAND)}</td>
+    <td><span class="td-tax">${fmtFull(ltANT)}</span></td>
+    <td><span class="td-tax">${fmtFull(ltATT)}</span></td>
+    <td><span class="td-green">${fmtFull(ltAAT)}</span></td>
+    <td style="font-weight:700;color:#1a3d6b;">${fmtFull(ltAEB)}</td>
+  `;
+  tbodyA.appendChild(totA);
+
+  const finalAdv = ltBEB - ltAEB;
+  const totB = document.createElement('tr');
+  totB.innerHTML = `
+    <td>Totals</td>
+    <td>—</td>
+    <td style="line-height:1.6;">
+      ${ltBQD > 0 ? `<span style="color:#1a3d6b;font-weight:600;"><sup style="font-size:7px;color:#4338ca;">¹</sup> ${fmtFull(ltBQD)}</span>` : ''}
+      ${ltBRD > 0 ? `${ltBQD > 0 ? '<br>' : ''}<span style="color:#16a34a;font-weight:600;"><sup style="font-size:7px;color:#4338ca;">²</sup> ${fmtFull(ltBRD)}</span>` : ''}
+      ${ltBND > 0 ? `${(ltBQD > 0 || ltBRD > 0) ? '<br>' : ''}<span style="color:#d97706;font-weight:600;"><sup style="font-size:7px;color:#4338ca;">³</sup> ${fmtFull(ltBND)}</span>` : ''}
+    </td>
+    <td><span class="td-tax">${fmtFull(ltBTT)}</span></td>
+    <td style="color:#7c3aed;font-weight:600;">${fmtFull(ltBLI)}</td>
+    <td><span class="td-green">${fmtFull(ltBAT)}</span></td>
+    <td style="font-weight:700;color:#3730a3;">${fmtFull(ltBEB)}<br><span style="font-size:10px;font-weight:400;color:#6366f1;">Inv: ${fmtFull(ltBInv)} + LI: ${fmtFull(ltBLIP)}</span></td>
+    <td style="font-weight:700;color:${finalAdv>=0?'#16a34a':'#dc2626'}">${finalAdv>=0?'+':''}${fmtFull(finalAdv)}</td>
+  `;
+  tbodyB.appendChild(totB);
+}
+
+function applySuggestedBal(amount) {
+  const disp = document.getElementById('liPoolDisplay');
+  const hid  = document.getElementById('liPool');
+  hid.value  = amount;
+  disp.value = Math.round(amount).toLocaleString('en-US');
+  runLI();
+}
+
+// ── INPUT PANEL SHOW/HIDE ─────────────────────────────────────────────────────
+function openInputPanel() {
+  document.querySelector('.page-layout').classList.remove('inputs-hidden');
+  document.getElementById('editInputsBar').classList.remove('visible');
+}
+
+function closeInputPanel() {
+  document.querySelector('.page-layout').classList.add('inputs-hidden');
+  const first = document.getElementById('contactFirst').value.trim();
+  const last  = document.getElementById('contactLast').value.trim();
+  const name  = (first + ' ' + last).trim() || 'your projection';
+  document.getElementById('editInputsName').textContent = name;
+  document.getElementById('editInputsBar').classList.add('visible');
+}
+
+// ── GATED CALCULATE — validates contact fields first ─────────────────────────
+/* ---- Quote Bot lead capture ------------------------------------------ */
+function qbCaptureLead(){
+  if (!window.QuoteBot) return;
+  try {
+    var V = function(id){ var e=document.getElementById(id); return e ? String(e.value).trim() : ""; };
+    var N = function(id){ var e=document.getElementById(id); return e ? (parseFloat(String(e.value).replace(/[^0-9.\-]/g,""))||0) : null; };
+    var C = function(sel){ var e=document.querySelector(sel); return e ? e.textContent.replace(/\s+/g," ").trim() : null; };
+    if (!V('contactEmail')) return;
+    window.QuoteBot.capture({
+      email: V('contactEmail'), phone: V('contactPhone'),
+      firstName: V('contactFirst'), lastName: V('contactLast'),
+      productLine: 'INDEXED_UL',
+      inputs: { accumulationYears: N('accumYrs'), distributionYears: N('distYrs') },
+      results: null,
+      consentText: C('.disclaimer')
+    });
+  } catch (e) { /* capture must never break the calculator */ }
+}
+
+function runCalcGated() {
+  const first = document.getElementById('contactFirst').value.trim();
+  const last  = document.getElementById('contactLast').value.trim();
+  const email = document.getElementById('contactEmail').value.trim();
+  const phone = document.getElementById('contactPhone').value.trim();
+  const errEl = document.getElementById('contactError');
+
+  if (!first || !last || !email || !phone) {
+    errEl.textContent = '⚠ Please complete all fields in Your Information before calculating.';
+    errEl.style.display = 'block';
+    document.getElementById('contactFirst').closest('.input-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!emailOk) {
+    errEl.textContent = '⚠ Please enter a valid email address.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  qbCaptureLead();
+  document.getElementById('resultsLocked').style.display = 'none';
+  closeInputPanel();
+  runCalc();
+}
+
+// ── MAIN CALC ────────────────────────────────────────────────────────────────
+function runCalc() {
+  const curAge     = parseInt(document.getElementById('curAge').value) || 45;
+  const retAge     = parseInt(document.getElementById('retAge').value) || 65;
+  const endAge     = parseInt(document.getElementById('endAge').value) || 90;
+  const target     = parseFloat(document.getElementById('targetIncome').value) || 80000;
+  const inflRate   = parseFloat(inflSlider.value) / 100;
+  const taxRate    = parseInt(slider.value) / 100;
+  const cgRate     = parseFloat(document.getElementById('ltcgRate').value);
+
+  const qualVal    = parseFloat(document.getElementById('qualVal').value) || 0;
+  const rothVal    = parseFloat(document.getElementById('rothVal').value) || 0;
+  const nonqVal    = parseFloat(document.getElementById('nonqVal').value) || 0;
+  const qualGA     = parseFloat(document.getElementById('qualGrowAcc').value) / 100;
+  const rothGA     = parseFloat(document.getElementById('rothGrowAcc').value) / 100;
+  const nonqGA     = parseFloat(document.getElementById('nonqGrowAcc').value) / 100;
+
+  const order = [...document.querySelectorAll('.drag-item')].map(el => el.dataset.acct);
+
+  // save to shared state for runLI()
+  _retAge=retAge; _endAge=endAge; _target=target; _inflRate=inflRate;
+  _taxRate=taxRate; _cgRate=cgRate;
+  _qualGA=qualGA; _rothGA=rothGA; _nonqGA=nonqGA;
+  _order=order;
+
+  const accumYrs = Math.max(0, retAge - curAge);
+  const distYrs  = Math.max(0, endAge - retAge);
+
+  // ── ACCUMULATION ──
+  const aLabels = [], aQ = [], aR = [], aN = [];
+  let q = qualVal, r = rothVal, n = nonqVal;
+  for (let i = 0; i <= accumYrs; i++) {
+    aLabels.push(curAge + i);
+    aQ.push(Math.round(q)); aR.push(Math.round(r)); aN.push(Math.round(n));
+    q *= (1 + qualGA); r *= (1 + rothGA); n *= (1 + nonqGA);
+  }
+  const retQ = aQ[accumYrs], retR = aR[accumYrs], retN = aN[accumYrs];
+  _retQ=retQ; _retR=retR; _retN=retN; _distYrs=distYrs; _accumYrs=accumYrs;
+
+  // ── DISTRIBUTION ──
+  const dLabels = [], dQW = [], dRW = [], dNW = [], dTax = [];
+  const bQ = [retQ], bR = [retR], bN = [retN];
+  let dq = retQ, dr = retR, dn = retN;
+  let totalTax = 0, totalAfterTax = 0, shortfallYrs = 0;
+  const rows = [];
+
+  // Build S&P sequence: most recent distYrs years ending 2024
+  const spYearsSorted = Object.keys(SP500).map(Number).sort((a,b)=>a-b);
+  const seqLen = Math.min(distYrs, spYearsSorted.length);
+  const spSeq = spYearsSorted.slice(spYearsSorted.length - seqLen);
+
+  for (let i = 0; i < distYrs; i++) {
+    const age = retAge + i;
+    const yearTarget = target * Math.pow(1 + inflRate, i);
+    // Use actual S&P return for available years, fall back to assumed rate if plan > 97 yrs
+    const spRet = i < spSeq.length ? SP500[spSeq[i]] / 100 : qualGA;
+    const spRetR = spRet; // same S&P return applies to all accounts
+    dq = Math.max(0, dq * (1 + spRet));
+    dr = Math.max(0, dr * (1 + spRetR));
+    dn = Math.max(0, dn * (1 + spRetR));
+    let need = yearTarget;
+    let qdraw = 0, rdraw = 0, ndraw = 0, qtax = 0, ntax = 0;
+
+    for (const acct of order) {
+      if (need <= 0.01) break;
+      if (acct === 'qual' && dq > 0) {
+        const gross = taxRate < 1 ? Math.min(need / (1 - taxRate), dq) : Math.min(dq, need);
+        const after = gross * (1 - taxRate);
+        qdraw += gross; qtax += gross * taxRate; dq = Math.max(0, dq - gross); need -= after;
+      } else if (acct === 'roth' && dr > 0) {
+        const take = Math.min(need, dr);
+        rdraw += take; dr = Math.max(0, dr - take); need -= take;
+      } else if (acct === 'nonq' && dn > 0) {
+        const gross = cgRate < 1 ? Math.min(need / (1 - cgRate), dn) : Math.min(dn, need);
+        const after = gross * (1 - cgRate);
+        ndraw += gross; ntax += gross * cgRate; dn = Math.max(0, dn - gross); need -= after;
+      }
+    }
+    if (need > 0.01) shortfallYrs++;
+
+    const totalD = qdraw + rdraw + ndraw;
+    const yearTax = qtax + ntax;
+    const afterTax = totalD - yearTax;
+    totalTax += yearTax; totalAfterTax += afterTax;
+
+    dLabels.push(age);
+    dQW.push(Math.round(qdraw)); dRW.push(Math.round(rdraw)); dNW.push(Math.round(ndraw));
+    dTax.push(Math.round(yearTax));
+    bQ.push(Math.round(dq)); bR.push(Math.round(dr)); bN.push(Math.round(dn));
+    rows.push({ age, yearTarget, spRet: i < spSeq.length ? SP500[spSeq[i]] : null, calYear: spSeq[i] || null, qdraw, qtax, rdraw, ndraw, ntax, totalD, yearTax, afterTax });
+  }
+
+  const totalRetAssets = retQ + retR + retN;
+  const totalDrawn = rows.reduce((s, r) => s + r.totalD, 0);
+
+  // save to shared state for runLI()
+  _rows=[...rows]; _bQ=[...bQ]; _dLabels=[...dLabels];
+  _dQW=[...dQW]; _dTax=[...dTax]; _shortfallYrs=shortfallYrs;
+  _bR=[...bR]; _bN=[...bN]; _spSeq=[...spSeq];
+
+  // ── SUMMARY ──
+  const taxPctStr = Math.round(taxRate * 100) + '%';
+  const inflPctStr = (inflRate * 100).toFixed(1) + '%';
+  const lastTarget = target * Math.pow(1 + inflRate, distYrs - 1);
+  document.getElementById('summaryStrip').innerHTML = `
+    <div class="summary-card accent">
+      <div class="s-label">Total Assets at Retirement</div>
+      <div class="s-value">${fmtFull(totalRetAssets)}</div>
+      <div class="s-sub">Projected balance at age ${retAge}</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">Year 1 Income Target</div>
+      <div class="s-value">${fmtFull(target)}</div>
+      <div class="s-sub">Grows ${inflPctStr}/yr → ${fmtFull(lastTarget)} by age ${endAge - 1}</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">Distribution Years</div>
+      <div class="s-value">${distYrs}</div>
+      <div class="s-sub">${retAge} → ${endAge} · ${taxPctStr} tax rate</div>
+    </div>
+    <div class="summary-card red">
+      <div class="s-label">Estimated Total Taxes Paid</div>
+      <div class="s-value">${fmtFull(totalTax)}</div>
+      <div class="s-sub">Over ${distYrs}-year distribution phase</div>
+    </div>
+    <div class="summary-card green">
+      <div class="s-label">Total After-Tax Income</div>
+      <div class="s-value">${fmtFull(totalAfterTax)}</div>
+      <div class="s-sub">Cumulative net income received</div>
+    </div>
+    <div class="summary-card ${shortfallYrs > 0 ? 'red' : 'green'}">
+      <div class="s-label">Shortfall Years</div>
+      <div class="s-value">${shortfallYrs}</div>
+      <div class="s-sub">${shortfallYrs > 0 ? 'Accounts run out before plan end' : 'Accounts last through plan end'}</div>
+    </div>
+  `;
+
+  // ── DYNAMIC CALLOUT ──
+  const taxEfficiency = totalTax / (totalTax + totalAfterTax) * 100;
+  let callout = '';
+  if (shortfallYrs > 0) {
+    callout = `<div class="callout warning" style="margin-top:16px;"><div class="callout-label">⚠️ Shortfall Warning</div><p>At your Year 1 income target of ${fmtFull(target)}/year (growing at ${inflPctStr}/yr), your accounts are projected to run out <strong>${shortfallYrs} year${shortfallYrs > 1 ? 's' : ''}</strong> before your plan end age of ${endAge}. Consider reducing your income target, lowering the inflation assumption, or adding a tax-free supplemental income source such as life insurance cash value.</p></div>`;
+  } else if (taxEfficiency > 30) {
+    callout = `<div class="callout warning" style="margin-top:16px;"><div class="callout-label">💡 Tax Optimization Opportunity</div><p>Approximately <strong>${Math.round(taxEfficiency)}%</strong> of your total gross distributions will go to taxes — <strong>${fmtFull(totalTax)}</strong> over retirement. A tax-free income layer from life insurance cash value or a Roth conversion strategy could meaningfully reduce this drag. Talk to an advisor about reducing your qualified account dependency.</p></div>`;
+  } else {
+    callout = `<div class="callout success" style="margin-top:16px;"><div class="callout-label">✅ On Track</div><p>Your accounts are projected to last through age ${endAge} with an estimated <strong>${fmtFull(totalAfterTax)}</strong> in total after-tax retirement income. Your projected tax drag is <strong>${Math.round(taxEfficiency)}%</strong> of gross distributions. Consider a Roth conversion or life insurance strategy to reduce this further.</p></div>`;
+  }
+  document.getElementById('dynamicCallout').innerHTML = callout;
+
+  // ── CHARTS ──
+  if (accumCI) accumCI.destroy();
+  if (distCI) distCI.destroy();
+  if (balCI) balCI.destroy();
+  if (liCI) liCI.destroy();
+  if (liBalCI) liBalCI.destroy();
+
+  accumCI = new Chart(document.getElementById('accumChart'), {
+    type: 'bar',
+    data: {
+      labels: aLabels,
+      datasets: [
+        { label: 'Qualified', data: aQ, backgroundColor: '#1a3d6b', stack: 's' },
+        { label: 'Roth IRA', data: aR, backgroundColor: '#16a34a', stack: 's' },
+        { label: 'Non-Qualified', data: aN, backgroundColor: '#d97706', stack: 's' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { stacked: true, ticks: { color: '#8a9ab5', font: { size: 11 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 16 } },
+        y: { stacked: true, ticks: { color: '#8a9ab5', font: { size: 11 }, callback: v => '$' + Math.round(v / 1000) + 'k' } }
+      }
+    }
+  });
+
+  distCI = new Chart(document.getElementById('distChart'), {
+    type: 'bar',
+    data: {
+      labels: dLabels,
+      datasets: [
+        { label: 'Qualified', data: dQW, backgroundColor: '#1a3d6b', stack: 'draw', order: 2 },
+        { label: 'Roth', data: dRW, backgroundColor: '#16a34a', stack: 'draw', order: 2 },
+        { label: 'Non-Qualified', data: dNW, backgroundColor: '#d97706', stack: 'draw', order: 2 },
+        { label: 'Tax Due', data: dTax, backgroundColor: 'rgba(220,38,38,0.75)', stack: 'tax', order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          afterBody: ctx => {
+            const i = ctx[0].dataIndex;
+            const yt = rows[i] ? fmtFull(rows[i].yearTarget) : '';
+            return yt ? [`Income target (inflation-adj.): ${yt}`] : [];
+          }
+        }}
+      },
+      scales: {
+        x: { ticks: { color: '#8a9ab5', font: { size: 11 }, maxRotation: 45 } },
+        y: { ticks: { color: '#8a9ab5', font: { size: 11 }, callback: v => '$' + Math.round(v / 1000) + 'k' } }
+      }
+    }
+  });
+
+  const bLabels = [retAge, ...dLabels];
+  balCI = new Chart(document.getElementById('balChart'), {
+    type: 'line',
+    data: {
+      labels: bLabels,
+      datasets: [
+        { label: 'Qualified', data: bQ, borderColor: '#1a3d6b', backgroundColor: 'rgba(26,61,107,0.06)', fill: true, tension: 0.3, pointRadius: 2 },
+        { label: 'Roth IRA', data: bR, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.06)', fill: true, tension: 0.3, pointRadius: 2 },
+        { label: 'Non-Qualified', data: bN, borderColor: '#d97706', backgroundColor: 'rgba(217,119,6,0.06)', fill: true, tension: 0.3, pointRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8a9ab5', font: { size: 11 }, maxRotation: 45, maxTicksLimit: 16 } },
+        y: { ticks: { color: '#8a9ab5', font: { size: 11 }, callback: v => '$' + Math.round(v / 1000) + 'k' } }
+      }
+    }
+  });
+
+  // ── STRATEGY B: LIFE INSURANCE PAYS TAXES ───────────────────────────────────
+  runLI();
+
+  const area = document.getElementById('resultsArea');
+  area.classList.add('visible');
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

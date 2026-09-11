@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M.U.G. Coverage Calculator | Quote-Bot</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1a3d6b;--primary-dark:#0f2540;--primary-mid:#1e4d85;
+  --accent:#4a90d9;--accent-light:#e8f2fb;
+  --teal:#0d9488;--teal-light:#ccfbf1;
+  --gold:#b45309;--gold-mid:#d97706;--gold-light:#fef3c7;
+  --green:#16a34a;--green-light:#dcfce7;
+  --red:#dc2626;--red-light:#fee2e2;
+  --white:#ffffff;--off-white:#f7f9fc;--gray-light:#eef1f6;
+  --gray-mid:#8a9ab5;--gray-dark:#2c3e58;--text:#1c2a3a;--border:#d8e2f0;
+  --shadow:0 4px 24px rgba(26,61,107,0.10);--shadow-lg:0 16px 56px rgba(26,61,107,0.16);
+  --radius:12px;--radius-lg:20px;--radius-xl:28px;--transition:0.2s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);background:var(--white);line-height:1.6;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+
+/* TOPBAR */
+.topbar{background:var(--primary-dark);color:rgba(255,255,255,0.8);font-size:12.5px;padding:7px 32px;display:flex;align-items:center;justify-content:space-between;}
+.topbar a{color:#9ec9f0;font-weight:600;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);box-shadow:0 1px 16px rgba(26,61,107,0.07);}
+.nav-inner{max-width:1240px;margin:0 auto;padding:0 32px;display:flex;align-items:center;height:70px;gap:24px;}
+.nav-logo{display:flex;align-items:center;flex-shrink:0;cursor:pointer;margin-right:36px;}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;list-style:none;}
+.nav-links span{display:flex;align-items:center;padding:8px 12px;font-size:14px;font-weight:500;color:var(--gray-dark);border-radius:8px;cursor:pointer;transition:background var(--transition),color var(--transition);white-space:nowrap;}
+.nav-links span:hover,.nav-links .active-nav{background:var(--accent-light);color:var(--primary);}
+.nav-links .active-nav{font-weight:700;}
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.btn-primary{padding:10px 22px;border-radius:10px;background:var(--primary);color:var(--white);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;display:inline-block;transition:background var(--transition);text-decoration:none;}
+.btn-primary:hover{background:var(--primary-dark);box-shadow:0 4px 18px rgba(26,61,107,0.28);}
+
+/* BREADCRUMB */
+.breadcrumb{background:var(--off-white);border-bottom:1px solid var(--border);padding:14px 32px;}
+.breadcrumb-inner{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-mid);}
+.breadcrumb a{color:var(--accent);font-weight:500;}
+
+/* HERO */
+.calc-hero{background:var(--primary-dark);padding:41px 32px 46px;position:relative;overflow:hidden;}
+.calc-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 80% at 15% 50%,rgba(74,144,217,0.22) 0%,transparent 65%),radial-gradient(ellipse 40% 60% at 80% 20%,rgba(26,61,107,0.6) 0%,transparent 60%);}
+.calc-hero::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:48px 48px;}
+.calc-hero-inner{max-width:1240px;margin:0 auto;position:relative;z-index:1;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.92);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:5px 14px;border-radius:100px;margin-bottom:20px;}
+.calc-hero h1{font-family:'Fraunces',serif;font-size:clamp(30px,4vw,50px);font-weight:700;color:var(--white);line-height:1.12;letter-spacing:-0.5px;margin-bottom:16px;}
+.calc-hero h1 em{font-style:italic;color:#93c5fd;}
+.calc-hero-sub{font-size:17px;color:rgba(255,255,255,0.7);line-height:1.7;max-width:620px;}
+.mug-pills{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;}
+.mug-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.9);font-size:13px;font-weight:600;padding:7px 14px;border-radius:100px;}
+.mug-pill .pill-letter{font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:#93c5fd;}
+
+/* MAIN LAYOUT */
+.calc-wrapper{max-width:1240px;margin:0 auto;padding:56px 32px 80px;}
+.calc-grid{display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start;}
+
+/* INPUT SECTIONS */
+.inputs-col{display:flex;flex-direction:column;gap:24px;}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--gray-mid);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.input-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:28px 28px 24px;box-shadow:var(--shadow);}
+.input-card h3{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--primary-dark);margin-bottom:6px;}
+.input-card .card-sub{font-size:13.5px;color:var(--gray-mid);margin-bottom:28px;line-height:1.5;}
+
+/* MUG EXPENSE INPUTS */
+.expense-group{display:flex;flex-direction:column;gap:20px;}
+.expense-item{background:var(--off-white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;transition:border-color var(--transition),box-shadow var(--transition);}
+.expense-item:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,144,217,0.15);}
+.expense-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.expense-label-group{display:flex;align-items:center;gap:10px;}
+.expense-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.expense-icon.mortgage{background:rgba(74,144,217,0.12);}
+.expense-icon.utilities{background:rgba(13,148,136,0.12);}
+.expense-icon.groceries{background:rgba(180,83,9,0.1);}
+.expense-name{font-size:14px;font-weight:700;color:var(--primary-dark);}
+.expense-avg{font-size:11px;color:var(--gray-mid);margin-top:1px;}
+.reset-btn{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-light);border:none;border-radius:6px;padding:3px 8px;cursor:pointer;transition:background var(--transition);}
+.reset-btn:hover{background:rgba(74,144,217,0.25);}
+.expense-input-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.dollar-prefix{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:var(--primary);line-height:1;}
+.expense-num-input{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--primary-dark);border:none;background:transparent;width:100%;outline:none;line-height:1;}
+.expense-num-input::-webkit-inner-spin-button,.expense-num-input::-webkit-outer-spin-button{-webkit-appearance:none;}
+.expense-slider{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:var(--border);outline:none;cursor:pointer;transition:background var(--transition);}
+.expense-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 2px 8px rgba(26,61,107,0.3);border:3px solid white;}
+.expense-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 2px 8px rgba(26,61,107,0.3);border:3px solid white;}
+.expense-item.mortgage .expense-slider::-webkit-slider-thumb{background:var(--accent);}
+.expense-item.utilities .expense-slider::-webkit-slider-thumb{background:var(--teal);}
+.expense-item.groceries .expense-slider::-webkit-slider-thumb{background:var(--gold-mid);}
+.expense-item.mortgage .expense-slider{background:linear-gradient(to right,var(--accent) var(--pct,40%),var(--border) var(--pct,40%));}
+.expense-item.utilities .expense-slider{background:linear-gradient(to right,var(--teal) var(--pct,21%),var(--border) var(--pct,21%));}
+.expense-item.groceries .expense-slider{background:linear-gradient(to right,var(--gold-mid) var(--pct,24%),var(--border) var(--pct,24%));}
+.slider-range{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-mid);margin-top:4px;}
+
+/* ABOUT YOU */
+.about-grid{display:flex;flex-direction:column;gap:22px;}
+.field-group{display:flex;flex-direction:column;gap:8px;}
+.field-label{font-size:12.5px;font-weight:700;color:var(--primary-dark);display:flex;align-items:center;gap:6px;}
+.field-hint{font-size:11.5px;color:var(--gray-mid);line-height:1.5;}
+.age-display-row{display:flex;align-items:baseline;gap:6px;margin-bottom:10px;}
+.age-number{font-family:'Fraunces',serif;font-size:42px;font-weight:700;color:var(--primary-dark);line-height:1;}
+.age-unit{font-size:14px;color:var(--gray-mid);font-weight:500;}
+.age-slider{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:linear-gradient(to right,var(--primary) var(--pct,34%),var(--border) var(--pct,34%));outline:none;cursor:pointer;}
+.age-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 2px 10px rgba(26,61,107,0.35);border:3px solid white;}
+.age-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--primary);cursor:pointer;border:3px solid white;}
+.age-range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-mid);margin-top:5px;}
+.occ-select-wrap{position:relative;}
+.occ-select{width:100%;padding:13px 40px 13px 16px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--white);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:500;color:var(--primary-dark);appearance:none;-webkit-appearance:none;cursor:pointer;outline:none;transition:border-color var(--transition),box-shadow var(--transition);}
+.occ-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,144,217,0.15);}
+.occ-select-arrow{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--gray-mid);font-size:14px;}
+.occ-desc{font-size:12px;color:var(--gray-mid);margin-top:6px;line-height:1.5;padding:8px 12px;background:var(--off-white);border-radius:8px;border-left:3px solid var(--accent);}
+.emp-toggle{display:flex;gap:0;background:var(--off-white);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px;width:100%;}
+.emp-btn{flex:1;padding:8px 8px;border:none;background:transparent;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:500;color:var(--gray-mid);cursor:pointer;transition:all var(--transition);text-align:center;}
+.emp-btn.active{background:var(--primary);color:var(--white);font-weight:700;box-shadow:0 2px 10px rgba(26,61,107,0.25);}
+
+/* RESULTS PANEL */
+.results-col{position:sticky;top:90px;}
+
+
+
+.results-inner{overflow:hidden;border-radius:var(--radius-xl);}
+.results-header{padding:22px 26px 18px;border-bottom:1px solid var(--border);background:var(--primary-dark);border-radius:var(--radius-xl) var(--radius-xl) 0 0;}
+.results-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:rgba(255,255,255,0.5);margin-bottom:6px;}
+.results-title{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--white);}
+
+/* BREAKDOWN BARS */
+.breakdown-section{padding:18px 26px;border-bottom:1px solid var(--border);background:var(--off-white);}
+.breakdown-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-mid);margin-bottom:12px;}
+.breakdown-bars{display:flex;flex-direction:column;gap:10px;}
+.bar-row{display:flex;align-items:center;gap:10px;}
+.bar-tag{font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:var(--primary-dark);width:14px;flex-shrink:0;}
+.bar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.4s cubic-bezier(0.4,0,0.2,1);}
+.bar-fill.m{background:linear-gradient(90deg,#60a5fa,#3b82f6);}
+.bar-fill.u{background:linear-gradient(90deg,#34d399,#10b981);}
+.bar-fill.g{background:linear-gradient(90deg,#fbbf24,#f59e0b);}
+.bar-amount{font-size:12px;font-weight:700;color:var(--primary-dark);width:64px;text-align:right;flex-shrink:0;}
+
+/* BENEFIT DISPLAY */
+.benefit-section{padding:18px 26px;border-bottom:1px solid var(--border);}
+.benefit-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-mid);margin-bottom:6px;}
+.benefit-amount{font-family:'Fraunces',serif;font-size:44px;font-weight:700;color:var(--primary-dark);line-height:1;letter-spacing:-1px;}
+.benefit-unit{font-size:15px;color:var(--gray-mid);font-weight:500;margin-top:2px;}
+.coverage-pill{display:inline-flex;align-items:center;gap:6px;background:var(--green-light);border:1px solid rgba(22,163,74,0.3);color:var(--green);font-size:12px;font-weight:700;padding:5px 12px;border-radius:100px;}
+
+/* PREMIUM SECTION */
+.premium-section{padding:22px 26px;border-bottom:1px solid var(--border);}
+.premium-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.premium-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-mid);}
+.occ-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:3px 9px;border-radius:100px;border:1px solid;}
+.occ-badge.c5a{background:#dbeafe;border-color:#3b82f6;color:#1e3a8a;}
+.occ-badge.c4a{background:#ccfbf1;border-color:#0d9488;color:#134e4a;}
+.occ-badge.c3a{background:#fef3c7;border-color:#d97706;color:#78350f;}
+.occ-badge.c2a{background:#ffedd5;border-color:#ea580c;color:#7c2d12;}
+.occ-badge.c1a{background:#fee2e2;border-color:#dc2626;color:#7f1d1d;}
+.premium-amount{font-family:'Fraunces',serif;font-size:38px;font-weight:700;color:var(--primary-dark);line-height:1;letter-spacing:-0.5px;}
+.premium-amount span{font-size:16px;letter-spacing:0;color:var(--gray-mid);}
+.premium-annual{font-size:13px;color:var(--gray-mid);margin-top:4px;}
+.premium-annual strong{color:var(--primary-dark);}
+.premium-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.pstat{background:var(--accent-light);border:1px solid rgba(74,144,217,0.2);border-radius:10px;padding:10px 12px;}
+.pstat-val{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--primary-dark);line-height:1;}
+.pstat-lbl{font-size:10px;color:var(--gray-mid);margin-top:3px;line-height:1.4;}
+.occ-info-box{background:var(--off-white);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12px;color:var(--gray-dark);line-height:1.5;}
+.occ-info-box strong{color:var(--primary-dark);}
+
+/* CTA */
+.results-cta{padding:20px 26px 24px;border-top:1px solid var(--border);}
+.cta-btn{display:block;padding:17px;background:linear-gradient(135deg,#b45309 0%,#d97706 50%,#f59e0b 100%);color:var(--white);border-radius:12px;font-size:16px;font-weight:700;text-align:center;text-decoration:none;cursor:pointer;border:none;width:100%;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:0.01em;box-shadow:0 4px 18px rgba(180,83,9,0.4),0 1px 3px rgba(180,83,9,0.2);transition:box-shadow var(--transition),transform var(--transition),filter var(--transition);animation:cta-pulse 2.8s ease-in-out infinite;}
+@keyframes cta-pulse{0%,100%{box-shadow:0 4px 18px rgba(180,83,9,0.4),0 0 0 0 rgba(217,119,6,0.35);}60%{box-shadow:0 4px 18px rgba(180,83,9,0.4),0 0 0 10px rgba(217,119,6,0);}}
+.cta-btn:hover{box-shadow:0 8px 32px rgba(180,83,9,0.55);transform:translateY(-2px);filter:brightness(1.08);animation:none;}
+.cta-phone{display:block;text-align:center;font-size:12.5px;color:var(--gray-mid);margin-top:10px;text-decoration:none;}
+.cta-phone:hover{color:var(--primary);}
+.results-disclaimer{padding:12px 26px 18px;font-size:10.5px;color:var(--gray-mid);line-height:1.6;border-top:1px solid var(--border);background:var(--off-white);border-radius:0 0 var(--radius-xl) var(--radius-xl);}
+
+/* EXPLAIN SECTION */
+.explain-section{background:var(--off-white);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:64px 32px;}
+.explain-inner{max-width:1240px;margin:0 auto;}
+.explain-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:10px;}
+.explain-title{font-family:'Fraunces',serif;font-size:30px;font-weight:700;color:var(--primary-dark);margin-bottom:48px;letter-spacing:-0.3px;}
+.explain-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+.explain-step{position:relative;}
+.step-num{font-family:'Fraunces',serif;font-size:56px;font-weight:700;color:var(--border);line-height:1;margin-bottom:12px;}
+.step-title{font-size:16px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;}
+.step-text{font-size:14px;color:var(--gray-mid);line-height:1.7;}
+
+/* CTA BAND */
+.cta-band{background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary-mid) 60%,#1d5290 100%);padding:64px 32px;text-align:center;position:relative;overflow:hidden;}
+.cta-band::before{content:'';position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(74,144,217,0.2) 0%,transparent 70%);top:-180px;left:-100px;}
+.cta-band-inner{position:relative;z-index:1;}
+.cta-band h2{font-family:'Fraunces',serif;font-size:clamp(26px,3vw,36px);font-weight:700;color:var(--white);margin-bottom:12px;}
+.cta-band p{font-size:16px;color:rgba(255,255,255,0.7);margin-bottom:28px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.7;}
+.cta-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.btn-white{padding:14px 28px;border-radius:11px;background:var(--white);color:var(--primary);font-size:15px;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;transition:transform var(--transition),box-shadow var(--transition);text-decoration:none;}
+.btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.2);}
+.btn-ghost-w{padding:14px 28px;border-radius:11px;background:transparent;color:rgba(255,255,255,0.88);font-size:15px;font-weight:600;cursor:pointer;border:1.5px solid rgba(255,255,255,0.35);display:inline-flex;align-items:center;gap:8px;transition:all var(--transition);text-decoration:none;}
+.btn-ghost-w:hover{background:rgba(255,255,255,0.1);}
+
+/* FOOTER */
+footer{background:var(--primary-dark);color:rgba(255,255,255,0.55);padding:68px 32px 0;}
+.footer-inner{max-width:1240px;margin:0 auto;}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:40px;padding-bottom:52px;border-bottom:1px solid rgba(255,255,255,0.09);}
+.footer-brand p{font-size:14px;line-height:1.7;max-width:270px;margin-bottom:22px;margin-top:18px;}
+.footer-contact a{display:block;font-size:13.5px;color:#9ec9f0;margin-bottom:8px;}
+.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.38);margin-bottom:16px;}
+.footer-col a{display:block;font-size:13.5px;color:rgba(255,255,255,0.55);margin-bottom:11px;transition:color var(--transition);}
+.footer-col a:hover{color:var(--white);}
+.footer-bottom{padding:26px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;font-size:12px;color:rgba(255,255,255,0.3);}
+.footer-bottom a{color:rgba(255,255,255,0.35);transition:color var(--transition);}
+.footer-bottom-links{display:flex;gap:18px;flex-wrap:wrap;}
+
+/* LIVE DOT */
+.live-dot{width:7px;height:7px;background:#22c55e;border-radius:50%;display:inline-block;margin-left:6px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.85);}}
+
+
+/* GENDER TOGGLE */
+.gender-toggle{display:flex;gap:0;background:var(--off-white);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px;width:100%;}
+.gender-btn{flex:1;padding:9px 8px;border:none;background:transparent;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--gray-mid);cursor:pointer;transition:all var(--transition);text-align:center;}
+.gender-btn.active{background:var(--primary);color:var(--white);font-weight:700;box-shadow:0 2px 10px rgba(26,61,107,0.25);}
+
+/* STEP 4 LEAD FORM */
+.lead-form{display:flex;flex-direction:column;gap:14px;}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-field{display:flex;flex-direction:column;gap:5px;}
+.form-field label{font-size:12px;font-weight:700;color:var(--primary-dark);letter-spacing:0.02em;}
+.req{color:var(--accent);}
+.form-input,.form-select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--primary-dark);background:var(--white);outline:none;transition:border-color var(--transition),box-shadow var(--transition);}
+.form-input:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,144,217,0.15);}
+.form-input.f-valid{border-color:var(--green);}
+.form-input.f-invalid,.form-select.f-invalid{border-color:var(--red);}
+.form-select.f-valid{border-color:var(--green);}
+.f-error{font-size:11px;color:var(--red);min-height:15px;margin-top:2px;}
+.form-progress-wrap{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:2px;}
+.form-prog-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.form-prog-fill{height:100%;width:0%;background:var(--green);border-radius:3px;transition:width 0.3s ease;}
+.form-prog-label{font-size:11.5px;font-weight:700;color:var(--gray-mid);white-space:nowrap;}
+.step4-unlock-btn{width:100%;padding:14px;background:var(--primary);color:var(--white);border:none;border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background var(--transition),box-shadow var(--transition),transform var(--transition);display:flex;align-items:center;justify-content:center;gap:8px;}
+.step4-unlock-btn:hover{background:var(--primary-dark);box-shadow:0 4px 18px rgba(26,61,107,0.3);transform:translateY(-1px);}
+.step4-unlock-btn.btn-ready{background:var(--green);animation:glow-pulse 2s ease-in-out infinite;}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4);}50%{box-shadow:0 0 0 8px rgba(22,163,74,0);}}
+
+/* RESULTS LOCK OVERLAY */
+.results-panel{position:relative;background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);}
+#results-content{transition:filter 0.6s ease;}
+#results-content.locked{filter:blur(5px);pointer-events:none;user-select:none;}
+#results-lock-overlay{position:absolute;inset:0;z-index:20;border-radius:var(--radius-xl);background:linear-gradient(160deg,rgba(10,28,52,0.97) 0%,rgba(15,48,95,0.95) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;transition:opacity 0.5s ease,visibility 0.5s ease;}
+#results-lock-overlay.unlocked{opacity:0;visibility:hidden;pointer-events:none;}
+.lock-icon-wrap{width:60px;height:60px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:16px;transition:transform 0.4s ease;}
+#results-lock-overlay.unlocked .lock-icon-wrap{transform:scale(1.3);}
+.lock-title{font-family:'Fraunces',serif;font-size:21px;font-weight:700;color:var(--white);margin-bottom:8px;}
+.lock-sub{font-size:13px;color:rgba(255,255,255,0.52);line-height:1.65;max-width:230px;margin:0 auto 22px;}
+.lock-dots{display:flex;gap:8px;margin-bottom:8px;justify-content:center;}
+.lock-dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);transition:all 0.25s ease;}
+.lock-dot.done{background:#22c55e;border-color:#16a34a;box-shadow:0 0 8px rgba(34,197,94,0.6);}
+.lock-count{font-size:11.5px;color:rgba(255,255,255,0.38);margin-top:6px;}
+
+
+/* HIDE/REVEAL ON UNLOCK */
+.inputs-col.col-hidden{display:none;}
+.calc-grid.results-revealed{grid-template-columns:1fr;}
+.calc-grid.results-revealed .results-col{max-width:820px;margin:0 auto;width:100%;position:static;}
+
+/* PREMIUM HERO SECTION */
+.premium-hero-section{background:var(--off-white);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.premium-hero-row{display:flex;align-items:center;gap:0;margin:12px 0 16px;}
+.premium-hero-num{font-family:'Fraunces',serif;font-size:clamp(44px,5vw,64px);font-weight:700;color:var(--primary-dark);line-height:1;letter-spacing:-2px;}
+.premium-hero-annual-num{font-family:'Fraunces',serif;font-size:clamp(22px,2.5vw,30px);font-weight:700;color:var(--primary);line-height:1;}
+.premium-hero-unit{font-size:11.5px;color:var(--gray-mid);margin-top:5px;font-weight:500;}
+.premium-divider-v{width:1px;height:56px;background:var(--border);flex-shrink:0;margin:0 22px;}
+
+/* BENEFIT SECONDARY */
+.benefit-secondary-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.benefit-secondary-num{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--primary-dark);line-height:1;margin-top:4px;}
+
+
+/* TOOLTIP */
+.tooltip-wrap{position:relative;display:inline-flex;align-items:center;margin-left:6px;vertical-align:middle;}
+.tooltip-icon{width:16px;height:16px;border-radius:50%;background:var(--border);color:var(--gray-mid);font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background var(--transition),color var(--transition);font-style:normal;line-height:1;flex-shrink:0;}
+.tooltip-wrap:hover .tooltip-icon{background:var(--accent);color:var(--white);}
+.tooltip-box{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--primary-dark);color:rgba(255,255,255,0.85);font-size:12px;font-weight:400;line-height:1.6;padding:10px 13px;border-radius:10px;white-space:normal;width:220px;box-shadow:0 8px 28px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);pointer-events:none;opacity:0;visibility:hidden;transition:opacity 0.18s ease,visibility 0.18s ease;z-index:200;text-align:left;}
+.tooltip-box::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--primary-dark);}
+.tooltip-wrap:hover .tooltip-box{opacity:1;visibility:visible;}
+/* keep label+icon on same line */
+.field-label{display:flex;align-items:center;}
+
+/* RESPONSIVE */
+@media(max-width:960px){.calc-grid{grid-template-columns:1fr;}.results-col{position:static;}.footer-top{grid-template-columns:1fr 1fr;}.explain-steps{grid-template-columns:1fr;}}
+@media(max-width:600px){.topbar{display:none;}.calc-wrapper{padding:32px 20px 60px;}.expense-num-input{font-size:22px;}.benefit-amount{font-size:36px;}.premium-amount{font-size:30px;}.premium-stats{grid-template-columns:1fr;}.footer-top{grid-template-columns:1fr;}.mug-pills{display:none;}}
+</style>
+  <script src="/js/quotebot-capture.js"
+        data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
+        data-tool="mug"></script>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="calc-hero">
+  <div class="calc-hero-inner">
+    <div class="hero-eyebrow">🧮 M.U.G. Strategy Calculator</div>
+    <h1>How Much Disability Coverage<br><em>Do You Actually Need?</em></h1>
+    <p class="calc-hero-sub">Enter your three essential monthly expenses and we'll show you exactly how much coverage to target — and what it might cost to protect it for 24 months if you meet the definition of disability.</p>
+    <div class="mug-pills">
+      <div class="mug-pill"><span class="pill-letter">M</span> Mortgage / Rent</div>
+      <div class="mug-pill"><span class="pill-letter">U</span> Utilities</div>
+      <div class="mug-pill"><span class="pill-letter">G</span> Groceries</div>
+      <div class="mug-pill" style="background:rgba(22,163,74,0.2);border-color:rgba(22,163,74,0.35);"><span style="color:#6ee7b7;">✦</span> Often &lt; 1% of your income / year</div>
+    </div>
+  </div>
+</div>
+
+<!-- CALCULATOR -->
+<div class="calc-wrapper">
+  <div class="calc-grid">
+
+    <!-- LEFT: INPUTS -->
+    <div class="inputs-col">
+
+      <!-- STEP 1: EXPENSES -->
+      <div class="input-card">
+        <h3>Step 1 — Your Monthly M.U.G. Expenses</h3>
+        <p class="card-sub">Pre-filled with 2026 national averages. Adjust to match your household.</p>
+        <div class="expense-group">
+
+          <!-- MORTGAGE -->
+          <div class="expense-item mortgage" id="item-m">
+            <div class="expense-header">
+              <div class="expense-label-group">
+                <div class="expense-icon mortgage">🏠</div>
+                <div>
+                  <div class="expense-name">Mortgage or Rent <span class="tooltip-wrap"><i class="tooltip-icon">i</i><span class="tooltip-box">The national average monthly mortgage or rent payment is $2,025. Enter your actual payment to personalize your M.U.G. coverage target.</span></span></div>
+                </div>
+              </div>
+              <button class="reset-btn" onclick="resetInput('mortgage',2025)">Reset avg</button>
+            </div>
+            <div class="expense-input-row">
+              <span class="dollar-prefix">$</span>
+              <input class="expense-num-input" id="mortgage-num" type="text" inputmode="numeric" value="2,025">
+              <span style="font-size:13px;color:var(--gray-mid);white-space:nowrap;">/month</span>
+            </div>
+            <input class="expense-slider" id="mortgage-slider" type="range" min="0" max="8000" step="25" value="2025">
+            <div class="slider-range"><span>$0</span><span>$8,000</span></div>
+          </div>
+
+          <!-- UTILITIES -->
+          <div class="expense-item utilities" id="item-u">
+            <div class="expense-header">
+              <div class="expense-label-group">
+                <div class="expense-icon utilities">⚡</div>
+                <div>
+                  <div class="expense-name">Utilities <span class="tooltip-wrap"><i class="tooltip-icon">i</i><span class="tooltip-box">Includes electric, gas, water, and internet. The national average is $420/mo — adjust to reflect your actual monthly utility bills.</span></span></div>
+                </div>
+              </div>
+              <button class="reset-btn" onclick="resetInput('utilities',420)">Reset avg</button>
+            </div>
+            <div class="expense-input-row">
+              <span class="dollar-prefix">$</span>
+              <input class="expense-num-input" id="utilities-num" type="text" inputmode="numeric" value="420">
+              <span style="font-size:13px;color:var(--gray-mid);white-space:nowrap;">/month</span>
+            </div>
+            <input class="expense-slider" id="utilities-slider" type="range" min="0" max="2000" step="10" value="420">
+            <div class="slider-range"><span>$0</span><span>$2,000</span></div>
+          </div>
+
+          <!-- GROCERIES -->
+          <div class="expense-item groceries" id="item-g">
+            <div class="expense-header">
+              <div class="expense-label-group">
+                <div class="expense-icon groceries">🛒</div>
+                <div>
+                  <div class="expense-name">Groceries <span class="tooltip-wrap"><i class="tooltip-icon">i</i><span class="tooltip-box">Household food-at-home spending. The national average is $475/mo. Adjust for your household size and eating habits.</span></span></div>
+                </div>
+              </div>
+              <button class="reset-btn" onclick="resetInput('groceries',475)">Reset avg</button>
+            </div>
+            <div class="expense-input-row">
+              <span class="dollar-prefix">$</span>
+              <input class="expense-num-input" id="groceries-num" type="text" inputmode="numeric" value="475">
+              <span style="font-size:13px;color:var(--gray-mid);white-space:nowrap;">/month</span>
+            </div>
+            <input class="expense-slider" id="groceries-slider" type="range" min="0" max="2000" step="10" value="475">
+            <div class="slider-range"><span>$0</span><span>$2,000</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- STEP 2: ABOUT YOU -->
+      <div class="input-card">
+        <h3>Step 2 — About You</h3>
+        <p class="card-sub">Your age, occupation, and employment type are the three biggest premium factors for disability insurance.</p>
+        <div class="about-grid">
+
+          <!-- AGE -->
+          <div class="field-group">
+            <div class="field-label">Your Current Age <span class="tooltip-wrap"><i class="tooltip-icon">i</i><span class="tooltip-box">Premiums are locked at your age when you apply. Buying younger saves significantly over your career.</span></span></div>
+            <div class="age-display-row">
+              <span class="age-number" id="age-display">35</span>
+              <span class="age-unit">years old</span>
+            </div>
+            <input class="age-slider" id="age-slider" type="range" min="20" max="64" step="1" value="35">
+            <div class="age-range-labels"><span>Age 20</span><span>Age 64</span></div>
+            
+          </div>
+
+          <!-- ANNUAL INCOME -->
+          <div class="field-group">
+            <div class="field-label">Annual Income <span class="tooltip-wrap"><i class="tooltip-icon">i</i><span class="tooltip-box">National avg: $63,000/yr · Used to calculate your estimated premium as a percentage of income.</span></span></div>
+            <div class="expense-input-row" style="margin-bottom:10px;">
+              <span class="dollar-prefix" style="font-size:24px;">$</span>
+              <input class="expense-num-input" id="income-num" type="text" inputmode="numeric" value="63,000" style="font-size:28px;">
+              <span style="font-size:13px;color:var(--gray-mid);white-space:nowrap;">/year</span>
+            </div>
+            <input class="age-slider" id="income-slider" type="range" min="20000" max="500000" step="1000" value="63000" style="background:linear-gradient(to right,var(--accent) 8.6%,var(--border) 8.6%);">
+            <div class="age-range-labels"><span>$20,000</span><span>$500,000</span></div>
+            
+          </div>
+
+          <!-- OCCUPATION -->
+          <div class="field-group">
+            <div class="field-label">Occupation Type</div>
+            <div class="occ-select-wrap">
+              <select class="occ-select" id="occ-select">
+                <option value="5A">Class 5A — Professional (Physician, Attorney, CPA, Executive)</option>
+                <option value="4A" selected>Class 4A — White Collar (Engineer, Manager, Teacher, Analyst)</option>
+                <option value="3A">Class 3A — Sales &amp; Service (Real Estate Agent, Financial Advisor)</option>
+                <option value="2A">Class 2A — Skilled Trade (Electrician, Plumber, Mechanic, HVAC)</option>
+                <option value="1A">Class 1A — Manual &amp; Trade (Construction, Warehouse, Driver, Landscaper, Roofing)</option>
+              </select>
+              <span class="occ-select-arrow">▾</span>
+            </div>
+            <div class="occ-desc" id="occ-desc">Engineers, managers, office professionals, educators, and salaried analysts. Own-occupation coverage typically available with favorable rates.</div>
+            <div class="occ-desc" style="margin-top:6px;border-left-color:var(--teal);color:var(--gray-mid);">Some carriers will allow a 6A occupation class.</div>
+          </div>
+
+          <!-- EMPLOYMENT TYPE -->
+          <div class="field-group">
+            <div class="field-label">Employment Status <span class="tooltip-wrap"><i class="tooltip-icon">i</i><span class="tooltip-box">Self-employed individuals typically carry a modest premium loading (≈ 20%) due to income verification complexity.</span></span></div>
+            <div class="emp-toggle">
+              <button class="emp-btn active" id="btn-w2" onclick="setEmployment('w2')">W-2 Employee</button>
+              <button class="emp-btn" id="btn-self" onclick="setEmployment('self')">Self-Employed / Business Owner</button>
+            </div>
+            
+          </div>
+
+          <!-- GENDER -->
+          <div class="field-group">
+            <div class="field-label">Gender <span class="tooltip-wrap"><i class="tooltip-icon">i</i><span class="tooltip-box">Gender is an actuarial underwriting factor. Females statistically file more claims and may carry a modest premium loading.</span></span></div>
+            <div class="gender-toggle">
+              <button class="gender-btn active" id="btn-male"   onclick="setGender('male')">&#9794; Male</button>
+              <button class="gender-btn"        id="btn-female" onclick="setGender('female')">&#9792; Female</button>
+            </div>
+            
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- STEP 4: YOUR INFORMATION -->
+      <div class="input-card" id="step4-card">
+        <h3>Step 4 — Your Information</h3>
+        <p class="card-sub">Complete all fields to unlock your personalized M.U.G. coverage estimate.</p>
+
+        <div class="form-progress-wrap">
+          <div class="form-prog-bar"><div class="form-prog-fill" id="form-prog-fill"></div></div>
+          <span class="form-prog-label" id="form-prog-label">0 of 5 complete</span>
+        </div>
+
+        <div class="lead-form">
+          <div class="form-row-2">
+            <div class="form-field">
+              <label>First Name <span class="req">*</span></label>
+              <input class="form-input" id="f-first" type="text" placeholder="First name" autocomplete="given-name">
+              <div class="f-error" id="err-first"></div>
+            </div>
+            <div class="form-field">
+              <label>Last Name <span class="req">*</span></label>
+              <input class="form-input" id="f-last" type="text" placeholder="Last name" autocomplete="family-name">
+              <div class="f-error" id="err-last"></div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Email Address <span class="req">*</span></label>
+            <input class="form-input" id="f-email" type="email" placeholder="you@example.com" autocomplete="email">
+            <div class="f-error" id="err-email"></div>
+          </div>
+          <div class="form-field">
+            <label>Phone Number <span class="req">*</span></label>
+            <input class="form-input" id="f-phone" type="tel" placeholder="(555) 555-5555" autocomplete="tel">
+            <div class="f-error" id="err-phone"></div>
+          </div>
+          <div class="form-field">
+            <label>State <span class="req">*</span></label>
+            <div class="occ-select-wrap">
+              <select class="form-select" id="f-state" autocomplete="address-level1">
+                <option value="">Select your state…</option>
+                <option value="AL">Alabama</option><option value="AK">Alaska</option>
+                <option value="AZ">Arizona</option><option value="AR">Arkansas</option>
+                <option value="CA">California</option><option value="CO">Colorado</option>
+                <option value="CT">Connecticut</option><option value="DE">Delaware</option>
+                <option value="DC">District of Columbia</option><option value="FL">Florida</option>
+                <option value="GA">Georgia</option><option value="HI">Hawaii</option>
+                <option value="ID">Idaho</option><option value="IL">Illinois</option>
+                <option value="IN">Indiana</option><option value="IA">Iowa</option>
+                <option value="KS">Kansas</option><option value="KY">Kentucky</option>
+                <option value="LA">Louisiana</option><option value="ME">Maine</option>
+                <option value="MD">Maryland</option><option value="MA">Massachusetts</option>
+                <option value="MI">Michigan</option><option value="MN">Minnesota</option>
+                <option value="MS">Mississippi</option><option value="MO">Missouri</option>
+                <option value="MT">Montana</option><option value="NE">Nebraska</option>
+                <option value="NV">Nevada</option><option value="NH">New Hampshire</option>
+                <option value="NJ">New Jersey</option><option value="NM">New Mexico</option>
+                <option value="NY">New York</option><option value="NC">North Carolina</option>
+                <option value="ND">North Dakota</option><option value="OH">Ohio</option>
+                <option value="OK">Oklahoma</option><option value="OR">Oregon</option>
+                <option value="PA">Pennsylvania</option><option value="RI">Rhode Island</option>
+                <option value="SC">South Carolina</option><option value="SD">South Dakota</option>
+                <option value="TN">Tennessee</option><option value="TX">Texas</option>
+                <option value="UT">Utah</option><option value="VT">Vermont</option>
+                <option value="VA">Virginia</option><option value="WA">Washington</option>
+                <option value="WV">West Virginia</option><option value="WI">Wisconsin</option>
+                <option value="WY">Wyoming</option>
+              </select>
+              <span class="occ-select-arrow">&#9662;</span>
+            </div>
+            <div class="f-error" id="err-state"></div>
+          </div>
+          <button class="step4-unlock-btn" id="unlock-btn" onclick="tryUnlock()">
+            <span id="unlock-btn-text">&#128274; Complete All Fields to Unlock</span>
+          </button>
+          <p id="qb-consent" style="font-size:11px;color:var(--gray-mid);line-height:1.6;margin-top:10px;text-align:center;">
+            By clicking <strong style="color:var(--gray-dark);">See My Results</strong> you acknowledge that we will only call, SMS, or email to follow up on your quote. You also agree to our <a href="https://quote-bot.com/Privacy-Policy" target="_blank" style="color:var(--accent);font-weight:600;text-decoration:underline;">Privacy Policy</a> &amp; <a href="https://quote-bot.com/Terms-Conditions" target="_blank" style="color:var(--accent);font-weight:600;text-decoration:underline;">Terms of Service</a>.
+          </p>
+        </div>
+      </div>
+
+    </div><!-- end inputs-col -->
+
+    <!-- RIGHT: RESULTS -->
+    <div class="results-col">
+      <div class="results-panel">
+        <!-- Lock Overlay -->
+        <div id="results-lock-overlay">
+          <div class="lock-icon-wrap">&#128274;</div>
+          <div class="lock-title">Unlock Your Results</div>
+          <div class="lock-sub">Complete Step 4 — Your Information to see your personalized M.U.G. coverage estimate.</div>
+          <div class="lock-dots">
+            <div class="lock-dot" id="ldot-1"></div>
+            <div class="lock-dot" id="ldot-2"></div>
+            <div class="lock-dot" id="ldot-3"></div>
+            <div class="lock-dot" id="ldot-4"></div>
+            <div class="lock-dot" id="ldot-5"></div>
+          </div>
+          <div class="lock-count" id="lock-count">0 of 5 fields complete</div>
+        </div>
+        <!-- Results Content (blurred until unlocked) -->
+        <div id="results-content" class="results-inner locked">
+
+          <!-- HEADER -->
+          <div class="results-header">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div>
+                <div class="results-eyebrow">M.U.G. Strategy &middot; 90-Day Elimination &middot; 24-Month Benefit</div>
+                <div class="results-title">Your Coverage Snapshot <span class="live-dot"></span></div>
+              </div>
+              <button id="edit-inputs-btn" onclick="editInputs()" style="display:none;flex-shrink:0;padding:7px 14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:9px;color:rgba(255,255,255,0.75);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s ease;white-space:nowrap;" onmouseenter="this.style.background='rgba(255,255,255,0.18)';this.style.color='#fff'" onmouseleave="this.style.background='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.75)'">&#9998; Edit Inputs</button>
+            </div>
+          </div>
+
+          <!-- PREMIUM — HERO / MOST PROMINENT -->
+          <div class="premium-section premium-hero-section">
+            <div class="premium-header-row">
+              <div class="premium-label">Estimated Premium</div>
+              <div class="occ-badge c4a" id="occ-badge">Class 4A</div>
+            </div>
+            <div class="premium-hero-row">
+              <div>
+                <div class="premium-hero-num"><span style="font-size:0.5em;opacity:0.55;letter-spacing:0;">~</span><span id="premium-mo-display">$64</span></div>
+                <div class="premium-hero-unit">per month &mdash; estimated</div>
+              </div>
+              <div class="premium-divider-v"></div>
+              <div>
+                <div class="premium-hero-annual-num" id="premium-yr-display">~$767</div>
+                <div class="premium-hero-unit">per year</div>
+              </div>
+            </div>
+            <div class="premium-stats">
+              <div class="pstat">
+                <div class="pstat-val" id="pstat-pct">0.9%</div>
+                <div class="pstat-lbl">of estimated annual income</div>
+              </div>
+              <div class="pstat">
+                <div class="pstat-val" id="pstat-day">$2.10</div>
+                <div class="pstat-lbl">estimated cost per day</div>
+              </div>
+            </div>
+            <div class="occ-info-box" id="occ-info-box">
+              <strong>Class 4A &middot; White Collar Professional</strong><br>
+              Engineers, managers, educators &amp; analysts. Own-occupation definition typically available.
+            </div>
+          </div>
+
+          <!-- MONTHLY BENEFIT — SECONDARY -->
+          <div class="benefit-section">
+            <div class="benefit-secondary-row">
+              <div>
+                <div class="benefit-label">Monthly Benefit if Disabled</div>
+                <div class="benefit-secondary-num" id="benefit-display">$2,920</div>
+              </div>
+              <div class="coverage-pill" id="coverage-pill">&#10003; $70,080 total &middot; 24 months</div>
+            </div>
+          </div>
+
+          <!-- M U G BREAKDOWN BARS -->
+          <div class="breakdown-section">
+            <div class="breakdown-label">M &middot; U &middot; G Breakdown</div>
+            <div class="breakdown-bars">
+              <div class="bar-row">
+                <span class="bar-tag">M</span>
+                <div class="bar-track"><div class="bar-fill m" id="bar-m" style="width:60%"></div></div>
+                <span class="bar-amount" id="bar-m-val">$2,025</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-tag">U</span>
+                <div class="bar-track"><div class="bar-fill u" id="bar-u" style="width:12%"></div></div>
+                <span class="bar-amount" id="bar-u-val">$420</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-tag">G</span>
+                <div class="bar-track"><div class="bar-fill g" id="bar-g" style="width:14%"></div></div>
+                <span class="bar-amount" id="bar-g-val">$475</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="results-cta">
+            <a class="cta-btn" href="https://app.quote-bot.com/public/life-insurance" target="_blank">&#128737; Get My Free Real Quote</a>
+            <a class="cta-phone" href="tel:8888048590">Or call (888) 804-8590 to speak with an advisor</a>
+          </div>
+
+          <div class="results-disclaimer">
+            Illustrative estimates based on actuarial age-band tables and industry occupation class guidelines. 90-day elimination period, 24-month benefit period assumed. Actual premiums vary by carrier, health, state, and policy design. Not a binding quote.
+          </div>
+
+        </div><!-- end results-content -->
+      </div>
+    </div><!-- end results-col -->
+
+  </div><!-- end calc-grid -->
+</div><!-- end calc-wrapper -->
+
+<!-- HOW IT WORKS -->
+<div class="explain-section">
+  <div class="explain-inner">
+    <div class="explain-eyebrow">The M.U.G. Method</div>
+    <div class="explain-title">Simple. Focused. Surprisingly Affordable.</div>
+    <div class="explain-steps">
+      <div class="explain-step">
+        <div class="step-num">01</div>
+        <div class="step-title">Identify Your Non-Negotiables</div>
+        <p class="step-text">The M.U.G. strategy focuses on just three expenses — Mortgage, Utilities, and Groceries. These are the bills that cannot be skipped without losing your home or going without food. Everything else can be reduced, deferred, or renegotiated in a crisis. These cannot.</p>
+      </div>
+      <div class="explain-step">
+        <div class="step-num">02</div>
+        <div class="step-title">Set a 24-Month Benefit Window</div>
+        <p class="step-text">Most disability situations resolve — through recovery, adaptation, or qualification for longer-term programs like SSDI — within two years. A 24-month benefit period dramatically lowers your premium compared to lifetime or to-age-65 coverage, while still protecting your household through the most financially dangerous window.</p>
+      </div>
+      <div class="explain-step">
+        <div class="step-num">03</div>
+        <div class="step-title">Pay Less Than 1% of Your Income</div>
+        <p class="step-text">Because the benefit amount is targeted and the benefit period is defined, M.U.G. policies typically cost well under 1% of annual income per year. For many households, that's less per day than a cup of coffee — for protection that could mean the difference between keeping or losing your home during the hardest months of your life.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA BAND -->
+<div class="cta-band">
+  <div class="cta-band-inner">
+    <h2>Ready for Your Real Premium?</h2>
+    <p>The numbers above are illustrative. A licensed advisor can run a real, carrier-specific quote for your exact situation in minutes — no obligation, no pressure.</p>
+    <div class="cta-actions">
+      <a class="btn-white" href="https://app.quote-bot.com/public/life-insurance" target="_blank">🛡️ Get My Free Quote</a>
+      <a class="btn-ghost-w" href="tel:8888048590">📞 Call (888) 804-8590</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="data:image/jpeg;base64,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" alt="Quote-Bot" style="height:36px;width:auto;display:block;filter:brightness(0) invert(1);">
+        <p>Fast, transparent insurance — buy online with or without an agent.</p>
+        <div class="footer-contact">
+          <a href="tel:8888048590">📞 (888) 804-8590</a>
+          <a href="mailto:info@quote-bot.com">✉ info@quote-bot.com</a>
+        </div>
+      </div>
+      <div class="footer-col"><h4>Solutions</h4><a href="#">Life Insurance</a><a href="#">Disability Insurance</a><a href="#">Long-Term Care</a><a href="#">Annuities</a></div>
+      <div class="footer-col"><h4>Company</h4><a href="#">About Us</a><a href="#">Our Licenses</a><a href="#">Careers</a><a href="https://trust.quote-bot.com/" target="_blank">Trust Center</a></div>
+      <div class="footer-col"><h4>Calculators</h4><a href="#">M.U.G. Calculator</a><a href="#">Income Bridge</a><a href="#">Retirement Gap</a><a href="#">LTC Estimator</a></div>
+      <div class="footer-col"><h4>Partners</h4><a href="#">P&amp;C Agents</a><a href="#">Investment Advisors</a><a href="#">CPAs &amp; Attorneys</a></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 QB Insurance LLC dba Quote-Bot. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="https://quote-bot.com/Privacy-Policy" target="_blank">Privacy</a>
+        <a href="https://quote-bot.com/Terms-Conditions" target="_blank">Terms</a>
+        <a href="https://quote-bot.com/disclaimer/" target="_blank">Disclaimer</a>
+        <a href="#">Licenses</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ─── RATE TABLE ────────────────────────────────────────────────────────────────
+// Monthly premium per $100 of monthly benefit
+// Assumptions: 90-day elimination period, 24-month benefit period, illustrative
+const RATES = {
+  "5A": {a:1.20,b:1.50,c:1.90,d:2.40,e:3.10,f:4.00,g:5.20,h:6.80},
+  "4A": {a:1.38,b:1.73,c:2.19,d:2.76,e:3.57,f:4.60,g:5.98,h:7.82},
+  "3A": {a:1.62,b:2.03,c:2.57,d:3.24,e:4.19,f:5.40,g:7.02,h:9.18},
+  "2A": {a:2.04,b:2.55,c:3.23,d:4.08,e:5.27,f:6.80,g:8.84,h:11.56},
+  "1A": {a:3.00,b:3.75,c:4.75,d:6.00,e:7.75,f:10.00,g:13.00,h:17.00}
+};
+
+const OCC_INFO = {
+  "5A": {label:"Class 5A · Professional",desc:"Physicians, surgeons, attorneys, CPAs, and senior executives. Most favorable rates. Own-occupation definition typically available.",badge:"c5a"},
+  "4A": {label:"Class 4A · White Collar Professional",desc:"Engineers, managers, educators &amp; analysts. Own-occupation definition typically available.",badge:"c4a"},
+  "3A": {label:"Class 3A · Sales &amp; Service",desc:"Real estate agents, financial advisors, retail managers, and similar roles. Moderate loading over professional classes.",badge:"c3a"},
+  "2A": {label:"Class 2A · Skilled Trade",desc:"Electricians, plumbers, mechanics, and HVAC technicians. Higher physical risk reflects in premium. Modified own-occupation may apply.",badge:"c2a"},
+  "1A": {label:"Class 1A · Manual &amp; Trade",desc:"Construction workers, warehouse associates, drivers, landscapers, and roofers. Any-occupation definition is standard. Contact an advisor for specialty options.",badge:"c1a"}
+};
+
+const OCC_DESCS = {
+  "5A":"Physicians, attorneys, CPAs, and senior executives. Own-occupation coverage typically available with the most favorable rates.",
+  "4A":"Engineers, managers, office professionals, educators, and salaried analysts. Own-occupation coverage typically available with favorable rates.",
+  "3A":"Real estate agents, financial advisors, retail managers, and customer-facing sales roles. Moderate premium loading.",
+  "2A":"Electricians, plumbers, mechanics, HVAC technicians, and similar skilled trades. Modified own-occupation definitions may apply.",
+  "1A":"Construction workers, warehouse associates, delivery drivers, landscapers, and roofers. Any-occupation definitions are standard. Contact an advisor for specialty coverage options."
+};
+
+function getAgeBand(age) {
+  if (age < 30) return "a";
+  if (age < 35) return "b";
+  if (age < 40) return "c";
+  if (age < 45) return "d";
+  if (age < 50) return "e";
+  if (age < 55) return "f";
+  if (age < 60) return "g";
+  return "h";
+}
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let state = {
+  mortgage: 2025,
+  utilities: 420,
+  groceries: 475,
+  income: 63000,
+  age: 35,
+  occ: "4A",
+  selfEmployed: false,
+  gender: "male"
+};
+
+// ─── CALCULATIONS ───────────────────────────────────────────────────────────
+function calculate() {
+  const {mortgage, utilities, groceries, age, occ, selfEmployed} = state;
+  const monthlyBenefit = mortgage + utilities + groceries;
+  const totalCoverage   = monthlyBenefit * 24;
+
+  const band = getAgeBand(age);
+  const baseRate = RATES[occ][band];
+  const empMult    = selfEmployed ? 1.20 : 1.00;
+  const genderMult = state.gender === "female" ? 1.18 : state.gender === "na" ? 1.09 : 1.00;
+  const multiplier = empMult * genderMult;
+  const monthlyPremium = (monthlyBenefit / 100) * baseRate * multiplier;
+  const annualPremium  = monthlyPremium * 12;
+
+  // Use actual income from state
+  const estAnnualIncome = state.income > 0 ? state.income : 63000;
+  const pctIncome = estAnnualIncome > 0 ? (annualPremium / estAnnualIncome) * 100 : 0;
+  const perDay = annualPremium / 365;
+
+  return {monthlyBenefit, totalCoverage, monthlyPremium, annualPremium, pctIncome, perDay};
+}
+
+// ─── FORMAT HELPERS ─────────────────────────────────────────────────────────
+function fmt(n) {
+  return "$" + Math.round(n).toLocaleString("en-US");
+}
+function fmt2(n) {
+  return n < 10 ? n.toFixed(2) : n.toFixed(1);
+}
+
+// ─── ANIMATED COUNTER ───────────────────────────────────────────────────────
+const counters = {};
+function animateTo(elId, targetVal, prefix, suffix, decimals) {
+  if (counters[elId]) cancelAnimationFrame(counters[elId]);
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const start = parseFloat(el.dataset.val || 0);
+  const delta = targetVal - start;
+  const dur = 350;
+  const startTime = performance.now();
+  function step(now) {
+    const t = Math.min((now - startTime) / dur, 1);
+    const ease = 1 - Math.pow(1-t, 3);
+    const cur = start + delta * ease;
+    const display = decimals > 0 ? cur.toFixed(decimals) : Math.round(cur).toLocaleString("en-US");
+    el.textContent = prefix + display + suffix;
+    el.dataset.val = cur;
+    if (t < 1) counters[elId] = requestAnimationFrame(step);
+    else el.dataset.val = targetVal;
+  }
+  counters[elId] = requestAnimationFrame(step);
+}
+
+// ─── UPDATE UI ──────────────────────────────────────────────────────────────
+function updateResults() {
+  const r = calculate();
+  const {mortgage, utilities, groceries, occ} = state;
+  const total = r.monthlyBenefit;
+
+  // Bars
+  const maxBar = Math.max(total, 1);
+  document.getElementById("bar-m").style.width = ((mortgage/maxBar)*100).toFixed(1)+"%";
+  document.getElementById("bar-u").style.width = ((utilities/maxBar)*100).toFixed(1)+"%";
+  document.getElementById("bar-g").style.width = ((groceries/maxBar)*100).toFixed(1)+"%";
+  document.getElementById("bar-m-val").textContent = fmt(mortgage);
+  document.getElementById("bar-u-val").textContent = fmt(utilities);
+  document.getElementById("bar-g-val").textContent = fmt(groceries);
+
+  // Benefit
+  animateTo("benefit-display", r.monthlyBenefit, "$", "", 0);
+  document.getElementById("coverage-pill").textContent = "✓ " + fmt(r.totalCoverage) + " total · 24-month protection";
+
+  // Premium
+  animateTo("premium-mo-display", r.monthlyPremium, "$", "", 0);
+  document.getElementById("premium-yr-display").textContent = "~" + fmt(r.annualPremium);
+  document.getElementById("pstat-pct").textContent = fmt2(r.pctIncome) + "%";
+  document.getElementById("pstat-day").textContent = "$" + r.perDay.toFixed(2);
+
+  // Occ badge + info
+  const info = OCC_INFO[occ];
+  const badge = document.getElementById("occ-badge");
+  badge.textContent = "Class " + occ;
+  badge.className = "occ-badge " + info.badge;
+
+  document.getElementById("occ-info-box").innerHTML = "<strong>" + info.label + "</strong><br>" + info.desc;
+}
+
+// ─── SLIDER ↔ NUMBER SYNC ───────────────────────────────────────────────────
+function syncExpense(key) {
+  const slider = document.getElementById(key+"-slider");
+  const num    = document.getElementById(key+"-num");
+  const max    = parseFloat(slider.max);
+  const val    = parseFloat(slider.value);
+  const pct    = (val / max * 100).toFixed(1) + "%";
+  const item   = document.getElementById("item-"+key[0]);
+  if (item) item.querySelector(".expense-slider").style.setProperty("--pct", pct);
+  num.value = val;
+  state[key] = val;
+  updateResults();
+}
+
+// ─── HELPERS: comma-formatted text inputs ───────────────────────────────────
+function stripCommas(s) { return parseFloat(String(s).replace(/,/g,"")) || 0; }
+function addCommas(n)   { return Math.round(n).toLocaleString("en-US"); }
+
+["mortgage","utilities","groceries"].forEach(key => {
+  const slider = document.getElementById(key+"-slider");
+  const num    = document.getElementById(key+"-num");
+
+  // Slider → text input
+  slider.addEventListener("input", () => {
+    const v = parseFloat(slider.value);
+    state[key] = v;
+    num.value = addCommas(v);
+    const pct = (v / parseFloat(slider.max) * 100).toFixed(1) + "%";
+    slider.style.setProperty("--pct", pct);
+    updateResults();
+  });
+
+  // Text input: reformat with commas on blur
+  num.addEventListener("blur", () => {
+    let v = Math.max(0, Math.min(parseFloat(slider.max), stripCommas(num.value)));
+    num.value = addCommas(v);
+    slider.value = v;
+    state[key] = v;
+    const pct = (v / parseFloat(slider.max) * 100).toFixed(1) + "%";
+    slider.style.setProperty("--pct", pct);
+    updateResults();
+  });
+
+  // Text input: live update while typing (strip commas, allow only digits)
+  num.addEventListener("input", () => {
+    const raw = num.value.replace(/[^0-9]/g, "");
+    const v   = parseFloat(raw) || 0;
+    state[key] = v;
+    if (v <= parseFloat(slider.max)) slider.value = v;
+    const pct = (Math.min(v, parseFloat(slider.max)) / parseFloat(slider.max) * 100).toFixed(1) + "%";
+    slider.style.setProperty("--pct", pct);
+    updateResults();
+  });
+
+  // Reformat on focus-out handled by blur; strip commas on focus so user can edit cleanly
+  num.addEventListener("focus", () => {
+    num.value = String(stripCommas(num.value) || "");
+  });
+});
+
+// ─── INCOME SLIDER + INPUT ─────────────────────────────────────────────────
+const incomeSlider = document.getElementById("income-slider");
+const incomeNum    = document.getElementById("income-num");
+
+incomeSlider.addEventListener("input", () => {
+  const v = parseFloat(incomeSlider.value);
+  state.income = v;
+  incomeNum.value = addCommas(v);
+  const pct = ((v - 20000) / (500000 - 20000) * 100).toFixed(2) + "%";
+  incomeSlider.style.background = "linear-gradient(to right,var(--accent) " + pct + ",var(--border) " + pct + ")";
+  updateResults();
+});
+
+incomeNum.addEventListener("focus", () => {
+  incomeNum.value = String(stripCommas(incomeNum.value) || "");
+});
+
+incomeNum.addEventListener("input", () => {
+  const raw = incomeNum.value.replace(/[^0-9]/g, "");
+  const v   = parseFloat(raw) || 0;
+  state.income = v;
+  if (v >= 20000 && v <= 500000) incomeSlider.value = v;
+  const sliderVal = Math.min(Math.max(v, 20000), 500000);
+  const pct = ((sliderVal - 20000) / (500000 - 20000) * 100).toFixed(2) + "%";
+  incomeSlider.style.background = "linear-gradient(to right,var(--accent) " + pct + ",var(--border) " + pct + ")";
+  updateResults();
+});
+
+incomeNum.addEventListener("blur", () => {
+  let v = Math.max(0, stripCommas(incomeNum.value));
+  incomeNum.value = addCommas(v);
+  state.income = v;
+  const sliderVal = Math.min(Math.max(v, 20000), 500000);
+  incomeSlider.value = sliderVal;
+  const pct = ((sliderVal - 20000) / (500000 - 20000) * 100).toFixed(2) + "%";
+  incomeSlider.style.background = "linear-gradient(to right,var(--accent) " + pct + ",var(--border) " + pct + ")";
+  updateResults();
+});
+
+// ─── AGE SLIDER ─────────────────────────────────────────────────────────────
+const ageSlider = document.getElementById("age-slider");
+ageSlider.addEventListener("input", () => {
+  state.age = parseInt(ageSlider.value);
+  document.getElementById("age-display").textContent = ageSlider.value;
+  const pct = ((state.age-20)/(64-20)*100).toFixed(1)+"%";
+  ageSlider.style.setProperty("--pct", pct);
+  updateResults();
+});
+
+// ─── OCCUPATION ─────────────────────────────────────────────────────────────
+document.getElementById("occ-select").addEventListener("change", function() {
+  state.occ = this.value;
+  document.getElementById("occ-desc").textContent = OCC_DESCS[this.value];
+  updateResults();
+});
+
+// ─── EMPLOYMENT TOGGLE ───────────────────────────────────────────────────────
+function setEmployment(type) {
+  state.selfEmployed = (type === "self");
+  document.getElementById("btn-w2").classList.toggle("active", type === "w2");
+  document.getElementById("btn-self").classList.toggle("active", type === "self");
+  updateResults();
+}
+
+// ─── RESET ──────────────────────────────────────────────────────────────────
+function resetInput(key, defaultVal) {
+  const slider = document.getElementById(key+"-slider");
+  const num    = document.getElementById(key+"-num");
+  slider.value = defaultVal;
+  num.value    = addCommas(defaultVal);
+  state[key]   = defaultVal;
+  const pct = (defaultVal / parseFloat(slider.max) * 100).toFixed(1) + "%";
+  slider.style.setProperty("--pct", pct);
+  updateResults();
+}
+
+// ─── GENDER ──────────────────────────────────────────────────────────────────
+function setGender(g) {
+  state.gender = g;
+  document.getElementById("btn-male").classList.toggle("active",   g === "male");
+  document.getElementById("btn-female").classList.toggle("active", g === "female");
+  updateResults();
+}
+
+// ─── STEP 4 FORM VALIDATION ──────────────────────────────────────────────────
+const FIELDS = ["first","last","email","phone","state"];
+
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function isValidPhone(v){ return v.replace(/\D/g,"").length >= 10; }
+
+function formatPhone(input){
+  let d = input.value.replace(/\D/g,"").slice(0,10);
+  if(d.length >= 7) d = "("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6);
+  else if(d.length >= 4) d = "("+d.slice(0,3)+") "+d.slice(3);
+  else if(d.length > 0) d = "("+d;
+  input.value = d;
+}
+
+function fieldStatus(id){
+  const v = document.getElementById("f-"+id).value.trim();
+  if(id==="first"||id==="last") return v.length > 0;
+  if(id==="email")  return isValidEmail(v);
+  if(id==="phone")  return isValidPhone(v);
+  if(id==="state")  return v !== "";
+  return false;
+}
+
+function validateField(id){
+  const el  = document.getElementById("f-"+id);
+  const err = document.getElementById("err-"+id);
+  const ok  = fieldStatus(id);
+  el.classList.toggle("f-valid",   ok);
+  el.classList.toggle("f-invalid", !ok && el.value.trim() !== "");
+  if(!ok && el.value.trim() !== ""){
+    const msgs = {first:"Please enter your first name.",last:"Please enter your last name.",
+      email:"Please enter a valid email address.",phone:"Please enter a valid 10-digit phone number.",
+      state:"Please select your state."};
+    err.textContent = msgs[id];
+  } else { err.textContent = ""; }
+  return ok;
+}
+
+function updateFormProgress(){
+  const done = FIELDS.filter(id => fieldStatus(id)).length;
+  const pct  = (done/5*100).toFixed(0)+"%";
+  document.getElementById("form-prog-fill").style.width  = pct;
+  document.getElementById("form-prog-label").textContent = done+" of 5 complete";
+  FIELDS.forEach((id,i)=>{
+    document.getElementById("ldot-"+(i+1)).classList.toggle("done", fieldStatus(id));
+  });
+  document.getElementById("lock-count").textContent = done+" of 5 fields complete";
+  const btn = document.getElementById("unlock-btn");
+  const txt = document.getElementById("unlock-btn-text");
+  if(done === 5){
+    btn.classList.add("btn-ready");
+    txt.textContent = "&#128275; See My Results →";
+    txt.innerHTML   = "&#128275; See My Results &rarr;";
+  } else {
+    btn.classList.remove("btn-ready");
+    txt.textContent = "Complete All Fields to Unlock";
+    txt.innerHTML   = "&#128274; Complete All Fields to Unlock";
+  }
+}
+
+function tryUnlock(){
+  let allOk = true;
+  FIELDS.forEach(id => { if(!validateField(id)) allOk = false; });
+  updateFormProgress();
+  if(allOk) unlockResults();
+}
+
+/* ---- Quote Bot lead capture -------------------------------------------- */
+/* Fires once, at the moment the gate opens and all five fields are valid.   */
+/* Never blocks the reveal: capture() is fire-and-forget and swallows its    */
+/* own errors, so a network failure still shows the user their results.      */
+function qbCaptureLead(){
+  if (!window.QuoteBot) return;
+  try {
+    var v = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    var r = calculate();
+    var consent = document.getElementById('qb-consent');
+    window.QuoteBot.capture({
+      email: v('f-email'),
+      phone: v('f-phone'),
+      firstName: v('f-first'),
+      lastName: v('f-last'),
+      productLine: 'DISABILITY_INCOME',
+      inputs: {
+        stateCode: v('f-state'),
+        mortgage: state.mortgage, utilities: state.utilities, groceries: state.groceries,
+        age: state.age, occupation: state.occ, selfEmployed: state.selfEmployed,
+        gender: state.gender, annualIncome: state.income
+      },
+      results: {
+        monthlyBenefit: r.monthlyBenefit, totalCoverage: r.totalCoverage,
+        monthlyPremium: r.monthlyPremium, annualPremium: r.annualPremium
+      },
+      consentText: consent ? consent.textContent.replace(/\s+/g, ' ').trim() : null
+    });
+  } catch (e) { /* capture must never break the calculator */ }
+}
+
+function unlockResults(){
+  qbCaptureLead();
+  document.getElementById("results-lock-overlay").classList.add("unlocked");
+  document.getElementById("results-content").classList.remove("locked");
+  // Hide input column, expand results to full width
+  document.querySelector(".inputs-col").classList.add("col-hidden");
+  document.querySelector(".calc-grid").classList.add("results-revealed");
+  // Show the Edit Inputs button
+  document.getElementById("edit-inputs-btn").style.display = "inline-flex";
+  // Scroll to results
+  setTimeout(()=>{
+    document.querySelector(".calc-wrapper").scrollIntoView({behavior:"smooth",block:"start"});
+  },200);
+}
+
+function editInputs(){
+  // Re-show inputs, restore two-column grid
+  document.querySelector(".inputs-col").classList.remove("col-hidden");
+  document.querySelector(".calc-grid").classList.remove("results-revealed");
+  document.getElementById("edit-inputs-btn").style.display = "none";
+  // Scroll back to top of calculator
+  setTimeout(()=>{
+    document.querySelector(".calc-wrapper").scrollIntoView({behavior:"smooth",block:"start"});
+  },100);
+}
+
+// Attach live listeners to form fields
+document.addEventListener("DOMContentLoaded", function(){
+  FIELDS.forEach(id => {
+    const el = document.getElementById("f-"+id);
+    el.addEventListener("blur",  () => { validateField(id); updateFormProgress(); });
+    el.addEventListener("input", () => {
+      if(id==="phone") formatPhone(el);
+      if(el.classList.contains("f-invalid")) validateField(id);
+      updateFormProgress();
+    });
+  });
+});
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+function init() {
+  // Set initial slider track fills
+  document.getElementById("mortgage-slider").style.setProperty("--pct", (2025/8000*100).toFixed(1)+"%");
+  document.getElementById("utilities-slider").style.setProperty("--pct", (420/2000*100).toFixed(1)+"%");
+  document.getElementById("groceries-slider").style.setProperty("--pct", (475/2000*100).toFixed(1)+"%");
+  document.getElementById("age-slider").style.setProperty("--pct", ((35-20)/(64-20)*100).toFixed(1)+"%");
+  updateResults();
+}
+init();
+</script>
+</body>
+</html>

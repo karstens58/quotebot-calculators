@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Long-Term Care Annuity Tax Illustration | Quote-Bot</title>
+<meta name="description" content="See how a Pension Protection Act long-term care annuity lets you take distributions for qualified care income-tax-free — compared to a standard taxable annuity distribution.">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1a3d6b; --primary-dark: #0f2540; --primary-mid: #1e4d85;
+  --accent: #4a90d9; --accent-light: #e8f2fb;
+  --teal: #0d9488; --teal-light: #ccfbf1; --teal-dark: #0b766b;
+  --gold: #b45309; --gold-mid: #d97706; --gold-light: #fef3c7; --gold-bright: #f59e0b;
+  --green: #16a34a; --green-light: #dcfce7; --green-dark: #15803d;
+  --red: #dc2626; --red-light: #fee2e2;
+  --white: #ffffff; --off-white: #f7f9fc; --gray-light: #eef1f6;
+  --gray-mid: #8a9ab5; --gray-dark: #2c3e58; --text: #1c2a3a; --border: #d8e2f0;
+  --shadow: 0 4px 24px rgba(26,61,107,0.10); --shadow-lg: 0 16px 56px rgba(26,61,107,0.16);
+  --radius: 12px; --radius-lg: 20px; --radius-xl: 28px; --transition: 0.2s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--white); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+
+/* HERO */
+.tool-hero { background: var(--primary-dark); padding: 56px 32px 60px; position: relative; overflow: hidden; }
+.tool-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 55% 80% at 15% 50%, rgba(74,144,217,0.22) 0%, transparent 65%), radial-gradient(ellipse 40% 60% at 82% 15%, rgba(13,148,136,0.28) 0%, transparent 60%); }
+.tool-hero::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 48px 48px; }
+.tool-hero-inner { max-width: 1240px; margin: 0 auto; position: relative; z-index: 1; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 5px 14px; border-radius: 100px; margin-bottom: 20px; }
+.tool-hero h1 { font-family: 'Fraunces', serif; font-size: clamp(28px, 3.6vw, 46px); font-weight: 700; color: var(--white); line-height: 1.12; letter-spacing: -0.5px; margin-bottom: 16px; max-width: 780px; }
+.tool-hero h1 em { font-style: italic; color: #5eead4; }
+.hero-sub { font-size: 17px; color: rgba(255,255,255,0.72); line-height: 1.7; max-width: 660px; }
+
+/* MAIN LAYOUT */
+.calc-wrapper { max-width: 1240px; margin: 0 auto; padding: 52px 32px 80px; }
+.calc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 32px; align-items: start; }
+
+/* INPUT COLUMN */
+.inputs-col { display: flex; flex-direction: column; gap: 18px; }
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gray-mid); margin-bottom: 2px; display: flex; align-items: center; gap: 10px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.input-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); padding: 20px 20px 18px; box-shadow: var(--shadow); }
+.input-card h3 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--primary-dark); margin-bottom: 5px; }
+.input-card .card-sub { font-size: 12px; color: var(--gray-mid); margin-bottom: 14px; line-height: 1.45; }
+
+/* MONEY / NUMBER INPUT ITEMS */
+.input-stack { display: flex; flex-direction: column; gap: 11px; }
+.money-item { background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 10px 13px; transition: border-color var(--transition), box-shadow var(--transition); }
+.money-item:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,144,217,0.15); }
+.money-header { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+.money-icon { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.money-icon.value { background: rgba(74,144,217,0.12); }
+.money-icon.basis { background: rgba(13,148,136,0.12); }
+.money-icon.dist { background: rgba(180,83,9,0.10); }
+.money-icon.age { background: rgba(26,61,107,0.10); }
+.money-icon.rate { background: rgba(220,38,38,0.10); }
+.money-name { font-size: 12px; font-weight: 700; color: var(--primary-dark); line-height: 1.2; }
+.money-title-row { display: flex; align-items: center; gap: 6px; }
+.tip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--gray-light); color: var(--gray-mid); font-size: 9.5px; font-weight: 700; font-style: normal; cursor: help; flex-shrink: 0; user-select: none; }
+.tip:hover, .tip:focus { background: var(--accent); color: #fff; outline: none; }
+.tip::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 9px); left: 50%; transform: translateX(-50%) translateY(4px); width: max-content; max-width: 210px; background: var(--primary-dark); color: #fff; font-size: 11px; font-weight: 500; line-height: 1.45; text-align: left; padding: 8px 10px; border-radius: 8px; box-shadow: 0 6px 20px rgba(15,37,64,0.28); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 30; white-space: normal; }
+.tip::before { content: ''; position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--primary-dark); opacity: 0; visibility: hidden; transition: opacity .18s ease; z-index: 30; }
+.tip:hover::after, .tip:focus::after { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+.tip:hover::before, .tip:focus::before { opacity: 1; visibility: visible; }
+.money-input-row { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+.dollar-prefix, .pct-suffix { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--primary); line-height: 1; }
+.money-num-input { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--primary-dark); border: none; background: transparent; width: 100%; outline: none; line-height: 1; min-width: 0; }
+.money-num-input::-webkit-inner-spin-button, .money-num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* bordered USD currency input field (value & basis) */
+.usd-field { display: flex; align-items: center; gap: 6px; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 7px; transition: border-color var(--transition), box-shadow var(--transition); }
+.usd-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,144,217,0.15); }
+.usd-prefix { font-size: 16px; font-weight: 700; color: var(--gray-mid); line-height: 1; }
+.usd-input { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 700; color: var(--primary-dark); border: none; background: transparent; width: 100%; outline: none; min-width: 0; letter-spacing: 0.01em; }
+.money-slider { width: 100%; -webkit-appearance: none; appearance: none; height: 5px; border-radius: 3px; background: var(--border); outline: none; cursor: pointer; }
+.money-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; box-shadow: 0 2px 8px rgba(26,61,107,0.3); border: 3px solid white; }
+.money-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; box-shadow: 0 2px 8px rgba(26,61,107,0.3); border: 3px solid white; }
+.money-item.value .money-slider::-webkit-slider-thumb { background: var(--accent); }
+.money-item.basis .money-slider::-webkit-slider-thumb { background: var(--teal); }
+.money-item.dist .money-slider::-webkit-slider-thumb { background: var(--gold-mid); }
+.money-item.age .money-slider::-webkit-slider-thumb { background: var(--primary); }
+.money-item.rate .money-slider::-webkit-slider-thumb { background: var(--red); }
+.money-item.value .money-slider::-moz-range-thumb { background: var(--accent); }
+.money-item.basis .money-slider::-moz-range-thumb { background: var(--teal); }
+.money-item.dist .money-slider::-moz-range-thumb { background: var(--gold-mid); }
+.money-item.age .money-slider::-moz-range-thumb { background: var(--primary); }
+.money-item.rate .money-slider::-moz-range-thumb { background: var(--red); }
+.slider-range { display: flex; justify-content: space-between; font-size: 10px; color: var(--gray-mid); margin-top: 3px; }
+
+/* GAIN READOUT */
+.gain-readout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 4px; }
+.gain-cell { background: var(--white); padding: 7px 4px; text-align: center; }
+.gain-cell-label { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--gray-mid); font-weight: 700; margin-bottom: 3px; white-space: nowrap; }
+.gain-cell-val { font-family: 'Fraunces', serif; font-size: 12px; font-weight: 700; color: var(--primary-dark); white-space: nowrap; }
+.gain-cell.highlight { background: var(--gold-light); }
+.gain-cell.highlight .gain-cell-val { color: var(--gold); }
+.gain-cell.highlight .gain-cell-label { color: var(--gold-mid); }
+.readout-label { font-size: 11.5px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px; margin-top: 2px; display: block; }
+.penalty-flag { margin-top: 10px; background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); border-radius: var(--radius); padding: 9px 11px; font-size: 11px; color: #92400e; line-height: 1.45; display: none; }
+.penalty-flag.show { display: block; }
+.penalty-flag strong { color: var(--gold); }
+
+/* COMPACT INPUT GRID */
+.cgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 12px; }
+.cfield { display: flex; flex-direction: column; min-width: 0; }
+.cfield.full { grid-column: 1 / -1; }
+.cfield-label { font-size: 10.5px; font-weight: 700; color: var(--primary-dark); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; line-height: 1.25; }
+.cfield-box { display: flex; align-items: center; gap: 5px; background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 11px; transition: border-color var(--transition), box-shadow var(--transition); }
+.cfield-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,144,217,0.15); }
+.cfield-pre { font-size: 12px; font-weight: 700; color: var(--gray-mid); line-height: 1; }
+.cfield-unit { font-size: 11px; font-weight: 600; color: var(--gray-mid); line-height: 1; }
+.cfield-input { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700; color: var(--primary-dark); }
+.cgrid .gain-readout { margin-top: 2px; }
+
+/* LEAD FORM CARD */
+.form-progress-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.form-prog-bar { flex: 1; height: 6px; background: var(--gray-light); border-radius: 3px; overflow: hidden; }
+.form-prog-fill { height: 100%; width: 0; background: var(--green); border-radius: 3px; transition: width 0.3s ease; }
+.form-prog-label { font-size: 11.5px; font-weight: 700; color: var(--gray-mid); white-space: nowrap; }
+.lead-form { display: flex; flex-direction: column; gap: 12px; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-field label { font-size: 11.5px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px; display: block; }
+.form-field .req { color: var(--red); }
+.form-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13.5px; color: var(--text); background: var(--off-white); outline: none; transition: border-color var(--transition), background var(--transition); }
+.form-input:focus { border-color: var(--accent); background: var(--white); box-shadow: 0 0 0 3px rgba(74,144,217,0.12); }
+.form-input.f-valid { border-color: var(--green); background: var(--white); }
+.form-input.f-invalid { border-color: var(--red); }
+.f-error { font-size: 11.5px; color: var(--red); margin-top: 4px; }
+.unlock-btn { width: 100%; padding: 13px; background: var(--gray-mid); color: white; border: none; border-radius: var(--radius); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: background var(--transition), transform var(--transition), box-shadow var(--transition); margin-top: 2px; }
+.unlock-btn.btn-ready { background: var(--green); }
+.unlock-btn.btn-ready:hover { background: var(--green-dark); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(22,163,74,0.3); }
+.form-fine { font-size: 11px; color: var(--gray-mid); line-height: 1.55; text-align: center; }
+.form-fine a { color: var(--accent); font-weight: 600; text-decoration: underline; }
+
+/* ══ RESULTS COLUMN (light card, matches other tools) ══ */
+.results-col { position: relative; scroll-margin-top: 16px; }
+.results-panel { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+
+/* navy header strip (like the other calculators) */
+.results-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%); padding: 22px 28px 20px; position: relative; overflow: hidden; flex: 0 0 auto; }
+.results-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 100% at 85% 50%, rgba(74,144,217,0.2) 0%, transparent 60%); }
+.results-header-inner { position: relative; z-index: 1; }
+.results-eyebrow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
+.results-title { font-family: 'Fraunces', serif; font-size: 21px; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 9px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #5eead4; box-shadow: 0 0 0 0 rgba(94,234,212,0.6); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(94,234,212,0.5);} 70% { box-shadow: 0 0 0 8px rgba(94,234,212,0);} 100% { box-shadow: 0 0 0 0 rgba(94,234,212,0);} }
+
+.results-body { padding: 26px 28px 28px; flex: 1 1 auto; min-height: 0; }
+
+/* SAVINGS BANNER (light) */
+.save-banner { background: linear-gradient(135deg, var(--teal-light) 0%, var(--green-light) 100%); border: 1.5px solid rgba(13,148,136,0.25); border-radius: var(--radius-lg); padding: 22px 24px; text-align: center; margin-bottom: 22px; }
+.save-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal-dark); margin-bottom: 6px; }
+.save-amount { font-family: 'Fraunces', serif; font-size: 44px; font-weight: 700; line-height: 1; color: var(--teal-dark); margin-bottom: 7px; }
+.save-sub { font-size: 12.5px; color: var(--gray-dark); line-height: 1.5; }
+
+/* KEEP TILES */
+.keep-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+.keep-tile { border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; }
+.keep-tile.taxed { background: var(--red-light); border-color: rgba(220,38,38,0.25); }
+.keep-tile.free { background: var(--green-light); border-color: rgba(22,163,74,0.3); }
+.keep-tile-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 7px; line-height: 1.3; }
+.keep-tile.taxed .keep-tile-label { color: var(--red); }
+.keep-tile.free .keep-tile-label { color: var(--green-dark); }
+.keep-tile-val { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; line-height: 1; }
+.keep-tile.taxed .keep-tile-val { color: var(--primary-dark); }
+.keep-tile.free .keep-tile-val { color: var(--green-dark); }
+.keep-tile-sub { font-size: 11px; color: var(--gray-mid); margin-top: 5px; }
+
+/* YEAR-BY-YEAR TABLE */
+.table-heading { font-size: 13px; font-weight: 700; color: var(--primary-dark); margin-bottom: 4px; }
+.table-subheading { font-size: 12px; color: var(--gray-mid); margin-bottom: 14px; line-height: 1.5; }
+.year-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; }
+table.year-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 470px; }
+.year-table thead th { background: var(--off-white); color: var(--gray-dark); font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; padding: 11px 12px; text-align: right; border-bottom: 1.5px solid var(--border); white-space: nowrap; }
+.year-table thead th.col-left { text-align: left; }
+.year-table thead th.col-ltc { color: var(--green-dark); }
+.year-table thead th.col-save { color: var(--gold); }
+.year-table thead tr.group-row th.grp { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; padding: 9px 10px; line-height: 1.25; white-space: normal; border-bottom: 1.5px solid var(--border); }
+.year-table thead tr.group-row th.grp-current { background: var(--accent-light); color: var(--primary); }
+.year-table thead tr.group-row th.grp-ppa { background: var(--green-light); color: var(--green-dark); }
+.year-table th.col-ltc, .year-table td.col-ltc, .year-table thead tr.group-row th.grp-ppa { border-left: 2px solid rgba(22,163,74,0.4); }
+.year-table tbody td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--gray-light); font-variant-numeric: tabular-nums; color: var(--gray-dark); }
+.year-table tbody td.col-left { text-align: left; font-weight: 700; color: var(--primary-dark); }
+.year-table tbody td.col-age { color: var(--gray-mid); }
+.year-table tbody td.col-std { color: var(--red); font-weight: 600; }
+.gain-q { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: var(--gray-light); color: var(--gray-mid); font-size: 9px; font-weight: 700; font-style: normal; cursor: help; margin-left: 4px; vertical-align: middle; user-select: none; transition: background var(--transition), color var(--transition); }
+.gain-q:hover, .gain-q:focus { background: var(--accent); color: #fff; outline: none; }
+
+/* floating tooltip bubble (body-level, escapes table overflow) */
+.gq-tip { position: fixed; z-index: 9999; background: var(--primary-dark); color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 500; line-height: 1.45; padding: 8px 10px; border-radius: 8px; box-shadow: 0 6px 20px rgba(15,37,64,0.28); max-width: 220px; pointer-events: none; opacity: 0; transform: translate(-50%, 4px); transition: opacity .15s ease, transform .15s ease; white-space: normal; }
+.gq-tip.show { opacity: 1; transform: translate(-50%, 0); }
+.gq-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--primary-dark); }
+.gq-tip.below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--primary-dark); }
+.year-table tbody td.col-ltc { color: var(--green-dark); font-weight: 700; }
+.year-table tbody td.col-save { color: var(--gold); font-weight: 700; background: rgba(254,243,199,0.4); }
+.year-table tbody tr:nth-child(even) td { background: rgba(247,249,252,0.6); }
+.year-table tbody tr:nth-child(even) td.col-save { background: rgba(254,243,199,0.55); }
+.year-table tfoot td { padding: 12px; text-align: right; font-weight: 700; font-size: 12.5px; border-top: 2px solid var(--border); color: var(--primary-dark); font-variant-numeric: tabular-nums; }
+.year-table tfoot td.col-left { text-align: left; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.04em; color: var(--gray-mid); }
+.year-table tfoot td.col-std { color: var(--red); }
+.year-table tfoot td.col-ltc { color: var(--green-dark); }
+.year-table tfoot td.col-save { color: var(--gold); background: var(--gold-light); }
+.table-note { font-size: 11px; color: var(--gray-mid); line-height: 1.5; margin-bottom: 22px; }
+.empty-note { text-align: center; padding: 28px 16px; color: var(--gray-mid); font-size: 13px; }
+
+/* PPA NOTE */
+.ppa-note { background: var(--accent-light); border: 1px solid rgba(74,144,217,0.25); border-radius: var(--radius); padding: 14px 16px; font-size: 12.5px; color: var(--primary-dark); line-height: 1.6; margin-bottom: 22px; }
+.ppa-note strong { color: var(--primary); }
+
+/* CTA (light) */
+.cta-box { border: 1.5px solid var(--border); background: var(--off-white); border-radius: var(--radius-lg); padding: 20px 22px; text-align: center; }
+.cta-box h4 { font-family: 'Fraunces', serif; font-size: 17px; color: var(--primary-dark); margin-bottom: 5px; }
+.cta-box p { font-size: 12.5px; color: var(--gray-mid); margin-bottom: 14px; line-height: 1.5; }
+.cta-btn { display: inline-block; padding: 13px 26px; background: var(--gold-mid); color: white; border-radius: var(--radius); font-size: 14.5px; font-weight: 700; transition: background var(--transition), transform var(--transition); }
+.cta-btn:hover { background: var(--gold); transform: translateY(-1px); }
+.cta-phone { display: block; margin-top: 12px; font-size: 12.5px; color: var(--gray-mid); }
+.cta-phone:hover { color: var(--primary); }
+
+/* LOCK OVERLAY (light) */
+#results-lock-overlay { position: absolute; inset: 0; z-index: 20; background: rgba(247,249,252,0.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: var(--radius-xl); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 36px 28px; transition: opacity 0.45s ease, visibility 0.45s ease; }
+#results-lock-overlay.unlocked { opacity: 0; visibility: hidden; pointer-events: none; }
+.lock-icon-wrap { font-size: 40px; margin-bottom: 16px; transition: transform 0.4s ease; }
+#results-lock-overlay.unlocked .lock-icon-wrap { transform: scale(1.3); }
+.lock-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px; }
+.lock-sub { font-size: 13.5px; color: var(--gray-mid); max-width: 280px; line-height: 1.6; margin-bottom: 20px; }
+.lock-dots { display: flex; gap: 8px; margin-bottom: 11px; }
+.lock-dot { width: 30px; height: 5px; border-radius: 3px; background: var(--gray-light); transition: background 0.25s; }
+.lock-dot.done { background: var(--green); }
+.lock-count { font-size: 12px; font-weight: 600; color: var(--gray-mid); }
+
+.results-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; transition: filter 0.4s ease; }
+.results-inner.locked { filter: blur(7px); pointer-events: none; user-select: none; }
+
+/* DISCLAIMER */
+.disclaimer { max-width: 1240px; margin: 0 auto; padding: 0 32px 56px; }
+.disclaimer-box { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px 26px; font-size: 12px; color: var(--gray-mid); line-height: 1.7; }
+.disclaimer-box strong { color: var(--gray-dark); }
+
+/* RESPONSIVE */
+@media (max-width: 1040px) {
+  .calc-wrapper { padding: 44px 22px 72px; }
+  .calc-grid { gap: 22px; }
+  .input-card { padding: 22px 16px; }
+  .money-num-input { font-size: 19px; }
+  .results-body { padding: 22px 20px 24px; }
+  .results-header { padding: 20px 22px 18px; }
+}
+@media (max-width: 700px) {
+  .calc-grid { grid-template-columns: 1fr; gap: 26px; }
+  .input-card { padding: 24px 22px; }
+  .money-num-input { font-size: 22px; }
+  .money-name { font-size: 13px; }
+}
+@media (max-width: 520px) {
+  .tool-hero { padding: 40px 20px 44px; }
+  .calc-wrapper { padding: 32px 18px 56px; }
+  .form-row-2 { grid-template-columns: 1fr; }
+  .keep-tiles { grid-template-columns: 1fr; }
+  .disclaimer { padding: 0 18px 44px; }
+}
+</style>
+  <script src="/js/quotebot-capture.js"
+          data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
+          data-tool="ltc-annuity-tax"></script>
+  <!-- The assistant. Never opens itself on a timer; see the file header. -->
+  <script src="/js/quotebot-chat.js"
+          data-endpoint="https://im62dp4hwe34ez7lmhvtfk75xa0zkkxv.lambda-url.us-east-2.on.aws/"
+          data-tool="ltc-annuity-tax" data-context></script>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="tool-hero">
+  <div class="tool-hero-inner">
+    <span class="hero-eyebrow">🛡️ Tax Illustration Tool</span>
+    <h1>See how a <em>long-term care annuity</em> changes your tax picture.</h1>
+    <p class="hero-sub">A Pension Protection Act–compliant annuity lets you take distributions for qualified long-term care <strong style="color:#5eead4;">income-tax-free</strong>. Compare that, year by year, against the tax you'd owe on a standard annuity distribution.</p>
+  </div>
+</section>
+
+<!-- CALCULATOR -->
+<div class="calc-wrapper">
+  <div class="calc-grid">
+
+    <!-- ════ LEFT: INPUTS + CONTACT ════ -->
+    <div class="inputs-col">
+
+      <div class="section-label">Your Information</div>
+
+      <!-- STEP 1: ANNUITY DETAILS -->
+      <div class="input-card">
+        <h3>Step 1 — Your Annuity</h3>
+        <p class="card-sub">Enter your age, current values, and the annual distribution you're considering.</p>
+
+        <div class="cgrid">
+
+          <!-- AGE -->
+          <div class="cfield">
+            <div class="cfield-label">Current Age
+              <span class="tip" tabindex="0" role="img" aria-label="info" data-tip="Distributions before age 59½ add a 10% federal penalty on the taxable portion.">i</span>
+            </div>
+            <div class="cfield-box">
+              <input class="cfield-input" id="age-input" type="text" inputmode="numeric" value="68">
+              <span class="cfield-unit">yrs</span>
+            </div>
+          </div>
+
+          <!-- TAX RATE -->
+          <div class="cfield">
+            <div class="cfield-label">Marginal Tax Rate
+              <span class="tip" tabindex="0" role="img" aria-label="info" data-tip="Your combined federal (and state, if applicable) ordinary-income tax rate.">i</span>
+            </div>
+            <div class="cfield-box">
+              <input class="cfield-input" id="rate-input" type="text" inputmode="numeric" value="24">
+              <span class="cfield-unit">%</span>
+            </div>
+          </div>
+
+          <!-- VALUE -->
+          <div class="cfield">
+            <div class="cfield-label">Annuity Value
+              <span class="tip" tabindex="0" role="img" aria-label="info" data-tip="Total accumulated value of the non-qualified annuity today.">i</span>
+            </div>
+            <div class="cfield-box">
+              <span class="cfield-pre">$</span>
+              <input class="cfield-input" id="value-input" type="text" inputmode="numeric" value="200,000">
+            </div>
+          </div>
+
+          <!-- BASIS -->
+          <div class="cfield">
+            <div class="cfield-label">Cost Basis
+              <span class="tip" tabindex="0" role="img" aria-label="info" data-tip="After-tax premium you contributed. Value minus basis equals your taxable gain.">i</span>
+            </div>
+            <div class="cfield-box">
+              <span class="cfield-pre">$</span>
+              <input class="cfield-input" id="basis-input" type="text" inputmode="numeric" value="100,000">
+            </div>
+          </div>
+
+          <!-- DISTRIBUTION -->
+          <div class="cfield full">
+            <div class="cfield-label">Annual Distribution Amount
+              <span class="tip" tabindex="0" role="img" aria-label="info" data-tip="The amount withdrawn each year — taken as a standard distribution vs. used for qualified long-term care.">i</span>
+            </div>
+            <div class="cfield-box">
+              <span class="cfield-pre">$</span>
+              <input class="cfield-input" id="dist-input" type="text" inputmode="numeric" value="40,000">
+            </div>
+          </div>
+
+          <!-- GAIN READOUT -->
+          <div class="cfield full">
+            <div class="gain-readout">
+              <div class="gain-cell">
+                <div class="gain-cell-label">Cost Basis</div>
+                <div class="gain-cell-val" id="ro-basis">$100,000</div>
+              </div>
+              <div class="gain-cell highlight">
+                <div class="gain-cell-label">Taxable Gain</div>
+                <div class="gain-cell-val" id="ro-gain">$100,000</div>
+              </div>
+              <div class="gain-cell">
+                <div class="gain-cell-label">Total Value</div>
+                <div class="gain-cell-val" id="ro-value">$200,000</div>
+              </div>
+            </div>
+            <div class="penalty-flag" id="penalty-flag">
+              <strong>⚠ Under 59½:</strong> a 10% federal penalty applies to the taxable portion of a standard distribution. PPA-qualified LTC distributions are <strong>not</strong> penalized.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- STEP 2: CONTACT (REQUIRED) -->
+      <div class="input-card">
+        <h3>Step 2 — Required to View Results</h3>
+        <p class="card-sub">Complete all fields to unlock your year-by-year tax illustration.</p>
+
+        <div class="form-progress-wrap">
+          <div class="form-prog-bar"><div class="form-prog-fill" id="form-prog-fill"></div></div>
+          <span class="form-prog-label" id="form-prog-label">0 of 4 complete</span>
+        </div>
+
+        <div class="lead-form">
+          <div class="form-row-2">
+            <div class="form-field">
+              <label>First Name <span class="req">*</span></label>
+              <input class="form-input" id="f-first" type="text" placeholder="First name" autocomplete="given-name">
+              <div class="f-error" id="err-first"></div>
+            </div>
+            <div class="form-field">
+              <label>Last Name <span class="req">*</span></label>
+              <input class="form-input" id="f-last" type="text" placeholder="Last name" autocomplete="family-name">
+              <div class="f-error" id="err-last"></div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Email Address <span class="req">*</span></label>
+            <input class="form-input" id="f-email" type="email" placeholder="you@example.com" autocomplete="email">
+            <div class="f-error" id="err-email"></div>
+          </div>
+          <div class="form-field">
+            <label>Phone Number <span class="req">*</span></label>
+            <input class="form-input" id="f-phone" type="tel" placeholder="(555) 555-5555" autocomplete="tel">
+            <div class="f-error" id="err-phone"></div>
+          </div>
+          <button class="unlock-btn" id="unlock-btn" onclick="tryUnlock()">🔒 Complete All Fields to Unlock</button>
+          <p class="form-fine">By clicking <strong style="color:var(--gray-dark);">View My Results</strong> you acknowledge that we will only call, SMS, or email to follow up on your request. You also agree to our <a href="https://quotebot.io/Privacy-Policy" target="_blank">Privacy Policy</a> &amp; <a href="https://quotebot.io/Terms-Conditions" target="_blank">Terms of Service</a>.</p>
+        </div>
+      </div>
+
+    </div><!-- /inputs-col -->
+
+    <!-- ════ RIGHT: RESULTS ════ -->
+    <div class="results-col">
+      <div class="results-panel">
+
+        <!-- LOCK OVERLAY -->
+        <div id="results-lock-overlay">
+          <div class="lock-icon-wrap">🔒</div>
+          <div class="lock-title">View Your Results</div>
+          <div class="lock-sub">Complete Step 2 to unlock your year-by-year tax illustration.</div>
+          <div class="lock-dots">
+            <div class="lock-dot" id="ldot-1"></div>
+            <div class="lock-dot" id="ldot-2"></div>
+            <div class="lock-dot" id="ldot-3"></div>
+            <div class="lock-dot" id="ldot-4"></div>
+          </div>
+          <div class="lock-count" id="lock-count">0 of 4 fields complete</div>
+        </div>
+
+        <!-- RESULTS CONTENT -->
+        <div class="results-inner locked" id="results-content">
+
+          <div class="results-header">
+            <div class="results-header-inner">
+              <div class="results-eyebrow">Year-by-Year Tax Comparison</div>
+              <div class="results-title">Your Payout Schedule <span class="live-dot"></span></div>
+            </div>
+          </div>
+
+          <div class="results-body">
+
+            <!-- SAVINGS BANNER -->
+            <div class="save-banner">
+              <div class="save-label">💰 Total Potential Tax Saved</div>
+              <div class="save-amount" id="hl-savings">$24,000</div>
+              <div class="save-sub" id="hl-sub">Across the full payout, by using a PPA long-term care annuity for qualified care instead of standard taxable distributions.</div>
+            </div>
+
+            <!-- KEEP TILES -->
+            <div class="keep-tiles">
+              <div class="keep-tile taxed">
+                <div class="keep-tile-label">Kept After Tax · Standard</div>
+                <div class="keep-tile-val" id="tile-std">$176,000</div>
+                <div class="keep-tile-sub" id="tile-std-sub">of $200,000 distributed</div>
+              </div>
+              <div class="keep-tile free">
+                <div class="keep-tile-label">Available for Care · LTC Annuity</div>
+                <div class="keep-tile-val" id="tile-ltc">$200,000</div>
+                <div class="keep-tile-sub">100% — received income-tax-free</div>
+              </div>
+            </div>
+
+            <!-- YEAR TABLE -->
+            <div class="table-heading">Distribution &amp; Taxation by Year</div>
+            <div class="table-subheading">Each year's distribution shown with the tax owed under a standard distribution (gains taxed first) versus a PPA long-term care annuity used for qualified care.</div>
+            <div class="year-table-wrap">
+              <table class="year-table">
+                <thead>
+                  <tr class="group-row">
+                    <th class="grp grp-current" colspan="4">Your Current Annuity</th>
+                    <th class="grp grp-ppa" colspan="2">Taxation Using PPA Annuity</th>
+                  </tr>
+                  <tr>
+                    <th class="col-left">Year</th>
+                    <th>Age</th>
+                    <th>Distribution</th>
+                    <th>Tax · Standard</th>
+                    <th class="col-ltc">Tax · LTC</th>
+                    <th class="col-save">You Save</th>
+                  </tr>
+                </thead>
+                <tbody id="year-tbody"><!-- rows injected --></tbody>
+                <tfoot id="year-tfoot"><!-- totals injected --></tfoot>
+              </table>
+            </div>
+            <div class="table-note" id="table-note"></div>
+
+            <!-- PPA NOTE -->
+            <div class="ppa-note"><strong>Why the difference?</strong> Under the <strong>Pension Protection Act</strong> (IRC §7702B(e) &amp; §72(e)(11)), distributions from a PPA-compliant annuity used for <strong>qualified long-term care</strong> are received income-tax-free — the otherwise-taxable gain comes out without tax. A standard distribution is taxed gains-first (LIFO) at your ordinary-income rate, so the early years carry the heaviest tax until the gain is exhausted.</div>
+
+            <!-- CTA -->
+            <div class="cta-box">
+              <h4>Could a PPA annuity fit your plan?</h4>
+              <p>A licensed specialist can review your existing annuity and whether a tax-free 1035 exchange makes sense — no pressure.</p>
+              <a class="cta-btn" href="https://app.quotebot.io/public/annuities" target="_blank">🛡️ Request My Illustration →</a>
+              <a class="cta-phone" href="tel:8888048590">Or call (888) 804-8590 to speak with an advisor</a>
+            </div>
+
+          </div>
+        </div><!-- /results-inner -->
+      </div>
+    </div><!-- /results-col -->
+
+  </div><!-- /calc-grid -->
+</div>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  <div class="disclaimer-box">
+    <strong>Important:</strong> This tool is an educational illustration, not tax, legal, or investment advice. It assumes a <strong>non-qualified annuity</strong> (funded with after-tax dollars) purchased after August 13, 1982, where standard partial distributions are taxed gains-first (LIFO) under IRC §72. The year-by-year schedule assumes a level annual distribution with no additional growth on the remaining balance, and runs until the value is depleted (capped at 30 years). Tax-free treatment of long-term care distributions requires a <strong>Pension Protection Act–compliant</strong> annuity with a qualified long-term care feature, and applies only to distributions used for <strong>qualified long-term care services</strong> as defined under IRC §7702B; per-diem (indemnity) benefits may be subject to IRS daily limits. Qualified LTC distributions reduce the contract's cost basis. Tax-qualified (IRA/403(b)) annuities are taxed differently and are not modeled here. Marginal tax rate is applied as a simplification and does not account for bracket layering, IRMAA, Social Security taxation, or state-specific rules. Figures are estimates — actual results depend on the specific contract, carrier, and your circumstances. Consult a qualified tax advisor and licensed insurance professional before acting.
+  </div>
+</div>
+
+<script>
+// ─── HELPERS ──────────────────────────────────────────────────────────────
+function fmt(n){ return "$" + Math.round(n).toLocaleString("en-US"); }
+function parseNum(v){ return parseFloat((v+"").replace(/[^0-9.]/g,"")) || 0; }
+
+// ─── ELEMENTS ─────────────────────────────────────────────────────────────
+const E = {
+  ageI: document.getElementById("age-input"),
+  valI: document.getElementById("value-input"),
+  basI: document.getElementById("basis-input"),
+  ratI: document.getElementById("rate-input"),
+  disI: document.getElementById("dist-input"),
+};
+function getInputs(){
+  return {
+    age:   parseNum(E.ageI.value),
+    value: parseNum(E.valI.value),
+    basis: parseNum(E.basI.value),
+    rate:  Math.min(parseNum(E.ratI.value), 99) / 100,
+    dist:  parseNum(E.disI.value),
+  };
+}
+
+// ─── YEAR-BY-YEAR SCHEDULE (gains-first / LIFO) ─────────────────────────────
+const MAX_YEARS = 30;
+function buildSchedule(){
+  const i = getInputs();
+  let remValue = i.value;
+  let remGain  = Math.max(0, i.value - i.basis);
+  const rows = [];
+  const totals = { dist:0, taxable:0, taxStd:0, taxLtc:0, saved:0 };
+  let year = 0;
+
+  if(i.dist > 0 && remValue > 0){
+    while(remValue > 0.5 && year < MAX_YEARS){
+      year++;
+      const age = i.age + (year - 1);
+      const dist = Math.min(i.dist, remValue);
+      const taxable = Math.min(dist, remGain);
+      const incomeTax = taxable * i.rate;
+      const penalty = age < 59.5 ? taxable * 0.10 : 0;
+      const taxStd = incomeTax + penalty;
+      const saved = taxStd;                 // LTC tax is $0
+      rows.push({ year, age, dist, taxable, taxStd, saved });
+      remValue -= dist; remGain -= taxable;
+      totals.dist += dist; totals.taxable += taxable;
+      totals.taxStd += taxStd; totals.saved += saved;
+    }
+  }
+  const truncated = (remValue > 0.5 && i.dist > 0 && year >= MAX_YEARS);
+  return { rows, totals, truncated, i };
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────
+function render(){
+  const i = getInputs();
+  const gain = Math.max(0, i.value - i.basis);
+
+  // Readout
+  document.getElementById("ro-basis").textContent = fmt(i.basis);
+  document.getElementById("ro-gain").textContent  = fmt(gain);
+  document.getElementById("ro-value").textContent = fmt(i.value);
+  document.getElementById("penalty-flag").classList.toggle("show", i.age < 59.5);
+
+  const sch = buildSchedule();
+  const t = sch.totals;
+
+  // Banner
+  document.getElementById("hl-savings").textContent = fmt(t.saved);
+  document.getElementById("hl-sub").textContent = (t.saved <= 0)
+    ? "These distributions are entirely a return of your cost basis, so there's no current tax to save. The PPA advantage grows with your taxable gain."
+    : "Across the full payout, by using a PPA long-term care annuity for qualified care instead of standard taxable distributions.";
+
+  // Tiles
+  document.getElementById("tile-std").textContent = fmt(t.dist - t.taxStd);
+  document.getElementById("tile-std-sub").textContent = "of " + fmt(t.dist) + " distributed";
+  document.getElementById("tile-ltc").textContent = fmt(t.dist);
+
+  // Table body
+  const tbody = document.getElementById("year-tbody");
+  const tfoot = document.getElementById("year-tfoot");
+  if(sch.rows.length === 0){
+    tbody.innerHTML = '<tr><td class="col-left" colspan="6"><div class="empty-note">Enter an annuity value and an annual distribution amount to see the year-by-year schedule.</div></td></tr>';
+    tfoot.innerHTML = "";
+    document.getElementById("table-note").textContent = "";
+    return;
+  }
+  let html = "";
+  sch.rows.forEach(r => {
+    html += "<tr>"
+      + '<td class="col-left">' + r.year + "</td>"
+      + '<td class="col-age">' + r.age + "</td>"
+      + "<td>" + fmt(r.dist) + "</td>"
+      + '<td class="col-std">' + (r.taxStd > 0 ? "−" + fmt(r.taxStd) : "$0")
+        + '<span class="gain-q" tabindex="0" data-tip="Taxable gain this year: ' + fmt(r.taxable) + '">i</span></td>'
+      + '<td class="col-ltc">$0</td>'
+      + '<td class="col-save">' + fmt(r.saved) + "</td>"
+      + "</tr>";
+  });
+  tbody.innerHTML = html;
+
+  tfoot.innerHTML = "<tr>"
+    + '<td class="col-left" colspan="2">Totals</td>'
+    + "<td>" + fmt(t.dist) + "</td>"
+    + '<td class="col-std">' + (t.taxStd > 0 ? "−" + fmt(t.taxStd) : "$0")
+      + '<span class="gain-q" tabindex="0" data-tip="Total taxable gain: ' + fmt(t.taxable) + '">i</span></td>'
+    + '<td class="col-ltc">$0</td>'
+    + '<td class="col-save">' + fmt(t.saved) + "</td>"
+    + "</tr>";
+
+  document.getElementById("table-note").textContent = sch.truncated
+    ? "Schedule capped at " + MAX_YEARS + " years; at this distribution rate the annuity has not been fully depleted."
+    : "Schedule runs until the annuity value is fully distributed. The final year may be a partial distribution.";
+}
+
+// ─── INPUT FORMATTING (typed-only) ─────────────────────────────────────────
+function fmtCents(n){ return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function bindField(input, type){
+  function reformatLive(){
+    if(type === "cents"){
+      let v = input.value.replace(/[^0-9.]/g, "");
+      const fd = v.indexOf(".");
+      if(fd !== -1) v = v.slice(0, fd + 1) + v.slice(fd + 1).replace(/\./g, "");
+      const parts = v.split(".");
+      const intDigits = parts[0].replace(/^0+(?=\d)/, "");
+      const intFmt = intDigits ? parseInt(intDigits, 10).toLocaleString("en-US") : (parts.length > 1 ? "0" : "");
+      input.value = (parts.length > 1) ? intFmt + "." + parts[1].slice(0, 2) : intFmt;
+    } else if(type === "currency"){
+      const d = input.value.split(".")[0].replace(/[^0-9]/g, "");
+      input.value = d === "" ? "" : parseInt(d, 10).toLocaleString("en-US");
+    } else if(type === "rate"){
+      let v = input.value.replace(/[^0-9.]/g, "");
+      const fd = v.indexOf(".");
+      if(fd !== -1) v = v.slice(0, fd + 1) + v.slice(fd + 1).replace(/\./g, "");
+      const parts = v.split(".");
+      input.value = (parts.length > 1) ? parts[0] + "." + parts[1].slice(0, 2) : parts[0];
+    } else { // int
+      input.value = input.value.split(".")[0].replace(/[^0-9]/g, "");
+    }
+  }
+  input.addEventListener("input", () => { reformatLive(); render(); });
+  if(type === "cents"){
+    input.addEventListener("blur", () => {
+      if(input.value.trim() !== "") input.value = fmtCents(parseNum(input.value));
+      render();
+    });
+  }
+}
+bindField(E.ageI, "int");
+bindField(E.ratI, "int");
+bindField(E.valI, "currency");
+bindField(E.basI, "currency");
+bindField(E.disI, "currency");
+
+// ─── LEAD GATE ──────────────────────────────────────────────────────────────
+const FIELDS = ["first","last","email","phone"];
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function isValidPhone(v){ return v.replace(/\D/g,"").length >= 10; }
+function formatPhone(input){
+  let d = input.value.replace(/\D/g,"").slice(0,10);
+  if(d.length >= 7) d = "("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6);
+  else if(d.length >= 4) d = "("+d.slice(0,3)+") "+d.slice(3);
+  else if(d.length > 0) d = "("+d;
+  input.value = d;
+}
+function fieldStatus(id){
+  const v = document.getElementById("f-"+id).value.trim();
+  if(id==="first"||id==="last") return v.length > 0;
+  if(id==="email") return isValidEmail(v);
+  if(id==="phone") return isValidPhone(v);
+  return false;
+}
+function validateField(id){
+  const el = document.getElementById("f-"+id);
+  const err = document.getElementById("err-"+id);
+  const ok = fieldStatus(id);
+  el.classList.toggle("f-valid", ok);
+  el.classList.toggle("f-invalid", !ok && el.value.trim() !== "");
+  if(!ok && el.value.trim() !== ""){
+    const msgs = {first:"Please enter your first name.", last:"Please enter your last name.",
+      email:"Please enter a valid email address.", phone:"Please enter a valid 10-digit phone number."};
+    err.textContent = msgs[id];
+  } else { err.textContent = ""; }
+  return ok;
+}
+function updateFormProgress(){
+  const done = FIELDS.filter(id => fieldStatus(id)).length;
+  document.getElementById("form-prog-fill").style.width = (done/4*100) + "%";
+  document.getElementById("form-prog-label").textContent = done + " of 4 complete";
+  FIELDS.forEach((id,idx) => {
+    document.getElementById("ldot-"+(idx+1)).classList.toggle("done", fieldStatus(id));
+  });
+  document.getElementById("lock-count").textContent = done + " of 4 fields complete";
+  const btn = document.getElementById("unlock-btn");
+  if(done === 4){ btn.classList.add("btn-ready"); btn.textContent = "🔓 View My Results →"; }
+  else { btn.classList.remove("btn-ready"); btn.textContent = "🔒 Complete All Fields to Unlock"; }
+}
+function tryUnlock(){
+  let allOk = true;
+  FIELDS.forEach(id => { if(!validateField(id)) allOk = false; });
+  updateFormProgress();
+  if(allOk) unlockResults();
+}
+/* ---- Quote Bot lead capture ------------------------------------------ */
+function qbCaptureLead(){
+  if (!window.QuoteBot) return;
+  try {
+    var V = function(id){ var e=document.getElementById(id); return e ? String(e.value).trim() : ""; };
+    var N = function(id){ var e=document.getElementById(id); return e ? (parseFloat(String(e.value).replace(/[^0-9.\-]/g,""))||0) : null; };
+    var C = function(sel){ var e=document.querySelector(sel); return e ? e.textContent.replace(/\s+/g," ").trim() : null; };
+    if (!V('f-email')) return;
+    window.QuoteBot.capture({
+      email: V('f-email'), phone: V('f-phone'),
+      firstName: V('f-first'), lastName: V('f-last'),
+      productLine: 'LONG_TERM_CARE',
+      inputs: {
+        age: N('age-input'), creditedRatePercent: N('rate-input'),
+        accountValue: N('value-input'), costBasis: N('basis-input'),
+        annualDistribution: N('dist-input')
+      },
+      results: null,
+      consentText: C('.disclaimer-box') || C('.disclaimer')
+    });
+  } catch (e) { /* capture must never break the calculator */ }
+}
+
+function unlockResults(){
+  qbCaptureLead();
+  document.getElementById("results-lock-overlay").classList.add("unlocked");
+  document.getElementById("results-content").classList.remove("locked");
+  syncResultsHeight();
+  setTimeout(() => {
+    const col = document.querySelector(".results-col");
+    if(col) col.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 250);
+}
+document.addEventListener("DOMContentLoaded", () => {
+  FIELDS.forEach(id => {
+    const el = document.getElementById("f-"+id);
+    el.addEventListener("blur", () => { validateField(id); updateFormProgress(); });
+    el.addEventListener("input", () => {
+      if(id==="phone") formatPhone(el);
+      if(el.classList.contains("f-invalid")) validateField(id);
+      updateFormProgress();
+    });
+  });
+});
+
+// ─── STYLED TOOLTIP FOR GAIN "?" (body-level, no clipping) ──────────────────
+const gqTip = document.createElement("div");
+gqTip.className = "gq-tip";
+document.body.appendChild(gqTip);
+function showGqTip(el){
+  const txt = el.getAttribute("data-tip");
+  if(!txt) return;
+  gqTip.textContent = txt;
+  const r = el.getBoundingClientRect();
+  gqTip.classList.remove("below");
+  gqTip.style.left = (r.left + r.width / 2) + "px";
+  gqTip.classList.add("show");
+  const th = gqTip.offsetHeight;
+  let top = r.top - th - 9;
+  if(top < 6){ top = r.bottom + 9; gqTip.classList.add("below"); }
+  gqTip.style.top = top + "px";
+}
+function hideGqTip(){ gqTip.classList.remove("show"); }
+document.addEventListener("mouseover", e => { const q = e.target.closest && e.target.closest(".gain-q"); if(q) showGqTip(q); });
+document.addEventListener("mouseout",  e => { const q = e.target.closest && e.target.closest(".gain-q"); if(q) hideGqTip(); });
+document.addEventListener("focusin",   e => { const q = e.target.closest && e.target.closest(".gain-q"); if(q) showGqTip(q); });
+document.addEventListener("focusout",  e => { const q = e.target.closest && e.target.closest(".gain-q"); if(q) hideGqTip(); });
+document.addEventListener("scroll", hideGqTip, true);
+window.addEventListener("resize", hideGqTip);
+
+// ─── MATCH RESULTS HEIGHT TO INPUT COLUMN ───────────────────────────────────
+function syncResultsHeight(){
+  const inputs = document.querySelector(".inputs-col");
+  const panel = document.querySelector(".results-panel");
+  if(!inputs || !panel) return;
+  panel.style.height = "";
+  panel.style.minHeight = (window.innerWidth > 700) ? inputs.offsetHeight + "px" : "";
+}
+window.addEventListener("resize", syncResultsHeight);
+if(window.ResizeObserver){
+  const ro = new ResizeObserver(() => syncResultsHeight());
+  const ic = document.querySelector(".inputs-col");
+  if(ic) ro.observe(ic);
+}
+window.addEventListener("load", () => requestAnimationFrame(syncResultsHeight));
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+render();
+syncResultsHeight();
+</script>
+</body>
+</html>

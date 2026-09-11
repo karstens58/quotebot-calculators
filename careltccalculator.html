@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C.A.R.E. LTC Needs Calculator | Quote-Bot</title>
+<meta name="description" content="Use the C.A.R.E. framework to quantify your long-term care exposure and design the right coverage to protect your retirement assets.">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1a3d6b; --primary-dark: #0f2540; --primary-mid: #1e4d85;
+  --accent: #4a90d9; --accent-light: #e8f2fb;
+  --teal: #0d9488; --teal-light: #ccfbf1;
+  --gold: #b45309; --gold-mid: #d97706; --gold-light: #fef3c7; --gold-bright: #f59e0b;
+  --green: #16a34a; --green-light: #dcfce7;
+  --red: #dc2626; --red-light: #fee2e2;
+  --white: #ffffff; --off-white: #f7f9fc; --gray-light: #eef1f6;
+  --gray-mid: #8a9ab5; --gray-dark: #2c3e58; --text: #1c2a3a; --border: #d8e2f0;
+  --shadow: 0 4px 24px rgba(26,61,107,0.10); --shadow-lg: 0 16px 56px rgba(26,61,107,0.16);
+  --radius: 12px; --radius-lg: 20px; --radius-xl: 28px; --transition: 0.2s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--white); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { text-decoration: none; color: inherit; }
+
+/* HERO */
+.tool-hero { background: var(--primary-dark); padding: 28px 32px 32px; position: relative; overflow: hidden; }
+.tool-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 55% 80% at 15% 50%, rgba(74,144,217,0.22) 0%, transparent 65%), radial-gradient(ellipse 40% 60% at 80% 20%, rgba(26,61,107,0.6) 0%, transparent 60%); }
+.tool-hero::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 48px 48px; }
+.tool-hero-inner { max-width: 860px; margin: 0 auto; position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 380px; gap: 40px; align-items: center; }
+.tool-eyebrow { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.92); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 100px; margin-bottom: 10px; }
+.tool-hero h1 { font-family: 'Fraunces', serif; font-size: clamp(18px, 2.2vw, 28px); font-weight: 700; color: var(--white); line-height: 1.15; letter-spacing: -0.3px; margin-bottom: 8px; }
+.tool-hero h1 em { font-style: italic; color: #93c5fd; }
+.tool-hero-sub { font-size: 13px; color: rgba(255,255,255,0.72); line-height: 1.6; margin-bottom: 12px; }
+.hero-stats { display: flex; gap: 18px; flex-wrap: wrap; }
+.hero-stat { }
+.hero-stat-num { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--white); line-height: 1; }
+.hero-stat-label { font-size: 10.5px; color: rgba(255,255,255,0.5); margin-top: 2px; max-width: 120px; line-height: 1.3; }
+.hero-stat-divider { width: 1px; background: rgba(255,255,255,0.15); align-self: stretch; }
+
+/* CARE PILLAR PREVIEW in hero */
+.hero-pillars { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hero-pillar { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 10px 12px; cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+.hero-pillar:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+.hero-pillar-letter { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: #93c5fd; line-height: 1; margin-bottom: 4px; }
+.hero-pillar-word { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+.hero-pillar-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+/* MAIN LAYOUT */
+.main-layout { max-width: 860px; margin: 0 auto; padding: 60px 32px 80px; }
+
+/* CALCULATOR CARD */
+.calc-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); }
+.calc-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%); padding: 24px 32px 20px; position: relative; overflow: hidden; }
+.calc-card-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 100% at 80% 50%, rgba(74,144,217,0.2) 0%, transparent 60%); }
+.calc-card-header-inner { position: relative; z-index: 1; }
+.calc-card-eyebrow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.45); margin-bottom: 6px; }
+.calc-card-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+.calc-card-sub { font-size: 13.5px; color: rgba(255,255,255,0.55); }
+
+/* PROGRESS BAR */
+.progress-wrap { padding: 0 32px; margin-top: -1px; background: var(--off-white); border-bottom: 1px solid var(--border); }
+.progress-steps { display: grid; grid-template-columns: repeat(4, 1fr); }
+.progress-step { padding: 14px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 3px solid transparent; transition: border-color 0.2s, background 0.2s; }
+.progress-step:hover { background: var(--accent-light); }
+.progress-step.active { border-bottom-color: var(--accent); }
+.progress-step.done { border-bottom-color: var(--green); }
+.step-badge { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; background: var(--gray-light); color: var(--gray-mid); transition: all 0.2s; }
+.progress-step.active .step-badge { background: var(--accent); color: white; }
+.progress-step.done .step-badge { background: var(--green); color: white; font-size: 11px; }
+.step-info { min-width: 0; }
+.step-letter { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: var(--primary-dark); line-height: 1; }
+.step-name { font-size: 11px; color: var(--gray-mid); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 1px; }
+.progress-step.active .step-letter, .progress-step.active .step-name { color: var(--accent); }
+.progress-step.done .step-letter, .progress-step.done .step-name { color: var(--green); }
+
+/* STEP PANELS */
+.calc-body { padding: 32px; }
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+.step-heading { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px; }
+.step-subheading { font-size: 14.5px; color: var(--gray-mid); line-height: 1.65; margin-bottom: 28px; }
+
+/* FIELD GROUPS */
+.field-group { margin-bottom: 24px; }
+.field-label { font-size: 13.5px; font-weight: 600; color: var(--gray-dark); margin-bottom: 8px; display: block; }
+.field-hint { font-size: 12px; color: var(--gray-mid); margin-bottom: 8px; display: block; margin-top: -4px; }
+
+/* RANGE FIELDS */
+.range-row { display: flex; align-items: center; gap: 14px; }
+.range-row input[type="range"] { flex: 1; -webkit-appearance: none; height: 5px; border-radius: 3px; background: var(--gray-light); outline: none; cursor: pointer; }
+.range-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid white; box-shadow: 0 1px 6px rgba(74,144,217,0.4); }
+.range-row input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid white; box-shadow: 0 1px 6px rgba(74,144,217,0.4); }
+.range-val { font-size: 15px; font-weight: 700; color: var(--primary); min-width: 90px; text-align: right; }
+
+/* RADIO/TOGGLE BUTTONS */
+.radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.radio-opt { padding: 8px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 13.5px; cursor: pointer; color: var(--gray-dark); background: var(--white); transition: all 0.15s; font-weight: 500; user-select: none; }
+.radio-opt:hover { border-color: var(--accent); color: var(--primary); background: var(--accent-light); }
+.radio-opt.sel { border-color: var(--accent); background: var(--accent-light); color: var(--primary); font-weight: 700; }
+
+/* CHECKBOX OPTIONS */
+.check-group { display: flex; flex-direction: column; gap: 8px; }
+.check-opt { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 14px; color: var(--gray-dark); background: var(--white); transition: all 0.15s; user-select: none; }
+.check-opt:hover { border-color: var(--accent); background: var(--accent-light); }
+.check-opt.sel { border-color: var(--accent); background: var(--accent-light); color: var(--primary); }
+.check-box { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: all 0.15s; }
+.check-opt.sel .check-box { background: var(--accent); border-color: var(--accent); color: white; }
+.check-opt-text { flex: 1; line-height: 1.4; }
+.check-opt-text strong { display: block; font-size: 14px; font-weight: 600; color: var(--primary-dark); }
+.check-opt-text span { font-size: 12px; color: var(--gray-mid); }
+.check-opt.sel .check-opt-text strong { color: var(--primary); }
+
+/* CALLOUT */
+.field-callout { background: var(--accent-light); border: 1px solid rgba(74,144,217,0.25); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 24px; font-size: 13.5px; color: var(--primary-dark); line-height: 1.6; }
+.field-callout strong { color: var(--primary); }
+
+/* NAV BUTTONS */
+.step-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+.btn-back { padding: 11px 22px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--white); color: var(--gray-dark); font-size: 14px; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: 'Plus Jakarta Sans', sans-serif; }
+.btn-back:hover { border-color: var(--gray-mid); background: var(--off-white); }
+.btn-back:disabled { opacity: 0.3; cursor: default; }
+.btn-next { padding: 11px 26px; border-radius: 10px; border: none; background: var(--primary); color: white; font-size: 14px; font-weight: 700; cursor: pointer; transition: all var(--transition); font-family: 'Plus Jakarta Sans', sans-serif; display: flex; align-items: center; gap: 8px; }
+.btn-next:hover { background: var(--primary-dark); box-shadow: 0 4px 18px rgba(26,61,107,0.28); }
+.btn-next.teal { background: var(--teal); }
+.btn-next.teal:hover { background: #0b7a70; }
+.step-counter { font-size: 12.5px; color: var(--gray-mid); font-weight: 500; }
+
+/* CONTACT FORM */
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+.text-input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--white); transition: border-color var(--transition), box-shadow var(--transition); outline: none; }
+.text-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,144,217,0.12); }
+.text-input.error { border-color: var(--red); background: var(--red-light); }
+.text-input.error:focus { box-shadow: 0 0 0 3px rgba(220,38,38,0.1); }
+.req-star { color: var(--red); font-size: 13px; }
+.field-error { display: block; font-size: 12px; color: var(--red); margin-top: 5px; min-height: 16px; }
+.contact-consent { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: var(--gray-mid); line-height: 1.55; padding: 14px 16px; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); margin-top: 8px; margin-bottom: 4px; }
+@media (max-width: 600px) { .contact-grid { grid-template-columns: 1fr; } .contact-grid .field-group { grid-column: auto !important; } }
+
+/* RESULTS */
+.results-panel { display: none; }
+.results-panel.show { display: block; }
+.results-header { background: linear-gradient(135deg, var(--primary-dark), var(--primary-mid)); border-radius: var(--radius-lg); padding: 24px 28px; margin-bottom: 24px; position: relative; overflow: hidden; }
+.results-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 70% at 80% 30%, rgba(74,144,217,0.25) 0%, transparent 60%); }
+.results-header-inner { position: relative; z-index: 1; }
+.results-eyebrow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+.results-title { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: white; margin-bottom: 4px; }
+.results-sub { font-size: 13.5px; color: rgba(255,255,255,0.55); }
+
+/* METRIC GRID */
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.metric-tile { background: var(--off-white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; }
+.metric-tile.accent { background: var(--accent-light); border-color: rgba(74,144,217,0.3); }
+.metric-tile.teal { background: var(--teal-light); border-color: rgba(13,148,136,0.3); }
+.metric-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-mid); margin-bottom: 6px; }
+.metric-tile.accent .metric-label { color: var(--accent); }
+.metric-tile.teal .metric-label { color: var(--teal); }
+.metric-val { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; color: var(--primary-dark); line-height: 1; margin-bottom: 4px; }
+.metric-tile.accent .metric-val { color: var(--primary); }
+.metric-tile.teal .metric-val { color: var(--teal); }
+.metric-sub { font-size: 12px; color: var(--gray-mid); line-height: 1.4; }
+
+/* RISK BAR */
+.risk-section { margin-bottom: 24px; }
+.risk-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.risk-label-row .rl-title { font-size: 13.5px; font-weight: 600; color: var(--gray-dark); }
+.risk-badge { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 100px; }
+.risk-badge.high { background: var(--red-light); color: var(--red); }
+.risk-badge.moderate { background: var(--gold-light); color: var(--gold); }
+.risk-badge.lower { background: var(--green-light); color: var(--green); }
+.risk-track { height: 8px; background: var(--gray-light); border-radius: 4px; overflow: hidden; }
+.risk-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+
+/* RECOMMENDATION CARD */
+.rec-card { border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px; }
+.rec-card-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+.rec-card-header.blue { background: linear-gradient(135deg, var(--primary-dark), var(--primary-mid)); }
+.rec-card-header.teal { background: linear-gradient(135deg, #0d4a44, var(--teal)); }
+.rec-card-header.gold { background: linear-gradient(135deg, #7c2d05, var(--gold-mid)); }
+.rec-card-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.rec-card-header-text { color: white; }
+.rec-card-eyebrow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); }
+.rec-card-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: white; }
+.rec-rows { padding: 4px 0; }
+.rec-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 11px 20px; border-bottom: 1px solid var(--border); }
+.rec-row:last-child { border-bottom: none; }
+.rec-row-label { font-size: 13.5px; color: var(--gray-mid); flex-shrink: 0; max-width: 50%; }
+.rec-row-val { font-size: 13.5px; font-weight: 700; color: var(--primary-dark); text-align: right; }
+.rec-row-val.green { color: var(--green); }
+.rec-row-val.red { color: var(--red); }
+.rec-row-val.amber { color: var(--gold); }
+
+/* CTA SECTION */
+.results-cta { background: linear-gradient(135deg, var(--primary-dark), var(--primary-mid)); border-radius: var(--radius-lg); padding: 24px 28px; margin-top: 24px; position: relative; overflow: hidden; }
+.results-cta::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 80% at 80% 20%, rgba(74,144,217,0.2) 0%, transparent 60%); }
+.results-cta-inner { position: relative; z-index: 1; }
+.results-cta p { font-size: 14px; color: rgba(255,255,255,0.65); margin-bottom: 16px; line-height: 1.65; }
+.results-cta h4 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: white; margin-bottom: 8px; }
+.cta-btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-cta-white { padding: 11px 20px; background: white; color: var(--primary-dark); font-size: 14px; font-weight: 700; border-radius: 10px; border: none; cursor: pointer; transition: box-shadow var(--transition); font-family: 'Plus Jakarta Sans', sans-serif; }
+.btn-cta-white:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.18); }
+.btn-cta-outline { padding: 11px 20px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 600; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: background var(--transition); font-family: 'Plus Jakarta Sans', sans-serif; }
+.btn-cta-outline:hover { background: rgba(255,255,255,0.18); }
+.btn-restart { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: rgba(255,255,255,0.5); cursor: pointer; background: none; border: none; font-family: 'Plus Jakarta Sans', sans-serif; padding: 0; transition: color 0.15s; }
+.btn-restart:hover { color: rgba(255,255,255,0.8); }
+
+/* DISCLAIMER */
+.disclaimer { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; margin-top: 16px; }
+.disclaimer p { font-size: 12px; color: var(--gray-mid); line-height: 1.6; margin: 0; }
+
+
+
+/* ── COMPARISON TABLE ── */
+.cmp-wrap { border: 1.5px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 24px; }
+
+.cmp-header-row { display: grid; grid-template-columns: 180px repeat(3, 1fr); background: var(--primary-dark); position: sticky; top: 0; z-index: 10; }
+.cmp-row-label { padding: 14px 16px; font-size: 13px; font-weight: 600; color: var(--gray-mid); background: var(--off-white); display: flex; align-items: center; border-right: 1px solid var(--border); line-height: 1.4; }
+.cmp-col-head { padding: 16px 14px; text-align: center; border-right: 1px solid rgba(255,255,255,0.08); cursor: default; transition: background 0.15s; position: relative; }
+.cmp-col-head:last-child { border-right: none; }
+.cmp-col-head.selected {
+  background: linear-gradient(160deg, #1a4f8a 0%, #1e6bbf 100%);
+  border-right: 1px solid rgba(74,144,217,0.4);
+  border-left: 1px solid rgba(74,144,217,0.4);
+}
+.cmp-col-head.selected::before {
+  content: '★ Your Selection';
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #93c5fd;
+  margin-bottom: 6px;
+}
+.cmp-col-head.selected::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 0;
+}
+.cmp-col-icon { font-size: 20px; margin-bottom: 5px; }
+.cmp-col-name { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: var(--white); line-height: 1.2; margin-bottom: 3px; }
+.cmp-col-head.selected .cmp-col-name { font-size: 15px; color: white; }
+.cmp-col-sub { font-size: 11px; color: rgba(255,255,255,0.45); }
+.cmp-col-head.selected .cmp-col-sub { color: #93c5fd; }
+
+.cmp-section-label { grid-column: 1 / -1; background: var(--gray-light); padding: 8px 16px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-mid); display: block; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+.cmp-row { display: grid; grid-template-columns: 180px repeat(3, 1fr); border-bottom: 1px solid var(--border); }
+.cmp-row:last-of-type { border-bottom: none; }
+.cmp-row:nth-child(even) .cmp-cell { background: var(--off-white); }
+.cmp-row:nth-child(even) .cmp-row-label { background: #f0f3f8; }
+
+.cmp-cell { padding: 12px 14px; font-size: 13px; font-weight: 600; color: var(--primary-dark); text-align: center; border-right: 1px solid var(--border); line-height: 1.45; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--white); transition: background 0.15s; }
+.cmp-cell:last-child { border-right: none; }
+.cmp-cell.selected {
+  background: #dbeeff;
+  border-left: 2px solid rgba(74,144,217,0.3);
+  border-right: 2px solid rgba(74,144,217,0.3);
+  font-size: 13.5px;
+}
+.cmp-row:nth-child(even) .cmp-cell.selected { background: #cde5fa; }
+.cmp-note { font-size: 11px; font-weight: 400; color: var(--gray-mid); margin-top: 2px; }
+.cmp-cell.selected .cmp-note { color: #5a8ab5; }
+.cmp-green { color: var(--green) !important; }
+.cmp-amber { color: var(--gold) !important; }
+.cmp-red   { color: var(--red)  !important; }
+.cmp-neutral { color: var(--gray-dark) !important; }
+
+.cmp-abltc-note { background: #fef9ec; border-top: 1px solid #fde68a; padding: 12px 16px; font-size: 12.5px; color: var(--gold); line-height: 1.55; }
+.cmp-abltc-note strong { color: var(--gold); }
+
+/* FOOTER */
+footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding: 68px 32px 0; margin-top: 80px; }
+.footer-inner { max-width: 1240px; margin: 0 auto; }
+.footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 52px; border-bottom: 1px solid rgba(255,255,255,0.09); }
+.footer-brand p { font-size: 14px; line-height: 1.7; max-width: 270px; margin-bottom: 22px; margin-top: 18px; }
+.footer-contact a { display: block; font-size: 13.5px; color: #9ec9f0; margin-bottom: 8px; }
+.footer-col h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.38); margin-bottom: 16px; }
+.footer-col a { display: block; font-size: 13.5px; color: rgba(255,255,255,0.55); margin-bottom: 11px; transition: color var(--transition); }
+.footer-col a:hover { color: var(--white); }
+.footer-bottom { padding: 26px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: 12px; color: rgba(255,255,255,0.3); }
+.footer-bottom a { color: rgba(255,255,255,0.35); transition: color var(--transition); }
+.footer-bottom a:hover { color: rgba(255,255,255,0.65); }
+.footer-bottom-links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤900px)
+══════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .tool-hero-inner { grid-template-columns: 1fr; }
+  .hero-pillars { display: none; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤640px)
+══════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Hero */
+  .tool-hero { padding: 18px 16px 22px; }
+  .tool-hero h1 { font-size: 22px; }
+  .tool-hero-sub { font-size: 13px; margin-bottom: 10px; }
+  .tool-eyebrow { font-size: 10px; padding: 3px 9px; margin-bottom: 8px; }
+  .hero-stats { gap: 14px; }
+  .hero-stat-num { font-size: 17px; }
+  .hero-stat-label { font-size: 10px; }
+  /* Layout */
+  .main-layout { padding: 14px 12px 48px; }
+  /* Calc card */
+  .calc-card-header { padding: 16px 16px 14px; }
+  .calc-card-title { font-size: 18px; }
+  .calc-card-sub { font-size: 12px; }
+  .calc-body { padding: 16px; }
+  /* Progress tabs */
+  .progress-wrap { padding: 0 10px; }
+  .progress-steps { gap: 0; }
+  .progress-step { padding: 9px 4px; gap: 4px; flex-direction: column; align-items: center; }
+  .step-badge { width: 30px; height: 30px; font-size: 13px; }
+  .step-letter { font-size: 11px; }
+  .step-name { display: none; }
+  /* Step panels */
+  .step-heading { font-size: 18px; margin-bottom: 4px; }
+  .step-subheading { font-size: 13px; margin-bottom: 18px; line-height: 1.55; }
+  /* Fields */
+  .field-group { margin-bottom: 18px; }
+  .field-label { font-size: 13px; }
+  .field-hint { font-size: 11.5px; }
+  .range-val { font-size: 14px; min-width: 72px; }
+  /* Radio buttons */
+  .radio-group { gap: 6px; }
+  .radio-opt { padding: 10px 12px; font-size: 13px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  /* Checkboxes */
+  .check-opt { padding: 12px; min-height: 52px; }
+  .check-opt-text strong { font-size: 13.5px; }
+  .check-opt-text span { font-size: 11.5px; }
+  /* Contact form */
+  .contact-grid { grid-template-columns: 1fr; }
+  .contact-grid .field-group { grid-column: auto !important; }
+  .text-input { font-size: 16px; padding: 12px 14px; }
+  /* Nav buttons */
+  .step-nav { margin-top: 20px; padding-top: 16px; }
+  .btn-back, .btn-next { padding: 12px 18px; font-size: 13.5px; min-height: 44px; }
+  /* Results summary tiles */
+  .metric-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .metric-tile { padding: 12px 12px; }
+  .metric-val { font-size: 20px; }
+  .metric-label { font-size: 10.5px; }
+  .metric-sub { font-size: 11px; }
+  /* Results header */
+  .results-header { padding: 16px; margin-bottom: 16px; }
+  .results-title { font-size: 18px; }
+  .results-sub { font-size: 12px; }
+  .results-eyebrow { font-size: 9.5px; }
+  /* Risk bar */
+  .risk-section { margin-bottom: 16px; }
+  .rl-title { font-size: 13px; }
+  /* CTA */
+  .results-cta { padding: 18px 16px; }
+  .results-cta h4 { font-size: 15px; }
+  .results-cta p { font-size: 12.5px; }
+  .cta-btn-row { flex-direction: column; }
+  .btn-cta-white, .btn-cta-outline { text-align: center; min-height: 44px; }
+  /* Disclaimer */
+  .disclaimer { padding: 12px 14px; }
+  .disclaimer p { font-size: 11.5px; }
+  /* Footer */
+  footer { padding: 36px 16px 0; margin-top: 40px; }
+  .footer-top { grid-template-columns: 1fr; gap: 24px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 8px; font-size: 11px; }
+  .footer-bottom-links { gap: 12px; }
+  /* Hide desktop comparison table, show mobile cards */
+  .cmp-wrap { display: none; }
+  .cmp-mobile { display: block; }
+}
+
+/* ── Mobile comparison card system (hidden on desktop) ── */
+.cmp-mobile { display: none; margin-bottom: 24px; }
+
+.cmp-mob-tabs { display: flex; border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+.cmp-mob-tab { flex: 1; padding: 11px 4px; text-align: center; font-size: 12px; font-weight: 700; color: var(--gray-mid); background: var(--off-white); cursor: pointer; border-right: 1px solid var(--border); transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 3px; line-height: 1.3; min-height: 56px; justify-content: center; }
+.cmp-mob-tab:last-child { border-right: none; }
+.cmp-mob-tab.active { background: var(--primary-dark); color: white; }
+.cmp-mob-tab.active.selected-tab { background: linear-gradient(160deg, #1a4f8a, #1e6bbf); }
+.cmp-mob-tab .tab-icon { font-size: 16px; }
+.cmp-mob-tab .tab-label { font-size: 10.5px; }
+.cmp-mob-tab .tab-sel-badge { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #93c5fd; display: none; }
+.cmp-mob-tab.active.selected-tab .tab-sel-badge { display: block; }
+
+.cmp-mob-panel { display: none; }
+.cmp-mob-panel.active { display: block; }
+
+.cmp-mob-sel-banner { background: linear-gradient(135deg, #1a4f8a, #1e6bbf); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 12px 16px 10px; display: none; position: relative; overflow: hidden; }
+.cmp-mob-sel-banner::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+.cmp-mob-sel-banner-text { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #93c5fd; margin-bottom: 2px; }
+.cmp-mob-sel-banner-name { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: white; }
+.cmp-mob-panel.selected .cmp-mob-sel-banner { display: block; }
+
+.cmp-mob-card { border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--white); }
+.cmp-mob-panel.selected .cmp-mob-card { border-color: rgba(74,144,217,0.4); box-shadow: 0 4px 20px rgba(74,144,217,0.12); }
+.cmp-mob-panel.selected:not(:has(.cmp-mob-sel-banner)) .cmp-mob-card { border-radius: var(--radius-lg); }
+.cmp-mob-panel.selected .cmp-mob-sel-banner + .cmp-mob-card { border-radius: 0 0 var(--radius-lg) var(--radius-lg); border-top: none; }
+
+.cmp-mob-section { background: var(--gray-light); padding: 7px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-mid); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.cmp-mob-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border); }
+.cmp-mob-row:last-child { border-bottom: none; }
+.cmp-mob-row:nth-child(even) { background: var(--off-white); }
+.cmp-mob-lbl { font-size: 12.5px; color: var(--gray-mid); flex: 0 0 44%; line-height: 1.4; }
+.cmp-mob-val { font-size: 12.5px; font-weight: 700; color: var(--primary-dark); text-align: right; flex: 0 0 53%; line-height: 1.45; }
+.cmp-mob-val.green { color: var(--green); }
+.cmp-mob-val.amber { color: var(--gold); }
+.cmp-mob-val.red   { color: var(--red); }
+.cmp-mob-note { display: block; font-size: 11px; font-weight: 400; color: var(--gray-mid); margin-top: 2px; }
+
+.cmp-mob-abltc-note { background: #fef9ec; border: 1px solid #fde68a; border-radius: var(--radius); padding: 10px 14px; margin-top: 10px; font-size: 12px; color: var(--gold); line-height: 1.55; }
+.cmp-mob-abltc-note strong { color: var(--gold); }
+</style>
+  <script src="/js/quotebot-capture.js"
+          data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
+          data-tool="care-ltc"></script>
+  <!-- The assistant. Never opens itself on a timer; see the file header. -->
+  <script src="/js/quotebot-chat.js"
+          data-endpoint="https://im62dp4hwe34ez7lmhvtfk75xa0zkkxv.lambda-url.us-east-2.on.aws/"
+          data-tool="care-ltc" data-context></script>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="tool-hero">
+  <div class="tool-hero-inner">
+    <div>
+      <div class="tool-eyebrow">🛡️ Strategy 01 · Asset Protection Framework</div>
+      <h1>The <em>C.A.R.E.</em> Needs<br>Calculator</h1>
+      <p class="tool-hero-sub">Cover your Assets, protect your Retirement, preserve your Estate. A four-pillar methodology to quantify your LTC exposure and design the right benefit — not too much, not too little.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">70%</div>
+          <div class="hero-stat-label">of Americans turning 65 will need long-term care</div>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">$108K</div>
+          <div class="hero-stat-label">avg. annual nursing home cost in 2026</div>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">2.5 yrs</div>
+          <div class="hero-stat-label">average duration of care need</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-pillars">
+      <div class="hero-pillar">
+        <div class="hero-pillar-letter">C</div>
+        <div class="hero-pillar-word">Cover</div>
+        <div class="hero-pillar-desc">Identify assets to protect and quantify the exposure</div>
+      </div>
+      <div class="hero-pillar">
+        <div class="hero-pillar-letter">A</div>
+        <div class="hero-pillar-word">Assess</div>
+        <div class="hero-pillar-desc">Evaluate your realistic risk profile and family history</div>
+      </div>
+      <div class="hero-pillar">
+        <div class="hero-pillar-letter">R</div>
+        <div class="hero-pillar-word">Right-Size</div>
+        <div class="hero-pillar-desc">Design a benefit that fills your specific gap</div>
+      </div>
+      <div class="hero-pillar">
+        <div class="hero-pillar-letter">E</div>
+        <div class="hero-pillar-word">Execute</div>
+        <div class="hero-pillar-desc">Buy while healthy — waiting has a real, quantifiable cost</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-layout">
+
+  <!-- CALCULATOR -->
+  <div>
+    <div class="calc-card">
+
+      <!-- Card Header -->
+      <div class="calc-card-header">
+        <div class="calc-card-header-inner">
+          <div class="calc-card-eyebrow">Interactive Tool · 2026 Edition</div>
+          <div class="calc-card-title">C.A.R.E. Four-Pillar Analysis</div>
+          <div class="calc-card-sub">Answer 4 short sections to receive your personalized LTC coverage recommendation.</div>
+        </div>
+      </div>
+
+      <!-- Step Progress -->
+      <div class="progress-wrap">
+        <div class="progress-steps" style="grid-template-columns: repeat(5,1fr);">
+          <div class="progress-step active" id="tab0" onclick="goStep(0)">
+            <div class="step-badge" id="badge0">C</div>
+            <div class="step-info">
+              <div class="step-letter">Cover</div>
+              <div class="step-name">Assets</div>
+            </div>
+          </div>
+          <div class="progress-step" id="tab1" onclick="goStep(1)">
+            <div class="step-badge" id="badge1">A</div>
+            <div class="step-info">
+              <div class="step-letter">Assess</div>
+              <div class="step-name">Risk Profile</div>
+            </div>
+          </div>
+          <div class="progress-step" id="tab2" onclick="goStep(2)">
+            <div class="step-badge" id="badge2">R</div>
+            <div class="step-info">
+              <div class="step-letter">Right-Size</div>
+              <div class="step-name">Benefit Gap</div>
+            </div>
+          </div>
+          <div class="progress-step" id="tab3" onclick="goStep(3)">
+            <div class="step-badge" id="badge3">E</div>
+            <div class="step-info">
+              <div class="step-letter">Execute</div>
+              <div class="step-name">Policy Design</div>
+            </div>
+          </div>
+          <div class="progress-step" id="tab4" onclick="goStep(4)">
+            <div class="step-badge" id="badge4">✉</div>
+            <div class="step-info">
+              <div class="step-letter">Your Info</div>
+              <div class="step-name">Contact</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP PANELS -->
+      <div class="calc-body">
+
+        <!-- STEP 0: COVER -->
+        <div class="step-panel active" id="step0">
+          <div class="step-heading">Cover — which assets are you protecting?</div>
+          <p class="step-subheading">The C.A.R.E. model starts with a deceptively simple question: which specific retirement assets are you most concerned about losing to long-term care costs? Start by quantifying your exposure.</p>
+
+          <div class="field-group">
+            <label class="field-label">Combined retirement savings (IRA, 401k, investments)</label>
+            <div class="range-row">
+              <input type="range" min="50000" max="2000000" step="25000" value="400000" id="retAssets" oninput="syncVal('retAssets','retAssetsVal',true)">
+              <span class="range-val" id="retAssetsVal">$400,000</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Approximate home equity</label>
+            <div class="range-row">
+              <input type="range" min="0" max="1000000" step="25000" value="200000" id="homeEq" oninput="syncVal('homeEq','homeEqVal',true)">
+              <span class="range-val" id="homeEqVal">$200,000</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Which assets are highest priority to protect?</label>
+            <span class="field-hint">Select all that apply</span>
+            <div class="check-group" id="assetGroup">
+              <div class="check-opt sel" data-val="ira" onclick="toggleCheck(this)">
+                <div class="check-box">✓</div>
+                <div class="check-opt-text"><strong>Retirement accounts (IRA / 401k)</strong><span>Typically the largest pool at risk from extended care costs</span></div>
+              </div>
+              <div class="check-opt" data-val="home" onclick="toggleCheck(this)">
+                <div class="check-box"></div>
+                <div class="check-opt-text"><strong>Home equity / primary residence</strong><span>Protect against Medicaid estate recovery after death</span></div>
+              </div>
+              <div class="check-opt" data-val="invest" onclick="toggleCheck(this)">
+                <div class="check-box"></div>
+                <div class="check-opt-text"><strong>Taxable investment accounts</strong><span>Avoid forced liquidation at inopportune times</span></div>
+              </div>
+              <div class="check-opt" data-val="legacy" onclick="toggleCheck(this)">
+                <div class="check-box"></div>
+                <div class="check-opt-text"><strong>Estate / inheritance for heirs</strong><span>Preserve wealth transfer to the next generation</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <button class="btn-back" disabled>← Back</button>
+            <span class="step-counter">Step 1 of 5</span>
+            <button class="btn-next" onclick="goStep(1)">Assess your risk → </button>
+          </div>
+        </div>
+
+        <!-- STEP 1: ASSESS -->
+        <div class="step-panel" id="step1">
+          <div class="step-heading">Assess — evaluate your realistic risk profile</div>
+          <p class="step-subheading">Age, gender, family history, and current health determine how much LTC exposure you carry. The same factors LTC underwriters use — the more accurate your inputs, the more useful your results.</p>
+
+          <div class="field-group">
+            <label class="field-label">Your current age</label>
+            <div class="range-row">
+              <input type="range" min="45" max="75" step="1" value="57" id="age" oninput="syncVal('age','ageVal',false)">
+              <span class="range-val" id="ageVal">57</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Gender</label>
+            <span class="field-hint">Women face higher LTC risk and are rated at higher premiums for traditional policies.</span>
+            <div class="radio-group" id="genderGroup">
+              <div class="radio-opt sel" data-val="male" onclick="pickRadio(this,'genderGroup')">Male</div>
+              <div class="radio-opt" data-val="female" onclick="pickRadio(this,'genderGroup')">Female</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Marital / partnership status</label>
+            <div class="radio-group" id="maritalGroup">
+              <div class="radio-opt sel" data-val="married" onclick="pickRadio(this,'maritalGroup')">Married / partnered</div>
+              <div class="radio-opt" data-val="single" onclick="pickRadio(this,'maritalGroup')">Single</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Family history of dementia, Alzheimer's, or extended care need?</label>
+            <div class="radio-group" id="familyHxGroup">
+              <div class="radio-opt" data-val="yes" onclick="pickRadio(this,'familyHxGroup')">Yes — parent or sibling</div>
+              <div class="radio-opt sel" data-val="no" onclick="pickRadio(this,'familyHxGroup')">No known history</div>
+              <div class="radio-opt" data-val="unknown" onclick="pickRadio(this,'familyHxGroup')">Unknown</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Current health status</label>
+            <span class="field-hint">Be honest — health conditions affect both insurability and the right policy type.</span>
+            <div class="radio-group" id="healthGroup">
+              <div class="radio-opt sel" data-val="excellent" onclick="pickRadio(this,'healthGroup')">Excellent</div>
+              <div class="radio-opt" data-val="good" onclick="pickRadio(this,'healthGroup')">Good</div>
+              <div class="radio-opt" data-val="fair" onclick="pickRadio(this,'healthGroup')">Fair / managed conditions</div>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <button class="btn-back" onclick="goStep(0)">← Back</button>
+            <span class="step-counter">Step 2 of 5</span>
+            <button class="btn-next" onclick="goStep(2)">Right-size benefit →</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: RIGHT-SIZE -->
+        <div class="step-panel" id="step2">
+          <div class="step-heading">Right-Size — design a benefit that fills your gap</div>
+          <p class="step-subheading">The goal is precision, not maximum coverage. Rather than purchasing the most coverage possible, the C.A.R.E. model targets the benefit that protects your most vulnerable assets — and nothing more.</p>
+
+          <div class="field-callout">
+            <strong>Tip:</strong> If a couple has $400,000 in retirement savings and estimates a 3-year care event could consume $300,000, a policy providing a $300,000 lifetime benefit pool is the target. Costs above that threshold are self-funded.
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Estimated monthly care cost in your area</label>
+            <span class="field-hint">Genworth 2026 Cost of Care Survey data by care type and region.</span>
+            <div class="radio-group" id="careRegionGroup">
+              <div class="radio-opt" data-val="3500" onclick="pickRadio(this,'careRegionGroup')">Rural<br><span style="font-size:11px;color:var(--gray-mid);">~$3,500/mo</span></div>
+              <div class="radio-opt sel" data-val="5000" onclick="pickRadio(this,'careRegionGroup')">Suburban<br><span style="font-size:11px;color:var(--gray-mid);">~$5,000/mo</span></div>
+              <div class="radio-opt" data-val="7500" onclick="pickRadio(this,'careRegionGroup')">Urban<br><span style="font-size:11px;color:var(--gray-mid);">~$7,500/mo</span></div>
+              <div class="radio-opt" data-val="10000" onclick="pickRadio(this,'careRegionGroup')">High-cost metro<br><span style="font-size:11px;color:var(--gray-mid);">~$10,000/mo</span></div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Preferred care setting</label>
+            <div class="radio-group" id="careSettingGroup">
+              <div class="radio-opt sel" data-val="home" onclick="pickRadio(this,'careSettingGroup')">At home (preferred)</div>
+              <div class="radio-opt" data-val="assisted" onclick="pickRadio(this,'careSettingGroup')">Assisted living</div>
+              <div class="radio-opt" data-val="nursing" onclick="pickRadio(this,'careSettingGroup')">Skilled nursing facility</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Benefit period — years of coverage the policy provides</label>
+            <div class="range-row">
+              <input type="range" min="2" max="6" step="1" value="3" id="benefitYears" oninput="syncVal('benefitYears','benefitYearsVal',false,'yrs')">
+              <span class="range-val" id="benefitYearsVal">3 yrs</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Monthly amount you can self-fund from income / savings</label>
+            <div class="range-row">
+              <input type="range" min="0" max="5000" step="250" value="0" id="selfFund" oninput="syncVal('selfFund','selfFundVal',true)">
+              <span class="range-val" id="selfFundVal">$0</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Inflation protection</label>
+            <span class="field-hint">For buyers more than 15 years from likely need, 3% compound is typically worth the added premium.</span>
+            <div class="radio-group" id="inflationGroup">
+              <div class="radio-opt" data-val="none" onclick="pickRadio(this,'inflationGroup')">None</div>
+              <div class="radio-opt" data-val="simple" onclick="pickRadio(this,'inflationGroup')">3% simple</div>
+              <div class="radio-opt sel" data-val="compound" onclick="pickRadio(this,'inflationGroup')">3% compound (recommended)</div>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <button class="btn-back" onclick="goStep(1)">← Back</button>
+            <span class="step-counter">Step 3 of 5</span>
+            <button class="btn-next" onclick="goStep(3)">Execute plan →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: EXECUTE -->
+        <div class="step-panel" id="step3">
+          <div class="step-heading">Execute — buy while you're healthy and insurable</div>
+          <p class="step-subheading">Waiting is not neutral — it has a real and quantifiable cost. A health change after age 60 can eliminate your options entirely. This step surfaces your policy type, cost-of-waiting, and spouse discount eligibility.</p>
+
+          <div class="field-group">
+            <label class="field-label">Preferred policy structure</label>
+            <span class="field-hint">Your risk profile and health status may affect which option is best.</span>
+            <div class="check-group" id="policyTypeGroup">
+              <div class="check-opt" data-val="traditional" onclick="pickSingle(this,'policyTypeGroup')">
+                <div class="check-box"></div>
+                <div class="check-opt-text"><strong>Traditional standalone LTC</strong><span>Annual premium · Use-it-or-lose-it · Largest benefit per dollar</span></div>
+              </div>
+              <div class="check-opt sel" data-val="hybrid" onclick="pickSingle(this,'policyTypeGroup')">
+                <div class="check-box">✓</div>
+                <div class="check-opt-text"><strong>Hybrid life / LTC (most popular)</strong><span>Guaranteed premiums · Death benefit if unused · Single or annual premium</span></div>
+              </div>
+              <div class="check-opt" data-val="annuity" onclick="pickSingle(this,'policyTypeGroup')">
+                <div class="check-box"></div>
+                <div class="check-opt-text"><strong>Asset-Based LTC (ABLTC)</strong><span>Most lenient underwriting · Ideal for older buyers or impaired risk</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Do you have repositionable assets?</label>
+            <span class="field-hint">CDs, savings, non-qualified annuities earning minimal returns are prime candidates for a hybrid policy via 1035 exchange.</span>
+            <div class="radio-group" id="repoGroup">
+              <div class="radio-opt sel" data-val="yes" onclick="pickRadio(this,'repoGroup')">Yes — potential 1035 exchange or lump sum</div>
+              <div class="radio-opt" data-val="no" onclick="pickRadio(this,'repoGroup')">No — prefer annual premium payments</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Is your spouse or partner also applying?</label>
+            <span class="field-hint">Applying together typically earns a 10–30% couple's discount and opens up Shared Care rider options.</span>
+            <div class="radio-group" id="spouseGroup">
+              <div class="radio-opt sel" data-val="yes" onclick="pickRadio(this,'spouseGroup')">Yes — applying together</div>
+              <div class="radio-opt" data-val="no" onclick="pickRadio(this,'spouseGroup')">No / not applicable</div>
+            </div>
+          </div>
+
+          <div class="step-nav">
+            <button class="btn-back" onclick="goStep(2)">← Back</button>
+            <span class="step-counter">Step 4 of 5</span>
+            <button class="btn-next" onclick="goStep(4)">Next: Your info →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: CONTACT INFO -->
+        <div class="step-panel" id="step4">
+          <div class="step-heading">Almost there — where should we send your results?</div>
+          <p class="step-subheading">Your personalized C.A.R.E. analysis is ready. Enter your contact details and a licensed specialist can follow up with live carrier quotes tailored to your profile.</p>
+
+          <div class="contact-grid">
+            <div class="field-group">
+              <label class="field-label" for="cf-fname">First Name <span class="req-star">*</span></label>
+              <input type="text" id="cf-fname" class="text-input" placeholder="Jane" autocomplete="given-name">
+              <span class="field-error" id="err-fname"></span>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="cf-lname">Last Name <span class="req-star">*</span></label>
+              <input type="text" id="cf-lname" class="text-input" placeholder="Smith" autocomplete="family-name">
+              <span class="field-error" id="err-lname"></span>
+            </div>
+            <div class="field-group" style="grid-column: 1 / -1;">
+              <label class="field-label" for="cf-email">Email Address <span class="req-star">*</span></label>
+              <input type="email" id="cf-email" class="text-input" placeholder="jane@example.com" autocomplete="email">
+              <span class="field-error" id="err-email"></span>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="cf-phone">Phone Number <span class="req-star">*</span></label>
+              <input type="tel" id="cf-phone" class="text-input" placeholder="(555) 000-0000" autocomplete="tel">
+              <span class="field-error" id="err-phone"></span>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="cf-dob">Date of Birth <span class="req-star">*</span></label>
+              <input type="date" id="cf-dob" class="text-input" autocomplete="bday">
+              <span class="field-hint" style="margin-top:4px;display:block;">Used to confirm your age for underwriting purposes.</span>
+              <span class="field-error" id="err-dob"></span>
+            </div>
+          </div>
+
+          <div class="contact-consent">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-3a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm0 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" fill="currentColor"/></svg>
+            By submitting, you agree to be contacted by a licensed Quote-Bot specialist. We never sell your information.
+          </div>
+
+          <div class="step-nav">
+            <button class="btn-back" onclick="goStep(3)">← Back</button>
+            <span class="step-counter">Step 5 of 5</span>
+            <button class="btn-next teal" onclick="submitContact()">View my C.A.R.E. analysis ✓</button>
+          </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="results-panel" id="resultsPanel">
+
+          <div class="results-header">
+            <div class="results-header-inner">
+              <div class="results-eyebrow">Your personalized C.A.R.E. analysis · 2026</div>
+              <div class="results-title">Long-Term Care Needs Summary</div>
+              <div class="results-sub">Illustrative estimates based on your inputs — actual premiums require carrier underwriting.</div>
+            </div>
+          </div>
+
+          <!-- Summary tiles -->
+          <div class="metric-grid">
+            <div class="metric-tile">
+              <div class="metric-label">Total assets at risk</div>
+              <div class="metric-val" id="r-totalAssets">—</div>
+              <div class="metric-sub">retirement savings + home equity</div>
+            </div>
+            <div class="metric-tile accent">
+              <div class="metric-label">Estimated care exposure</div>
+              <div class="metric-val" id="r-careExp">—</div>
+              <div class="metric-sub" id="r-careExpSub">over your benefit period</div>
+            </div>
+            <div class="metric-tile teal">
+              <div class="metric-label">Recommended benefit pool</div>
+              <div class="metric-val" id="r-benefitPool">—</div>
+              <div class="metric-sub">after self-fund offset</div>
+            </div>
+            <div class="metric-tile accent">
+              <div class="metric-label">Monthly benefit needed</div>
+              <div class="metric-val" id="r-monthlyBenefit">—</div>
+              <div class="metric-sub">across all three solutions</div>
+            </div>
+          </div>
+
+          <!-- Risk bar -->
+          <div class="risk-section">
+            <div class="risk-label-row">
+              <span class="rl-title">Your LTC risk level<a href="#disclaimer-fn1" style="text-decoration:none;"><sup style="font-size:9px;vertical-align:super;margin-left:2px;color:var(--accent);">1</sup></a></span>
+              <span class="risk-badge" id="r-riskBadge">Moderate</span>
+            </div>
+            <div class="risk-track">
+              <div class="risk-fill" id="r-riskFill" style="width:55%;background:#d97706;"></div>
+            </div>
+          </div>
+
+          <!-- ── COMPARISON TABLE ── -->
+          <div class="cmp-wrap">
+
+            <!-- Column headers -->
+            <div class="cmp-header-row">
+              <div class="cmp-row-label"></div>
+              <div class="cmp-col-head" id="cmp-head-trad">
+                <div class="cmp-col-icon">📄</div>
+                <div class="cmp-col-name">Traditional LTC</div>
+                <div class="cmp-col-sub">Annual premium</div>
+              </div>
+              <div class="cmp-col-head" id="cmp-head-hybrid">
+                <div class="cmp-col-icon">🔗</div>
+                <div class="cmp-col-name">Hybrid Life / LTC</div>
+                <div class="cmp-col-sub">Life + LTC combined</div>
+              </div>
+              <div class="cmp-col-head" id="cmp-head-abltc">
+                <div class="cmp-col-icon">🏦</div>
+                <div class="cmp-col-name">Asset-Based LTC</div>
+                <div class="cmp-col-sub">Single / multi-pay deposit</div>
+              </div>
+            </div>
+
+            <!-- Section: Coverage Design -->
+            <div class="cmp-section-label">Coverage Design</div>
+
+            <div class="cmp-row">
+              <div class="cmp-row-label">Monthly benefit</div>
+              <div class="cmp-cell" id="c-trad-monthly">—</div>
+              <div class="cmp-cell" id="c-hybrid-monthly">—</div>
+              <div class="cmp-cell" id="c-abltc-monthly">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Benefit period</div>
+              <div class="cmp-cell" id="c-trad-period">—</div>
+              <div class="cmp-cell" id="c-hybrid-period">—</div>
+              <div class="cmp-cell" id="c-abltc-period">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Benefit pool</div>
+              <div class="cmp-cell" id="c-trad-pool">—</div>
+              <div class="cmp-cell" id="c-hybrid-pool">—</div>
+              <div class="cmp-cell" id="c-abltc-pool">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Elimination period</div>
+              <div class="cmp-cell">90 days</div>
+              <div class="cmp-cell">90 days</div>
+              <div class="cmp-cell">~90 days (varies)</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Inflation protection</div>
+              <div class="cmp-cell" id="c-trad-inflation">—</div>
+              <div class="cmp-cell" id="c-hybrid-inflation">—</div>
+              <div class="cmp-cell" id="c-abltc-inflation">—</div>
+            </div>
+
+            <!-- Section: Product Features -->
+            <div class="cmp-section-label">Product Features</div>
+
+            <div class="cmp-row">
+              <div class="cmp-row-label">Premium guarantee</div>
+              <div class="cmp-cell cmp-amber">Not guaranteed<br><span class="cmp-note">Rate increases possible</span></div>
+              <div class="cmp-cell cmp-green">Guaranteed level<br><span class="cmp-note">No rate increases</span></div>
+              <div class="cmp-cell cmp-green">Single / limited pay<br><span class="cmp-note">No future obligations</span></div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">If benefits unused</div>
+              <div class="cmp-cell cmp-neutral">No return<br><span class="cmp-note">Use-it-or-lose-it</span></div>
+              <div class="cmp-cell cmp-green">Death benefit to heirs<br><span class="cmp-note">Named beneficiaries</span></div>
+              <div class="cmp-cell cmp-green">Account value or death benefit to heirs<br><span class="cmp-note">Named beneficiaries</span></div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Underwriting difficulty</div>
+              <div class="cmp-cell cmp-amber">Strict<br><span class="cmp-note">Full health underwriting</span></div>
+              <div class="cmp-cell cmp-amber">Moderate<br><span class="cmp-note">Simplified issue available</span></div>
+              <div class="cmp-cell cmp-green">Most lenient<br><span class="cmp-note">Ideal for impaired risk</span></div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Couple's discount</div>
+              <div class="cmp-cell" id="c-trad-couple">—</div>
+              <div class="cmp-cell" id="c-hybrid-couple">—</div>
+              <div class="cmp-cell" id="c-abltc-couple">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">State Partnership eligible<a href="#disclaimer-fn3" style="text-decoration:none;"><sup style="font-size:9px;vertical-align:super;color:var(--accent);">3</sup></a></div>
+              <div class="cmp-cell cmp-green">✓ Yes<br><span class="cmp-note">Dollar-for-dollar Medicaid shield</span></div>
+              <div class="cmp-cell cmp-amber">✗ No<br><span class="cmp-note">Hybrid policies do not qualify</span></div>
+              <div class="cmp-cell cmp-amber">✗ No<br><span class="cmp-note">ABLTC policies do not qualify</span></div>
+            </div>
+
+            <!-- Section: Cost of Delay -->
+            <div class="cmp-section-label">Cost of Delay — Apply Now vs. Age <span id="cmp-waitAge">—</span></div>
+
+            <div class="cmp-row">
+              <div class="cmp-row-label">Est. cost — apply now<a href="#disclaimer-fn2" style="text-decoration:none;"><sup style="font-size:9px;vertical-align:super;margin-left:2px;color:var(--accent);">2</sup></a></div>
+              <div class="cmp-cell cmp-green" id="c-trad-prem-now">—</div>
+              <div class="cmp-cell cmp-green" id="c-hybrid-prem-now">—</div>
+              <div class="cmp-cell cmp-green" id="c-abltc-prem-now">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Cumulative 20yr cost</div>
+              <div class="cmp-cell" id="c-trad-cum20">—</div>
+              <div class="cmp-cell" id="c-hybrid-cum20">—</div>
+              <div class="cmp-cell" id="c-abltc-cum20">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Est. cost at age <span id="cmp-waitAge2">—</span></div>
+              <div class="cmp-cell cmp-amber" id="c-trad-prem-wait">—</div>
+              <div class="cmp-cell cmp-amber" id="c-hybrid-prem-wait">—</div>
+              <div class="cmp-cell cmp-amber" id="c-abltc-prem-wait">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Extra cost of waiting</div>
+              <div class="cmp-cell cmp-red" id="c-trad-prem-delay">—</div>
+              <div class="cmp-cell cmp-red" id="c-hybrid-prem-delay">—</div>
+              <div class="cmp-cell cmp-red" id="c-abltc-prem-delay">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Insurability at age <span id="cmp-waitAge3">—</span></div>
+              <div class="cmp-cell" id="c-trad-insure">—</div>
+              <div class="cmp-cell" id="c-hybrid-insure">—</div>
+              <div class="cmp-cell" id="c-abltc-insure">—</div>
+            </div>
+
+            <!-- Section: Asset Protection -->
+            <div class="cmp-section-label">Asset Protection</div>
+
+            <div class="cmp-row">
+              <div class="cmp-row-label">Retirement assets at risk</div>
+              <div class="cmp-cell" id="c-trad-assets">—</div>
+              <div class="cmp-cell" id="c-hybrid-assets">—</div>
+              <div class="cmp-cell" id="c-abltc-assets">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Benefit pool / assets</div>
+              <div class="cmp-cell cmp-green" id="c-trad-pct">—</div>
+              <div class="cmp-cell cmp-green" id="c-hybrid-pct">—</div>
+              <div class="cmp-cell cmp-green" id="c-abltc-pct">—</div>
+            </div>
+            <div class="cmp-row">
+              <div class="cmp-row-label">Cost / assets (midpoint)</div>
+              <div class="cmp-cell" id="c-trad-costpct">—</div>
+              <div class="cmp-cell" id="c-hybrid-costpct">—</div>
+              <div class="cmp-cell" id="c-abltc-costpct">—</div>
+            </div>
+
+            <!-- ABLTC pay-options note -->
+            <div class="cmp-abltc-note" id="cmp-abltc-note">
+              <strong>Asset-Based LTC payment flexibility:</strong> Also available as 5 pay, 10 pay, 20 pay, or Pay to 95 (subject to age availability).
+            </div>
+
+          </div><!-- /cmp-wrap -->
+
+          <!-- ── MOBILE COMPARISON CARDS (hidden on desktop, shown on mobile) ── -->
+          <div class="cmp-mobile" id="cmpMobile">
+
+            <!-- Tab switcher -->
+            <div class="cmp-mob-tabs">
+              <div class="cmp-mob-tab active" id="mob-tab-trad" onclick="mobTab('trad')">
+                <span class="tab-icon">📄</span>
+                <span class="tab-label">Traditional</span>
+                <span class="tab-sel-badge">★ Selected</span>
+              </div>
+              <div class="cmp-mob-tab" id="mob-tab-hybrid" onclick="mobTab('hybrid')">
+                <span class="tab-icon">🔗</span>
+                <span class="tab-label">Hybrid</span>
+                <span class="tab-sel-badge">★ Selected</span>
+              </div>
+              <div class="cmp-mob-tab" id="mob-tab-abltc" onclick="mobTab('abltc')">
+                <span class="tab-icon">🏦</span>
+                <span class="tab-label">ABLTC</span>
+                <span class="tab-sel-badge">★ Selected</span>
+              </div>
+            </div>
+
+            <!-- TRADITIONAL panel -->
+            <div class="cmp-mob-panel active" id="mob-panel-trad">
+              <div class="cmp-mob-sel-banner">
+                <div class="cmp-mob-sel-banner-text">★ Your Selection</div>
+                <div class="cmp-mob-sel-banner-name">Traditional LTC</div>
+              </div>
+              <div class="cmp-mob-card">
+                <div class="cmp-mob-section">Coverage Design</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Monthly benefit</span><span class="cmp-mob-val" id="m-trad-monthly">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Benefit period</span><span class="cmp-mob-val" id="m-trad-period">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Benefit pool</span><span class="cmp-mob-val" id="m-trad-pool">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Elimination period</span><span class="cmp-mob-val">90 days</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Inflation protection</span><span class="cmp-mob-val" id="m-trad-inflation">—</span></div>
+                <div class="cmp-mob-section">Product Features</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Premium guarantee</span><span class="cmp-mob-val amber">Not guaranteed<span class="cmp-mob-note">Rate increases possible</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">If benefits unused</span><span class="cmp-mob-val">No return<span class="cmp-mob-note">Use-it-or-lose-it</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Underwriting</span><span class="cmp-mob-val amber">Strict<span class="cmp-mob-note">Full health underwriting</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Couple's discount</span><span class="cmp-mob-val" id="m-trad-couple">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">State Partnership<sup style="font-size:8px;color:var(--accent);">3</sup></span><span class="cmp-mob-val green">✓ Yes<span class="cmp-mob-note">Dollar-for-dollar Medicaid</span></span></div>
+                <div class="cmp-mob-section">Cost of Delay</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Est. cost now<sup style="font-size:8px;color:var(--accent);">2</sup></span><span class="cmp-mob-val green" id="m-trad-prem-now">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Cumulative 20yr</span><span class="cmp-mob-val" id="m-trad-cum20">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Cost at age <span id="m-trad-wait-age">—</span></span><span class="cmp-mob-val amber" id="m-trad-prem-wait">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Extra cost of waiting</span><span class="cmp-mob-val red" id="m-trad-delay">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Insurability at <span id="m-trad-insure-age">—</span></span><span class="cmp-mob-val" id="m-trad-insure">—</span></div>
+                <div class="cmp-mob-section">Asset Protection</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Retirement assets</span><span class="cmp-mob-val" id="m-trad-assets">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Pool / assets</span><span class="cmp-mob-val green" id="m-trad-pct">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Cost / assets</span><span class="cmp-mob-val" id="m-trad-costpct">—</span></div>
+              </div>
+            </div>
+
+            <!-- HYBRID panel -->
+            <div class="cmp-mob-panel" id="mob-panel-hybrid">
+              <div class="cmp-mob-sel-banner">
+                <div class="cmp-mob-sel-banner-text">★ Your Selection</div>
+                <div class="cmp-mob-sel-banner-name">Hybrid Life / LTC</div>
+              </div>
+              <div class="cmp-mob-card">
+                <div class="cmp-mob-section">Coverage Design</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Monthly benefit</span><span class="cmp-mob-val" id="m-hybrid-monthly">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Benefit period</span><span class="cmp-mob-val" id="m-hybrid-period">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Benefit pool</span><span class="cmp-mob-val" id="m-hybrid-pool">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Elimination period</span><span class="cmp-mob-val">90 days</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Inflation protection</span><span class="cmp-mob-val" id="m-hybrid-inflation">—</span></div>
+                <div class="cmp-mob-section">Product Features</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Premium guarantee</span><span class="cmp-mob-val green">Guaranteed level<span class="cmp-mob-note">No rate increases</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">If benefits unused</span><span class="cmp-mob-val green">Death benefit to heirs<span class="cmp-mob-note">Named beneficiaries</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Underwriting</span><span class="cmp-mob-val amber">Moderate<span class="cmp-mob-note">Simplified issue available</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Couple's discount</span><span class="cmp-mob-val" id="m-hybrid-couple">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">State Partnership<sup style="font-size:8px;color:var(--accent);">3</sup></span><span class="cmp-mob-val amber">✗ No<span class="cmp-mob-note">Hybrid policies don't qualify</span></span></div>
+                <div class="cmp-mob-section">Cost of Delay</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Est. cost now<sup style="font-size:8px;color:var(--accent);">2</sup></span><span class="cmp-mob-val green" id="m-hybrid-prem-now">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Cumulative 20yr</span><span class="cmp-mob-val" id="m-hybrid-cum20">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Cost at age <span id="m-hybrid-wait-age">—</span></span><span class="cmp-mob-val amber" id="m-hybrid-prem-wait">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Extra cost of waiting</span><span class="cmp-mob-val red" id="m-hybrid-delay">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Insurability at <span id="m-hybrid-insure-age">—</span></span><span class="cmp-mob-val" id="m-hybrid-insure">—</span></div>
+                <div class="cmp-mob-section">Asset Protection</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Retirement assets</span><span class="cmp-mob-val" id="m-hybrid-assets">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Pool / assets</span><span class="cmp-mob-val green" id="m-hybrid-pct">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Cost / assets</span><span class="cmp-mob-val" id="m-hybrid-costpct">—</span></div>
+              </div>
+            </div>
+
+            <!-- ABLTC panel -->
+            <div class="cmp-mob-panel" id="mob-panel-abltc">
+              <div class="cmp-mob-sel-banner">
+                <div class="cmp-mob-sel-banner-text">★ Your Selection</div>
+                <div class="cmp-mob-sel-banner-name">Asset-Based LTC</div>
+              </div>
+              <div class="cmp-mob-card">
+                <div class="cmp-mob-section">Coverage Design</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Monthly benefit</span><span class="cmp-mob-val" id="m-abltc-monthly">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Benefit period</span><span class="cmp-mob-val" id="m-abltc-period">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Benefit pool</span><span class="cmp-mob-val" id="m-abltc-pool">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Elimination period</span><span class="cmp-mob-val">~90 days (varies)</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Inflation protection</span><span class="cmp-mob-val" id="m-abltc-inflation">—</span></div>
+                <div class="cmp-mob-section">Product Features</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Premium guarantee</span><span class="cmp-mob-val green">Single / limited pay<span class="cmp-mob-note">No future obligations</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">If benefits unused</span><span class="cmp-mob-val green">Account value or death benefit<span class="cmp-mob-note">Named beneficiaries</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Underwriting</span><span class="cmp-mob-val green">Most lenient<span class="cmp-mob-note">Ideal for impaired risk</span></span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Couple's discount</span><span class="cmp-mob-val" id="m-abltc-couple">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">State Partnership<sup style="font-size:8px;color:var(--accent);">3</sup></span><span class="cmp-mob-val amber">✗ No<span class="cmp-mob-note">ABLTC policies don't qualify</span></span></div>
+                <div class="cmp-mob-section">Cost of Delay</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Est. deposit now<sup style="font-size:8px;color:var(--accent);">2</sup></span><span class="cmp-mob-val green" id="m-abltc-prem-now">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">One-time deposit</span><span class="cmp-mob-val" id="m-abltc-cum20">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Deposit at age <span id="m-abltc-wait-age">—</span></span><span class="cmp-mob-val amber" id="m-abltc-prem-wait">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Extra cost of waiting</span><span class="cmp-mob-val red" id="m-abltc-delay">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Insurability at <span id="m-abltc-insure-age">—</span></span><span class="cmp-mob-val" id="m-abltc-insure">—</span></div>
+                <div class="cmp-mob-section">Asset Protection</div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Retirement assets</span><span class="cmp-mob-val" id="m-abltc-assets">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Pool / assets</span><span class="cmp-mob-val green" id="m-abltc-pct">—</span></div>
+                <div class="cmp-mob-row"><span class="cmp-mob-lbl">Cost / assets</span><span class="cmp-mob-val" id="m-abltc-costpct">—</span></div>
+              </div>
+              <div class="cmp-mob-abltc-note">
+                <strong>Payment flexibility:</strong> Also available as 5 pay, 10 pay, 20 pay, or Pay to 95 (subject to age availability).
+              </div>
+            </div>
+
+          </div><!-- /cmp-mobile -->
+
+          <div class="results-cta">
+            <div class="results-cta-inner">
+              <h4>Run your C.A.R.E. analysis with a licensed specialist</h4>
+              <p>Your calculator results are a starting point. Our licensed LTC advisors can pull live carrier quotes, compare all three solutions side-by-side, and design a benefit that fits your exact situation — with no sales pressure.</p>
+              <div class="cta-btn-row">
+                <a href="https://app.quotebot.io/public/life-insurance" target="_blank" class="btn-cta-white">Get My Free Quote →</a>
+                <a href="tel:8888048590" class="btn-cta-outline">📞 Call (888) 804-8590</a>
+              </div>
+              <br>
+              <button class="btn-restart" onclick="restart()">↺ Start over with new inputs</button>
+            </div>
+          </div>
+
+          <div class="disclaimer">
+            <p>Illustrative figures only. Actual premiums vary by age, health, carrier, state, and benefit design. Quote-Bot is a licensed insurance agency. This calculator does not constitute an insurance offer, guarantee of coverage, or financial advice. Always review a policy's full terms and conditions before purchasing. QB Insurance LLC dba Quote-Bot · Licensed in all 50 states.</p>
+            <p id="disclaimer-fn1" style="margin-top:8px;"><sup style="font-size:9px;vertical-align:super;">1</sup> Your LTC risk level is based upon the Gender, Family History, Age, Health Status, and Marital Status you selected in this calculator. It is for illustrative purposes only and does not constitute a clinical assessment or underwriting determination.</p>
+            <p id="disclaimer-fn2" style="margin-top:8px;"><sup style="font-size:9px;vertical-align:super;">2</sup> These values represent average costs and are not reflective of any specific carrier. Your actual results could be less than or greater than these results. Please work with your Quote-Bot agent to customize the right solution for your budget.</p>
+            <p id="disclaimer-fn3" style="margin-top:8px;"><sup style="font-size:9px;vertical-align:super;">3</sup> Traditional LTC, if designed properly, is eligible for State Partnership to help preserve your assets. Please discuss this with your Quote-Bot agent.</p>
+          </div>
+
+        </div>
+        <!-- /results -->
+
+      </div>
+    </div>
+  </div>
+  <!-- /calculator -->
+
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="data:image/jpeg;base64,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" alt="Quote-Bot" style="height:36px;width:auto;display:block;filter:brightness(0) invert(1);">
+        <p>Fast, transparent insurance — buy online with or without an agent.</p>
+        <div class="footer-contact">
+          <a href="tel:8888048590">📞 (888) 804-8590</a>
+          <a href="mailto:info@quotebot.io">✉ info@quotebot.io</a>
+          <p style="font-size:12.5px;margin-top:6px;color:rgba(255,255,255,0.35);">Buy online 24/7 · Licensed agents available Mon–Fri</p>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Solutions</h4>
+        <a href="#">Life Insurance</a>
+        <a href="#">Disability Insurance</a>
+        <a href="#">Long-Term Care</a>
+        <a href="#">Annuities</a>
+        <a href="https://app.quotebot.io/public/life-insurance" target="_blank">Get a Quote</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="#">Our Licenses</a>
+        <a href="#">Editorial Standards</a>
+        <a href="#">Careers</a>
+        <a href="https://trust.quotebot.io/" target="_blank">Trust Center</a>
+      </div>
+      <div class="footer-col">
+        <h4>Education</h4>
+        <a href="#">LTC Guide 2026</a>
+        <a href="#">C.A.R.E. Model</a>
+        <a href="#">Hybrid Bridge Strategy</a>
+        <a href="#">Medicare vs. LTC</a>
+        <a href="#">State Partnership Programs</a>
+      </div>
+      <div class="footer-col">
+        <h4>Partners</h4>
+        <a href="#">P&amp;C Agents</a>
+        <a href="#">Investment Advisors</a>
+        <a href="#">Attorneys &amp; CPAs</a>
+        <a href="#">Financial Planners</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 QB Insurance LLC dba Quote-Bot. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Cookies</a>
+        <a href="#">Disclaimer</a>
+        <a href="#">Licenses</a>
+        <a href="#">Do Not Sell</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+let curStep = 0;
+const TOTAL_STEPS = 5;
+const BADGE_LABELS = ['C','A','R','E','✉'];
+
+function syncVal(id, outId, isCurrency, suffix) {
+  const v = parseInt(document.getElementById(id).value);
+  const el = document.getElementById(outId);
+  if (isCurrency) el.textContent = '$' + v.toLocaleString();
+  else if (suffix) el.textContent = v + ' ' + suffix;
+  else el.textContent = v;
+}
+
+function pickRadio(el, groupId) {
+  document.querySelectorAll('#' + groupId + ' .radio-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('sel');
+  el.querySelector('.check-box').textContent = el.classList.contains('sel') ? '✓' : '';
+}
+
+function pickSingle(el, groupId) {
+  document.querySelectorAll('#' + groupId + ' .check-opt').forEach(o => {
+    o.classList.remove('sel');
+    o.querySelector('.check-box').textContent = '';
+  });
+  el.classList.add('sel');
+  el.querySelector('.check-box').textContent = '✓';
+}
+
+// Auto-format phone as (xxx) xxx-xxxx
+document.addEventListener('DOMContentLoaded', function() {
+  const ph = document.getElementById('cf-phone');
+  if (ph) {
+    ph.addEventListener('input', function() {
+      let digits = this.value.replace(/\D/g, '').slice(0, 10);
+      let formatted = '';
+      if (digits.length > 0) formatted = '(' + digits.slice(0,3);
+      if (digits.length >= 4) formatted += ') ' + digits.slice(3,6);
+      if (digits.length >= 7) formatted += '-' + digits.slice(6,10);
+      this.value = formatted;
+    });
+  }
+});
+
+function goStep(n) {
+  if (n > curStep) {
+    for (let i = 0; i < curStep; i++) {
+      document.getElementById('tab' + i).classList.remove('active');
+      document.getElementById('tab' + i).classList.add('done');
+      document.getElementById('badge' + i).textContent = '✓';
+    }
+  }
+  document.getElementById('step' + curStep).classList.remove('active');
+  document.getElementById('tab' + curStep).classList.remove('active');
+  document.getElementById('resultsPanel').classList.remove('show');
+
+  curStep = n;
+  document.getElementById('step' + curStep).classList.add('active');
+  document.getElementById('tab' + curStep).classList.add('active');
+  document.getElementById('tab' + curStep).classList.remove('done');
+
+  window.scrollTo({ top: document.querySelector('.calc-card').offsetTop - 80, behavior: 'smooth' });
+}
+
+function getRadioVal(groupId) {
+  const sel = document.querySelector('#' + groupId + ' .sel');
+  return sel ? sel.dataset.val : null;
+}
+
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+function pct(n) { return (n * 100).toFixed(1) + '%'; }
+
+/* ── Contact validation ── */
+function setErr(id, msg) {
+  const el = document.getElementById(id);
+  const inp = document.getElementById(id.replace('err-', 'cf-'));
+  el.textContent = msg;
+  if (inp) { msg ? inp.classList.add('error') : inp.classList.remove('error'); }
+}
+
+function validateContact() {
+  let ok = true;
+  const fname = document.getElementById('cf-fname').value.trim();
+  const lname = document.getElementById('cf-lname').value.trim();
+  const email = document.getElementById('cf-email').value.trim();
+  const phone = document.getElementById('cf-phone').value.trim();
+  const dob   = document.getElementById('cf-dob').value;
+
+  if (!fname) { setErr('err-fname', 'First name is required.'); ok = false; } else setErr('err-fname', '');
+  if (!lname) { setErr('err-lname', 'Last name is required.'); ok = false; } else setErr('err-lname', '');
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email) { setErr('err-email', 'Email address is required.'); ok = false; }
+  else if (!emailRe.test(email)) { setErr('err-email', 'Please enter a valid email address.'); ok = false; }
+  else setErr('err-email', '');
+
+  const digits = phone.replace(/\D/g, '');
+  if (!phone) { setErr('err-phone', 'Phone number is required.'); ok = false; }
+  else if (digits.length < 10) { setErr('err-phone', 'Please enter a 10-digit phone number.'); ok = false; }
+  else setErr('err-phone', '');
+
+  if (!dob) { setErr('err-dob', 'Date of birth is required.'); ok = false; }
+  else {
+    const dobDate = new Date(dob);
+    const today = new Date();
+    const age = today.getFullYear() - dobDate.getFullYear() - (today < new Date(today.getFullYear(), dobDate.getMonth(), dobDate.getDate()) ? 1 : 0);
+    if (age < 18 || age > 100) { setErr('err-dob', 'Please enter a valid date of birth.'); ok = false; }
+    else setErr('err-dob', '');
+  }
+  return ok;
+}
+
+function submitContact() {
+  if (!validateContact()) {
+    // Scroll to first error
+    const firstErr = document.querySelector('.text-input.error');
+    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  showResults();
+}
+
+/* ── Mobile tab switcher ── */
+function mobTab(col) {
+  ['trad','hybrid','abltc'].forEach(c => {
+    document.getElementById('mob-tab-' + c).classList.toggle('active', c === col);
+    document.getElementById('mob-panel-' + c).classList.toggle('active', c === col);
+  });
+}
+
+/* ── Results ── */
+/* ---- Quote Bot lead capture ------------------------------------------ */
+function qbCaptureLead(){
+  if (!window.QuoteBot) return;
+  try {
+    var V = function(id){ var e=document.getElementById(id); return e ? String(e.value).trim() : ""; };
+    var N = function(id){ var e=document.getElementById(id); return e ? (parseFloat(String(e.value).replace(/[^0-9.\-]/g,""))||0) : null; };
+    var C = function(sel){ var e=document.querySelector(sel); return e ? e.textContent.replace(/\s+/g," ").trim() : null; };
+    if (!V('cf-email')) return;
+    window.QuoteBot.capture({
+      email: V('cf-email'), phone: V('cf-phone'),
+      firstName: V('cf-fname'), lastName: V('cf-lname'),
+      productLine: 'LONG_TERM_CARE',
+      inputs: { dateOfBirth: V('cf-dob') },
+      results: null,
+      consentText: C('.disclaimer')
+    });
+  } catch (e) { /* capture must never break the calculator */ }
+}
+
+function showResults() {
+  qbCaptureLead();
+  document.getElementById('step4').classList.remove('active');
+  document.getElementById('tab4').classList.remove('active');
+  document.getElementById('tab4').classList.add('done');
+  document.getElementById('badge4').textContent = '✓';
+
+  // ── Inputs ──────────────────────────────────────────────────────────────
+  const retAssets    = parseInt(document.getElementById('retAssets').value);
+  const homeEq       = parseInt(document.getElementById('homeEq').value);
+  const age          = parseInt(document.getElementById('age').value);
+  const gender       = getRadioVal('genderGroup');
+  const marital      = getRadioVal('maritalGroup');
+  const familyHx     = getRadioVal('familyHxGroup');
+  const health       = getRadioVal('healthGroup');
+  const careRegion   = parseInt(getRadioVal('careRegionGroup'));
+  const benefitYears = parseInt(document.getElementById('benefitYears').value);
+  const selfFund     = parseInt(document.getElementById('selfFund').value);
+  const inflation    = getRadioVal('inflationGroup');
+  const policyType   = getRadioVal('policyTypeGroup') || 'hybrid';
+  const spouse       = getRadioVal('spouseGroup');
+  const repo         = getRadioVal('repoGroup');
+
+  // ── Core benefit numbers ─────────────────────────────────────────────────
+  const totalAssets    = retAssets + homeEq;
+  const netMonthlyCare = Math.max(500, careRegion - selfFund);
+  const careExposure   = netMonthlyCare * 12 * benefitYears;
+  const benefitPool    = Math.min(careExposure, retAssets * 0.85);
+
+  // ── Risk score ───────────────────────────────────────────────────────────
+  let riskScore = 45;
+  if (gender === 'female')       riskScore += 15;
+  if (familyHx === 'yes')        riskScore += 22;
+  if (familyHx === 'unknown')    riskScore += 8;
+  if (age >= 65)                 riskScore += 18;
+  else if (age >= 60)            riskScore += 10;
+  if (health === 'fair')         riskScore += 12;
+  if (marital === 'single')      riskScore += 8;
+  if (marital === 'married')     riskScore -= 5;
+  riskScore = Math.min(95, Math.max(18, riskScore));
+
+  let riskLabel, riskColor, riskClass;
+  if      (riskScore >= 68) { riskLabel = 'High';     riskColor = '#dc2626'; riskClass = 'high'; }
+  else if (riskScore >= 42) { riskLabel = 'Moderate'; riskColor = '#d97706'; riskClass = 'moderate'; }
+  else                      { riskLabel = 'Lower';    riskColor = '#16a34a'; riskClass = 'lower'; }
+
+  // ── Insurability string (shared) ─────────────────────────────────────────
+  let insurabilityText;
+  if (age + 5 >= 70 || health === 'fair') insurabilityText = 'Uncertain';
+  else if (age + 5 >= 65)                 insurabilityText = 'Possible — 1-in-4 declined at 65+';
+  else                                    insurabilityText = 'Likely insurable';
+
+  const waitAge = age + 5;
+
+  // ── Couple discount flags ────────────────────────────────────────────────
+  const coupleDisc     = (spouse === 'yes' && marital === 'married') ? 0.83 : 1.0;
+  const abltcCoupleDisc = (spouse === 'yes' && marital === 'married') ? 0.93 : 1.0;
+  const coupleLabel    = (spouse === 'yes' && marital === 'married') ? '10–30% applied' : 'Not applicable';
+  const abltcCoupleLbl = (spouse === 'yes' && marital === 'married') ? '5–10% applied'  : 'Not applicable';
+
+  // ── Inflation label ──────────────────────────────────────────────────────
+  const inflLabels = { none: 'None', simple: '3% simple', compound: '3% compound' };
+  const inflLabel  = inflLabels[inflation] || '3% compound';
+
+  // ── Base annual premium mid (Traditional / Hybrid shared base) ────────────
+  let base = (gender === 'female') ? 3900 : 2800;
+  if      (age < 50) base *= 0.62;
+  else if (age < 55) base *= 0.80;
+  else if (age < 60) base *= 1.00;
+  else if (age < 65) base *= 1.38;
+  else               base *= 1.80;
+  base *= (careRegion / 5000);
+  if (inflation === 'compound') base *= 1.30;
+  else if (inflation === 'simple') base *= 1.15;
+  if (benefitYears > 3) base *= (1 + (benefitYears - 3) * 0.18);
+  base *= coupleDisc;
+
+  const ageFactor5 = age < 60 ? 1.40 : 1.60;
+
+  // ── Traditional premium range ─────────────────────────────────────────────
+  const tradBase      = base * 1.00;
+  const tradLowNow    = Math.round(tradBase * 0.78 / 100) * 100;
+  const tradHighNow   = Math.round(tradBase * 1.28 / 100) * 100;
+  const tradLowWait   = Math.round(tradBase * 0.78 * ageFactor5 / 100) * 100;
+  const tradHighWait  = Math.round(tradBase * 1.28 * ageFactor5 / 100) * 100;
+  const tradMidNow    = (tradLowNow + tradHighNow) / 2;
+  const tradMidWait   = (tradLowWait + tradHighWait) / 2;
+  const tradDelay     = Math.round(((tradMidWait - tradMidNow) * 20 + tradMidNow * 5) / 100) * 100;
+
+  // ── Hybrid premium range ──────────────────────────────────────────────────
+  const hybBase       = base * 1.20;
+  const hybLowNow     = Math.round(hybBase * 0.72 / 100) * 100;
+  const hybHighNow    = Math.round(hybBase * 1.45 / 100) * 100;
+  const hybLowWait    = Math.round(hybBase * 0.72 * ageFactor5 / 100) * 100;
+  const hybHighWait   = Math.round(hybBase * 1.45 * ageFactor5 / 100) * 100;
+  const hybMidNow     = (hybLowNow + hybHighNow) / 2;
+  const hybMidWait    = (hybLowWait + hybHighWait) / 2;
+  const hybDelay      = Math.round(((hybMidWait - hybMidNow) * 20 + hybMidNow * 5) / 100) * 100;
+
+  // ── ABLTC single-premium range ────────────────────────────────────────────
+  let leverageLow, leverageMid, leverageHigh;
+  if      (age < 55) { leverageLow = 2.5; leverageMid = 3.0; leverageHigh = 3.5; }
+  else if (age < 60) { leverageLow = 2.2; leverageMid = 2.6; leverageHigh = 3.0; }
+  else if (age < 65) { leverageLow = 1.9; leverageMid = 2.2; leverageHigh = 2.6; }
+  else if (age < 70) { leverageLow = 1.6; leverageMid = 1.9; leverageHigh = 2.2; }
+  else               { leverageLow = 1.3; leverageMid = 1.6; leverageHigh = 1.9; }
+
+  const abltcLowNow  = Math.round((benefitPool / leverageHigh) * abltcCoupleDisc / 1000) * 1000;
+  const abltcHighNow = Math.round((benefitPool / leverageLow)  * abltcCoupleDisc / 1000) * 1000;
+
+  const levLowW  = Math.max(1.1, leverageLow  - 0.30);
+  const levHighW = Math.max(1.3, leverageHigh - 0.40);
+  const abltcLowWait  = Math.round((benefitPool / levHighW) * abltcCoupleDisc / 1000) * 1000;
+  const abltcHighWait = Math.round((benefitPool / levLowW)  * abltcCoupleDisc / 1000) * 1000;
+  const abltcMidNow   = (abltcLowNow  + abltcHighNow)  / 2;
+  const abltcMidWait  = (abltcLowWait + abltcHighWait) / 2;
+  const abltcDelay    = Math.round((abltcMidWait - abltcMidNow) / 1000) * 1000;
+
+  // ── Summary tiles ────────────────────────────────────────────────────────
+  const fname   = document.getElementById('cf-fname').value.trim();
+  const titleEl = document.querySelector('.results-title');
+  if (titleEl && fname) titleEl.textContent = fname + "'s C.A.R.E. Analysis";
+
+  document.getElementById('r-totalAssets').textContent   = fmt(totalAssets);
+  document.getElementById('r-careExp').textContent        = fmt(careExposure);
+  document.getElementById('r-careExpSub').textContent     = 'over ' + benefitYears + '-year benefit period';
+  document.getElementById('r-benefitPool').textContent    = fmt(benefitPool);
+  document.getElementById('r-monthlyBenefit').textContent = fmt(netMonthlyCare);
+
+  const rBadge = document.getElementById('r-riskBadge');
+  rBadge.textContent = riskLabel; rBadge.className = 'risk-badge ' + riskClass;
+  document.getElementById('r-riskFill').style.width      = riskScore + '%';
+  document.getElementById('r-riskFill').style.background = riskColor;
+
+  // ── Highlight selected column ─────────────────────────────────────────────
+  const colMap = { traditional: 'trad', hybrid: 'hybrid', annuity: 'abltc' };
+  const sel    = colMap[policyType] || 'hybrid';
+  ['trad','hybrid','abltc'].forEach(c => {
+    const head = document.getElementById('cmp-head-' + c);
+    if (head) head.classList.toggle('selected', c === sel);
+    document.querySelectorAll('#c-' + c + '-monthly, #c-' + c + '-period, #c-' + c + '-pool, #c-' + c + '-inflation, #c-' + c + '-couple, #c-' + c + '-prem-now, #c-' + c + '-cum20, #c-' + c + '-prem-wait, #c-' + c + '-prem-delay, #c-' + c + '-insure, #c-' + c + '-assets, #c-' + c + '-pct, #c-' + c + '-costpct').forEach(el => {
+      if (el) el.classList.toggle('selected', c === sel);
+    });
+  });
+
+  // ── Coverage Design rows ─────────────────────────────────────────────────
+  const monthly    = fmt(netMonthlyCare) + ' / mo';
+  const period     = benefitYears + ' years';
+  const pool       = fmt(benefitPool);
+
+  ['trad','hybrid','abltc'].forEach(c => {
+    document.getElementById('c-' + c + '-monthly').textContent    = monthly;
+    document.getElementById('c-' + c + '-period').textContent     = period;
+    document.getElementById('c-' + c + '-pool').textContent       = pool;
+    document.getElementById('c-' + c + '-inflation').textContent  = inflLabel;
+  });
+
+  // ── Couple discount ───────────────────────────────────────────────────────
+  document.getElementById('c-trad-couple').textContent   = coupleLabel;
+  document.getElementById('c-hybrid-couple').textContent = coupleLabel;
+  document.getElementById('c-abltc-couple').textContent  = abltcCoupleLbl;
+
+  // ── Wait age labels ───────────────────────────────────────────────────────
+  ['cmp-waitAge','cmp-waitAge2','cmp-waitAge3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = waitAge;
+  });
+
+  // ── Cost of Delay ─────────────────────────────────────────────────────────
+  document.getElementById('c-trad-prem-now').textContent   = fmt(tradLowNow)  + ' – ' + fmt(tradHighNow)  + '/yr';
+  document.getElementById('c-hybrid-prem-now').textContent = fmt(hybLowNow)   + ' – ' + fmt(hybHighNow)   + '/yr';
+  document.getElementById('c-abltc-prem-now').textContent  = fmt(abltcLowNow) + ' – ' + fmt(abltcHighNow) + '\n(lump sum)';
+
+  // Cumulative 20yr cost: annual × 20 for Traditional & Hybrid; ABLTC is one-time (same range)
+  const tradCum20Low  = Math.round(tradLowNow  * 20 / 100) * 100;
+  const tradCum20High = Math.round(tradHighNow * 20 / 100) * 100;
+  const hybCum20Low   = Math.round(hybLowNow   * 20 / 100) * 100;
+  const hybCum20High  = Math.round(hybHighNow  * 20 / 100) * 100;
+  document.getElementById('c-trad-cum20').textContent   = fmt(tradCum20Low)  + ' – ' + fmt(tradCum20High);
+  document.getElementById('c-hybrid-cum20').textContent = fmt(hybCum20Low)   + ' – ' + fmt(hybCum20High);
+  document.getElementById('c-abltc-cum20').textContent  = fmt(abltcLowNow)   + ' – ' + fmt(abltcHighNow) + '\n(one-time)';
+
+  document.getElementById('c-trad-prem-wait').textContent   = fmt(tradLowWait)  + ' – ' + fmt(tradHighWait)  + '/yr';
+  document.getElementById('c-hybrid-prem-wait').textContent = fmt(hybLowWait)   + ' – ' + fmt(hybHighWait)   + '/yr';
+  document.getElementById('c-abltc-prem-wait').textContent  = fmt(abltcLowWait) + ' – ' + fmt(abltcHighWait) + '\n(lump sum)';
+
+  document.getElementById('c-trad-prem-delay').textContent   = fmt(tradDelay)  + ' lifetime';
+  document.getElementById('c-hybrid-prem-delay').textContent = fmt(hybDelay)   + ' lifetime';
+  document.getElementById('c-abltc-prem-delay').textContent  = fmt(abltcDelay) + ' more deposit';
+
+  ['trad','hybrid','abltc'].forEach(c => {
+    document.getElementById('c-' + c + '-insure').textContent = insurabilityText;
+  });
+
+  // ── Asset Protection ──────────────────────────────────────────────────────
+  ['trad','hybrid','abltc'].forEach(c => {
+    document.getElementById('c-' + c + '-assets').textContent = fmt(retAssets);
+    document.getElementById('c-' + c + '-pct').textContent    = pct(benefitPool / retAssets);
+  });
+  document.getElementById('c-trad-costpct').textContent   = pct(tradMidNow  / retAssets) + '/yr';
+  document.getElementById('c-hybrid-costpct').textContent = pct(hybMidNow   / retAssets) + '/yr';
+  document.getElementById('c-abltc-costpct').textContent  = pct(abltcMidNow / retAssets) + ' (deposit)';
+
+  // ── Populate mobile cards ─────────────────────────────────────────────
+  const mobCols = { traditional: 'trad', hybrid: 'hybrid', annuity: 'abltc' };
+  const mobSel = mobCols[policyType] || 'hybrid';
+
+  // Set selected tab styling and panel selection class
+  ['trad','hybrid','abltc'].forEach(c => {
+    const tab   = document.getElementById('mob-tab-' + c);
+    const panel = document.getElementById('mob-panel-' + c);
+    if (tab)   tab.classList.toggle('selected-tab', c === mobSel);
+    if (panel) panel.classList.toggle('selected', c === mobSel);
+  });
+  // Start on selected tab
+  mobTab(mobSel);
+
+  // Mirror all values into mobile IDs
+  const mobMap = [
+    ['m-trad-monthly',   'c-trad-monthly'],   ['m-hybrid-monthly',  'c-hybrid-monthly'],  ['m-abltc-monthly',   'c-abltc-monthly'],
+    ['m-trad-period',    'c-trad-period'],     ['m-hybrid-period',   'c-hybrid-period'],   ['m-abltc-period',    'c-abltc-period'],
+    ['m-trad-pool',      'c-trad-pool'],       ['m-hybrid-pool',     'c-hybrid-pool'],     ['m-abltc-pool',      'c-abltc-pool'],
+    ['m-trad-inflation', 'c-trad-inflation'],  ['m-hybrid-inflation','c-hybrid-inflation'],['m-abltc-inflation', 'c-abltc-inflation'],
+    ['m-trad-couple',    'c-trad-couple'],     ['m-hybrid-couple',   'c-hybrid-couple'],   ['m-abltc-couple',    'c-abltc-couple'],
+    ['m-trad-prem-now',  'c-trad-prem-now'],  ['m-hybrid-prem-now', 'c-hybrid-prem-now'], ['m-abltc-prem-now',  'c-abltc-prem-now'],
+    ['m-trad-cum20',     'c-trad-cum20'],      ['m-hybrid-cum20',    'c-hybrid-cum20'],    ['m-abltc-cum20',     'c-abltc-cum20'],
+    ['m-trad-prem-wait', 'c-trad-prem-wait'], ['m-hybrid-prem-wait','c-hybrid-prem-wait'],['m-abltc-prem-wait', 'c-abltc-prem-wait'],
+    ['m-trad-delay',     'c-trad-prem-delay'],['m-hybrid-delay',    'c-hybrid-prem-delay'],['m-abltc-delay',    'c-abltc-prem-delay'],
+    ['m-trad-insure',    'c-trad-insure'],     ['m-hybrid-insure',   'c-hybrid-insure'],   ['m-abltc-insure',    'c-abltc-insure'],
+    ['m-trad-assets',    'c-trad-assets'],     ['m-hybrid-assets',   'c-hybrid-assets'],   ['m-abltc-assets',    'c-abltc-assets'],
+    ['m-trad-pct',       'c-trad-pct'],        ['m-hybrid-pct',      'c-hybrid-pct'],      ['m-abltc-pct',       'c-abltc-pct'],
+    ['m-trad-costpct',   'c-trad-costpct'],    ['m-hybrid-costpct',  'c-hybrid-costpct'],  ['m-abltc-costpct',   'c-abltc-costpct'],
+  ];
+  mobMap.forEach(([mobId, deskId]) => {
+    const src  = document.getElementById(deskId);
+    const dest = document.getElementById(mobId);
+    if (src && dest) dest.textContent = src.textContent;
+  });
+  // Age labels in mobile cards
+  ['trad','hybrid','abltc'].forEach(c => {
+    const wa  = document.getElementById('m-' + c + '-wait-age');
+    const ia  = document.getElementById('m-' + c + '-insure-age');
+    if (wa) wa.textContent = waitAge;
+    if (ia) ia.textContent = waitAge;
+  });
+
+  document.getElementById('resultsPanel').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+function restart() {
+  document.getElementById('resultsPanel').classList.remove('show');
+  document.querySelectorAll('.progress-step').forEach((t, i) => {
+    t.classList.remove('active', 'done');
+    document.getElementById('badge' + i).textContent = BADGE_LABELS[i];
+  });
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  // Clear contact fields
+  ['cf-fname','cf-lname','cf-email','cf-phone','cf-dob'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('error'); }
+  });
+  ['err-fname','err-lname','err-email','err-phone','err-dob'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '';
+  });
+  curStep = 0;
+  document.getElementById('step0').classList.add('active');
+  document.getElementById('tab0').classList.add('active');
+  window.scrollTo({ top: document.querySelector('.calc-card').offsetTop - 80, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

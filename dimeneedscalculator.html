@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D.I.M.E. Life Insurance Needs Calculator | Quote-Bot</title>
+<meta name="description" content="Find out exactly how much life insurance you need using the D.I.M.E. method — Debt, Income, Mortgage, and Education — with a clear category-by-category breakdown.">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1a3d6b; --primary-dark: #0f2540; --primary-mid: #1e4d85;
+  --accent: #4a90d9; --accent-light: #e8f2fb;
+  --teal: #0d9488; --teal-light: #ccfbf1;
+  --gold: #b45309; --gold-mid: #d97706; --gold-light: #fef3c7; --gold-bright: #f59e0b;
+  --green: #16a34a; --green-light: #dcfce7; --green-bright: #22c55e;
+  --red: #dc2626; --red-light: #fee2e2;
+  --white: #ffffff; --off-white: #f7f9fc; --gray-light: #eef1f6;
+  --gray-mid: #8a9ab5; --gray-dark: #2c3e58; --text: #1c2a3a; --border: #d8e2f0;
+  --shadow: 0 4px 24px rgba(26,61,107,0.10); --shadow-lg: 0 16px 56px rgba(26,61,107,0.16);
+  --radius: 12px; --radius-lg: 20px; --radius-xl: 28px; --transition: 0.2s ease;
+  /* category colors */
+  --cat-d: #dc2626; --cat-i: #4a90d9; --cat-m: #d97706; --cat-e: #0d9488;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--off-white); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+img { max-width: 100%; display: block; }
+
+/* TOPBAR */
+.topbar { background: var(--primary-dark); color: rgba(255,255,255,0.8); font-size: 12.5px; padding: 7px 32px; display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap; }
+.topbar a { color: #9ec9f0; font-weight: 700; }
+.topbar strong { color: #fff; }
+.topbar-divider { opacity: 0.4; }
+
+/* HERO */
+.calc-hero { background: var(--primary-dark); padding: 40px 32px 44px; position: relative; overflow: hidden; }
+.calc-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 55% 80% at 15% 50%, rgba(74,144,217,0.22) 0%, transparent 65%), radial-gradient(ellipse 40% 60% at 82% 20%, rgba(26,61,107,0.6) 0%, transparent 60%); }
+.calc-hero::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 48px 48px; }
+.calc-hero-inner { max-width: 1180px; margin: 0 auto; position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.calc-hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.9); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 5px 14px; border-radius: 100px; margin-bottom: 16px; }
+.calc-hero h1 { font-family: 'Fraunces', serif; font-size: clamp(24px, 3.4vw, 36px); font-weight: 700; color: var(--white); line-height: 1.14; letter-spacing: -0.3px; margin-bottom: 12px; }
+.calc-hero h1 em { font-style: italic; color: #93c5fd; }
+.calc-hero p { font-size: 15px; color: rgba(255,255,255,0.68); line-height: 1.7; max-width: 560px; }
+.hero-letters { display: flex; gap: 10px; flex-shrink: 0; }
+.hero-letter { width: 58px; height: 58px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+.hero-letter small { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; margin-top: 1px; }
+.hero-letter.d { background: linear-gradient(155deg,#ef4444,#b91c1c); }
+.hero-letter.i { background: linear-gradient(155deg,#60a5fa,#2563eb); }
+.hero-letter.m { background: linear-gradient(155deg,#f59e0b,#b45309); }
+.hero-letter.e { background: linear-gradient(155deg,#2dd4bf,#0d9488); }
+
+/* PAGE */
+body.results-active .calc-hero { display: none; }
+.page { max-width: 1180px; margin: 0 auto; padding: 36px 24px 64px; }
+.calc-grid { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
+.calc-grid.results-mode { grid-template-columns: 1fr; }
+.calc-grid.results-mode .left-col { display: none; }
+
+/* ============ INPUT PANEL ============ */
+.left-col { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 24px; }
+.inputs-panel { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); }
+.inputs-header { background: var(--primary-dark); padding: 20px 26px; position: relative; overflow: hidden; }
+.inputs-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 80% at 85% 20%, rgba(74,144,217,0.28) 0%, transparent 62%); }
+.inputs-header h2 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 3px; position: relative; }
+.inputs-header p { font-size: 12.5px; color: rgba(255,255,255,0.6); position: relative; }
+.inputs-body { padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+/* section divider with label */
+.input-section { display: flex; align-items: center; gap: 10px; margin: 6px 0 -2px; }
+.input-section .badge { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.input-section .badge.d { background: var(--cat-d); }
+.input-section .badge.i { background: var(--cat-i); }
+.input-section .badge.m { background: var(--cat-m); }
+.input-section .badge.e { background: var(--cat-e); }
+.input-section .badge.plus { background: var(--gray-dark); font-size: 13px; }
+.input-section h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-dark); }
+.input-section .line { flex: 1; height: 1px; background: var(--gray-light); }
+
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-row.align-fields .input-wrap { margin-top: auto; }
+.field label { font-size: 11.5px; font-weight: 700; color: var(--gray-dark); text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 5px; }
+.field label .req { color: var(--accent); }
+.field label .age-pill { margin-left: auto; font-size: 11px; font-weight: 700; text-transform: none; letter-spacing: 0; color: var(--primary); background: var(--accent-light); padding: 2px 10px; border-radius: 100px; }
+.field label .tip { margin-left: auto; font-size: 10.5px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--gray-mid); background: var(--gray-light); padding: 2px 8px; border-radius: 100px; }
+.field label .tip.sm { font-size: 9px; padding: 2px 6px; }
+.input-wrap { position: relative; }
+.input-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; font-weight: 700; color: var(--gray-mid); pointer-events: none; }
+.input-suffix { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 700; color: var(--gray-mid); pointer-events: none; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"], select {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius);
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14.5px; font-weight: 500; color: var(--text);
+  background: var(--off-white); transition: border-color var(--transition), box-shadow var(--transition); outline: none; -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input.has-prefix { padding-left: 28px; font-weight: 700; }
+input.has-suffix { padding-right: 40px; font-weight: 700; }
+input::placeholder { color: var(--gray-mid); font-weight: 400; }
+input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,144,217,0.15); background: var(--white); }
+select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238a9ab5' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 34px; }
+.phone-wrap { position: relative; }
+.phone-flag { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
+.phone-wrap input { padding-left: 38px; }
+
+/* SEGMENTED TOGGLE */
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--off-white); }
+.seg button { padding: 11px; border: none; background: transparent; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--gray-mid); cursor: pointer; transition: all var(--transition); }
+.seg button + button { border-left: 1.5px solid var(--border); }
+.seg button.active { background: var(--primary); color: var(--white); }
+
+.cta-btn { width: 100%; padding: 16px; border-radius: var(--radius-lg); background: var(--green); color: var(--white); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15.5px; font-weight: 700; border: none; cursor: pointer; transition: background var(--transition), box-shadow var(--transition), transform var(--transition); display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 6px; }
+.cta-btn:hover { background: #138a3e; box-shadow: 0 8px 26px rgba(22,163,74,0.32); transform: translateY(-1px); }
+.cta-btn:active { transform: translateY(0); }
+.reset-btn { width: 100%; padding: 11px; border-radius: var(--radius); background: transparent; color: var(--gray-mid); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; border: 1.5px solid var(--border); cursor: pointer; transition: all var(--transition); }
+.reset-btn:hover { border-color: var(--gray-dark); color: var(--gray-dark); }
+.privacy-note { font-size: 11px; color: var(--gray-mid); text-align: center; line-height: 1.5; }
+.privacy-note a { color: var(--accent); font-weight: 600; }
+
+/* ============ RESULTS PANEL ============ */
+.results-panel { min-height: 420px; }
+.empty-state { background: var(--white); border: 1.5px dashed var(--border); border-radius: var(--radius-xl); padding: 72px 44px; text-align: center; }
+.empty-icon { width: 84px; height: 84px; margin: 0 auto 22px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 38px; }
+.empty-title { font-family: 'Fraunces', serif; font-size: 23px; font-weight: 700; color: var(--primary-dark); margin-bottom: 10px; }
+.empty-sub { font-size: 14.5px; color: var(--gray-mid); max-width: 400px; margin: 0 auto; line-height: 1.65; }
+
+.results-content { display: none; flex-direction: column; gap: 22px; animation: fadeUp 0.45s ease; }
+.results-content.show { display: flex; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* summary chip */
+.analysis-for { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 22px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 22px; box-shadow: var(--shadow); }
+.analysis-for-name { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: var(--primary-dark); margin-right: 4px; }
+.analysis-for-item { font-size: 13px; color: var(--gray-dark); }
+.analysis-for-item b { color: var(--primary); font-weight: 700; }
+.risk-tag { margin-left: auto; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 12px; border-radius: 100px; background: var(--accent-light); color: var(--primary); }
+.edit-inputs-btn { display: inline-flex; align-items: center; gap: 6px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--accent); background: var(--white); border: 1.5px solid var(--border); border-radius: 100px; padding: 6px 14px; cursor: pointer; transition: border-color var(--transition), color var(--transition), background var(--transition); }
+.edit-inputs-btn:hover { border-color: var(--accent); background: var(--accent-light); }
+
+/* HEADLINE NEED CARD */
+.headline-card { background: linear-gradient(150deg,var(--primary-dark) 0%,var(--primary-mid) 100%); border-radius: var(--radius-xl); padding: 30px 32px; position: relative; overflow: hidden; box-shadow: var(--shadow-lg); }
+.headline-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 70% at 88% 18%, rgba(74,144,217,0.3) 0%, transparent 60%); pointer-events: none; }
+.headline-card::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
+.headline-inner { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 26px; flex-wrap: wrap; }
+.headline-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+.headline-value { font-family: 'Fraunces', serif; font-size: clamp(38px, 6vw, 56px); font-weight: 700; color: var(--white); line-height: 1; letter-spacing: -1px; }
+.headline-sub { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 8px; max-width: 360px; line-height: 1.55; }
+.headline-mini { display: flex; gap: 22px; flex-wrap: wrap; }
+.headline-mini-item { text-align: right; }
+.headline-mini-item .v { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: #93c5fd; line-height: 1; }
+.headline-mini-item .v.minus { color: var(--green-bright); }
+.headline-mini-item .l { font-size: 10.5px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 5px; }
+
+/* QUOTE CARDS (sample rates for the computed need) */
+.quote-block { margin-top: 2px; }
+.quote-block-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+.quote-block-title { font-family: 'Fraunces', serif; font-size: clamp(19px, 2.4vw, 24px); font-weight: 700; color: var(--primary); }
+.quote-block-sub { font-size: 13px; color: var(--gray-mid); margin-top: 3px; max-width: 470px; line-height: 1.5; }
+.quote-block-title-row { display: flex; align-items: center; gap: 10px; }
+.reset-cov-btn { width: 27px; height: 27px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--white); color: var(--gray-mid); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; line-height: 1; transition: border-color var(--transition), color var(--transition), background var(--transition); flex-shrink: 0; }
+.reset-cov-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.quote-controls { display: flex; gap: 14px; flex-shrink: 0; align-items: flex-end; flex-wrap: wrap; }
+.quote-controls .qc-field { display: flex; flex-direction: column; gap: 6px; }
+.quote-controls label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-dark); display: flex; align-items: center; }
+.quote-controls #coverageInput { width: 152px; font-weight: 700; }
+.quote-controls #termSelect { width: 172px; font-weight: 700; color: var(--accent); background: var(--white); }
+.quote-controls #termSelect:focus { color: var(--primary); }
+.info-tip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--gray-light); color: var(--gray-mid); font-size: 10px; font-weight: 700; font-style: italic; cursor: help; margin-left: 6px; font-family: 'Fraunces', serif; }
+.info-tip:hover { background: var(--accent-light); color: var(--accent); }
+.info-tip .tip-bubble { position: absolute; bottom: calc(100% + 9px); right: -7px; width: 212px; background: var(--primary-dark); color: #fff; font-size: 11.5px; font-weight: 500; line-height: 1.45; padding: 10px 13px; border-radius: 8px; opacity: 0; visibility: hidden; transition: opacity var(--transition); z-index: 30; box-shadow: 0 8px 24px rgba(0,0,0,0.25); text-transform: none; letter-spacing: 0; pointer-events: none; }
+.info-tip .tip-bubble::after { content: ''; position: absolute; top: 100%; right: 11px; border: 5px solid transparent; border-top-color: var(--primary-dark); }
+.info-tip:hover .tip-bubble, .info-tip:focus .tip-bubble { opacity: 1; visibility: visible; }
+.best-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; }
+.best-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); position: relative; padding-top: 16px; transition: box-shadow var(--transition), transform var(--transition); display: flex; flex-direction: column; }
+.best-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.best-card.recommended { border-color: var(--accent); }
+.best-card.agentless { border-color: var(--red); }
+.best-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); padding: 6px 22px; border-radius: 100px; font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,0.16); }
+.best-badge.affordable { background: var(--gold-bright); }
+.best-badge.recommended { background: var(--accent); }
+.best-badge.agentless { background: var(--red); }
+.best-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 24px; border-bottom: 1px solid var(--gray-light); }
+.best-price .mo { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 700; color: var(--accent); line-height: 1; }
+.best-price .mo small, .best-price .yr small { font-size: 13px; color: var(--gray-mid); font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif; }
+.best-price .yr { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--accent); line-height: 1.1; margin-top: 4px; }
+.best-mid { padding: 18px 24px; text-align: center; border-bottom: 1px solid var(--gray-light); }
+.best-mid .trophy { font-size: 16px; font-weight: 700; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.best-mid p { font-size: 13.5px; color: var(--gray-dark); line-height: 1.55; }
+.best-mid ul { list-style: none; font-size: 13px; color: var(--gray-dark); display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.best-mid ul li { display: flex; align-items: center; gap: 7px; }
+.best-mid ul li::before { content: '✓'; color: var(--green); font-weight: 800; }
+.best-bottom { padding: 16px 24px 18px; flex: 1; display: flex; flex-direction: column; }
+.best-carrier { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.best-carrier-name { font-size: 14.5px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.best-carrier-prod { font-size: 12.5px; color: var(--gray-mid); margin-top: 2px; }
+.best-rating { font-size: 13px; color: var(--gray-dark); white-space: nowrap; }
+.best-rating b { color: var(--primary); }
+.select-btn { width: 100%; padding: 12px; border-radius: var(--radius); background: var(--green-bright); color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14.5px; font-weight: 700; border: none; cursor: pointer; transition: background var(--transition), box-shadow var(--transition); margin-top: auto; text-align: center; text-decoration: none; display: block; }
+.select-btn:hover { background: var(--green); box-shadow: 0 4px 16px rgba(22,163,74,0.3); }
+.no-need-card { background: var(--green-light); border: 1.5px solid rgba(22,163,74,0.3); border-radius: var(--radius-lg); padding: 20px 24px; display: flex; gap: 14px; align-items: center; margin-top: 20px; }
+.no-need-card .ic { font-size: 24px; }
+.no-need-card p { font-size: 13.5px; color: var(--gray-dark); line-height: 1.6; }
+.no-need-card b { color: var(--green); }
+
+/* CARRIER LOGO (text wordmark treatments) */
+.logo { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.05; }
+.logo-corebridge { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 14px; color: #2b2d6e; }
+.logo-corebridge small { font-weight: 500; font-size: 11px; color: #6b6e9e; }
+.logo-corebridge i { color: #7c3aed; font-style: normal; }
+.logo-banner { font-weight: 800; font-size: 15px; color: #fff; background: #1d6fc4; padding: 4px 10px; border-radius: 4px; transform: skewX(-8deg); letter-spacing: -0.3px; }
+.logo-better { font-weight: 800; font-size: 15px; color: #1a3d6b; }
+.logo-better i { color: var(--gold-bright); font-style: italic; }
+.logo-cinci { font-family: 'Fraunces', serif; font-weight: 700; font-size: 13px; color: #1a3d6b; letter-spacing: 0.5px; }
+.logo-cinci small { font-weight: 600; font-size: 7px; color: var(--gray-mid); letter-spacing: 0.4px; }
+.logo-northam { font-weight: 800; font-size: 11px; color: #1f7a3d; letter-spacing: -0.2px; }
+.logo-northam small { font-weight: 500; font-size: 8px; color: var(--gray-mid); }
+.logo-aaa { font-weight: 800; font-size: 18px; color: #c8102e; font-style: italic; }
+.logo-aaa small { font-weight: 600; font-size: 8px; color: var(--primary); font-style: normal; }
+.logo-sw { font-weight: 700; font-size: 12px; color: #1a1a1a; }
+.logo-sw small { font-weight: 500; font-size: 9px; color: var(--gray-mid); }
+.logo-assurity { font-weight: 800; font-size: 16px; color: #26282a; letter-spacing: -0.3px; }
+.logo-assurity i { color: #f00b51; font-style: normal; }
+.logo-assurity small { display: block; font-weight: 600; font-size: 7px; color: var(--gray-mid); letter-spacing: 0.7px; margin-top: 1px; }
+.logo-tri { width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 15px solid #1a1a1a; margin: 0 auto 3px; }
+@media(max-width: 760px){ .best-row { grid-template-columns: 1fr; } }
+
+/* COMPOSITION BAR */
+.comp-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); padding: 22px 26px; box-shadow: var(--shadow); }
+.comp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+.comp-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+.comp-total { font-size: 13px; color: var(--gray-mid); }
+.comp-total b { font-family: 'Fraunces', serif; font-size: 15px; color: var(--primary); }
+.comp-bar { display: flex; height: 22px; border-radius: 8px; overflow: hidden; background: var(--gray-light); }
+.comp-seg { height: 100%; transition: width 0.5s ease; position: relative; min-width: 2px; }
+.comp-seg.d { background: var(--cat-d); }
+.comp-seg.i { background: var(--cat-i); }
+.comp-seg.m { background: var(--cat-m); }
+.comp-seg.e { background: var(--cat-e); }
+.comp-legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.comp-leg-item { display: flex; flex-direction: column; gap: 2px; }
+.comp-leg-top { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-dark); }
+.comp-leg-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+.comp-leg-val { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+.comp-leg-pct { font-size: 11px; color: var(--gray-mid); }
+@media(max-width: 560px){ .comp-legend { grid-template-columns: 1fr 1fr; } }
+
+/* CATEGORY CARDS (collapsible) */
+.cat-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); overflow: hidden; border-left-width: 5px; }
+.cat-card.d { border-left-color: var(--cat-d); }
+.cat-card.i { border-left-color: var(--cat-i); }
+.cat-card.m { border-left-color: var(--cat-m); }
+.cat-card.e { border-left-color: var(--cat-e); }
+.cat-header { display: flex; align-items: center; gap: 16px; padding: 18px 22px; cursor: pointer; user-select: none; transition: background var(--transition); }
+.cat-header:hover { background: var(--off-white); }
+.cat-badge { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.cat-card.d .cat-badge { background: var(--cat-d); }
+.cat-card.i .cat-badge { background: var(--cat-i); }
+.cat-card.m .cat-badge { background: var(--cat-m); }
+.cat-card.e .cat-badge { background: var(--cat-e); }
+.cat-titlewrap { flex: 1; min-width: 0; }
+.cat-name { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--primary-dark); }
+.cat-desc { font-size: 12px; color: var(--gray-mid); margin-top: 1px; }
+.cat-amount { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--primary-dark); text-align: right; line-height: 1; white-space: nowrap; }
+.cat-amount small { display: block; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10.5px; font-weight: 600; color: var(--gray-mid); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+.cat-chevron { flex-shrink: 0; width: 28px; height: 28px; border-radius: 8px; background: var(--off-white); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--gray-mid); transition: transform var(--transition), background var(--transition), color var(--transition); }
+.cat-card.open .cat-chevron { transform: rotate(180deg); background: var(--accent-light); color: var(--primary); border-color: var(--accent); }
+.cat-detail { display: none; padding: 4px 22px 24px; border-top: 1px solid var(--gray-light); }
+.cat-card.open .cat-detail { display: block; animation: fadeUp 0.3s ease; }
+.cat-detail-intro { font-size: 13px; color: var(--gray-dark); line-height: 1.6; margin: 16px 0 18px; }
+
+/* stat strip */
+.stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.stat-box { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 15px; }
+.stat-box .l { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-mid); margin-bottom: 5px; }
+.stat-box .v { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 700; color: var(--primary-dark); line-height: 1; }
+.stat-box .v.accent { color: var(--accent); }
+.stat-box .v.gold { color: var(--gold-mid); }
+
+/* mini itemized bars (debt) */
+.item-row { display: grid; grid-template-columns: 150px 1fr auto; align-items: center; gap: 14px; padding: 9px 0; }
+.item-row + .item-row { border-top: 1px solid var(--gray-light); }
+.item-label { font-size: 13px; font-weight: 600; color: var(--gray-dark); }
+.item-track { height: 9px; background: var(--gray-light); border-radius: 100px; overflow: hidden; }
+.item-fill { height: 100%; border-radius: 100px; background: var(--cat-d); transition: width 0.5s ease; }
+.item-val { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: var(--primary-dark); text-align: right; white-space: nowrap; }
+@media(max-width: 560px){ .item-row { grid-template-columns: 1fr auto; } .item-track { display: none; } }
+
+/* education child grid */
+.child-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.child-box { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.child-box .who { font-size: 12px; font-weight: 700; color: var(--teal); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.child-box .amt { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--primary-dark); line-height: 1; }
+.child-box .meta { font-size: 11px; color: var(--gray-mid); margin-top: 5px; }
+
+/* charts */
+.chart-frame { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px 10px; margin-bottom: 16px; }
+.chart-frame-title { font-size: 12px; font-weight: 700; color: var(--gray-dark); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.chart-frame-title .legend { display: flex; gap: 14px; }
+.chart-frame-title .legend span { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--gray-dark); }
+.chart-frame-title .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.chart-svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+/* detail table */
+.detail-table-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.detail-table-scroll { max-height: 280px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.detail { width: 100%; min-width: 440px; border-collapse: collapse; font-size: 12.5px; }
+table.detail thead th { position: sticky; top: 0; padding: 10px 14px; background: var(--primary-dark); color: rgba(255,255,255,0.85); font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; text-align: right; z-index: 1; }
+table.detail thead th:first-child { text-align: left; }
+table.detail tbody td { padding: 8px 14px; border-bottom: 1px solid var(--gray-light); color: var(--gray-dark); text-align: right; }
+table.detail tbody td:first-child { text-align: left; font-weight: 600; color: var(--primary-dark); }
+table.detail tbody tr:nth-child(even) { background: var(--off-white); }
+table.detail tfoot td { padding: 10px 14px; font-weight: 700; color: var(--primary-dark); background: var(--gray-light); text-align: right; border-top: 1.5px solid var(--border); }
+table.detail tfoot td:first-child { text-align: left; }
+.pv-cell { color: var(--accent); font-weight: 700; }
+
+.toggle-schedule { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 12.5px; font-weight: 700; color: var(--accent); cursor: pointer; user-select: none; }
+.toggle-schedule:hover { text-decoration: underline; }
+.schedule-wrap { display: none; margin-top: 12px; }
+.schedule-wrap.show { display: block; animation: fadeUp 0.3s ease; }
+
+/* insight box */
+.insight-box { background: var(--teal-light); border: 1.5px solid rgba(13,148,136,0.25); border-radius: var(--radius-lg); padding: 16px 18px; display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; }
+.insight-box.blue { background: var(--accent-light); border-color: rgba(74,144,217,0.3); }
+.insight-box.gold { background: var(--gold-light); border-color: rgba(217,119,6,0.3); }
+.insight-icon { font-size: 19px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+.insight-text h4 { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 4px; }
+.insight-box.blue .insight-text h4 { color: var(--primary); }
+.insight-box.gold .insight-text h4 { color: var(--gold); }
+.insight-text p { font-size: 12.5px; color: var(--gray-dark); line-height: 1.6; }
+
+/* offset / net section */
+.offset-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); padding: 24px 26px; box-shadow: var(--shadow); }
+.offset-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: var(--primary-dark); margin-bottom: 16px; }
+.offset-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; font-size: 14px; }
+.offset-row + .offset-row { border-top: 1px solid var(--gray-light); }
+.offset-row .lbl { color: var(--gray-dark); font-weight: 600; display: flex; align-items: center; gap: 9px; }
+.offset-row .lbl .dot { width: 8px; height: 8px; border-radius: 50%; }
+.offset-row .amt { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--primary-dark); }
+.offset-row.subtract .amt { color: var(--green); }
+.offset-row.total { border-top: 2px solid var(--border); margin-top: 6px; padding-top: 16px; }
+.offset-row.total .lbl { font-family: 'Fraunces', serif; font-size: 16px; color: var(--primary-dark); font-weight: 700; }
+.offset-row.total .amt { font-size: 26px; color: var(--primary); }
+
+/* CTA card */
+.cta-card { background: linear-gradient(145deg,var(--primary-dark) 0%,var(--primary-mid) 100%); border-radius: var(--radius-xl); padding: 38px 40px; position: relative; overflow: hidden; box-shadow: var(--shadow-lg); }
+.cta-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 85% 20%, rgba(74,144,217,0.25) 0%, transparent 60%); pointer-events: none; }
+.cta-card::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
+.cta-inner { position: relative; z-index: 1; }
+.cta-eyebrow { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 12px; border-radius: 100px; margin-bottom: 20px; }
+.cta-card h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--white); line-height: 1.3; margin-bottom: 14px; }
+.cta-card h3 em { font-style: italic; color: #93c5fd; }
+.cta-card p { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.7; margin-bottom: 28px; max-width: 520px; }
+.cta-feats { display: flex; gap: 14px 30px; flex-wrap: wrap; margin-bottom: 30px; }
+.cta-feat { display: flex; align-items: center; gap: 9px; font-size: 13px; color: rgba(255,255,255,0.82); }
+.cta-feat .ck { width: 22px; height: 22px; background: rgba(74,144,217,0.25); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+.cta-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+.cta-primary { flex: 1; min-width: 200px; padding: 14px; background: var(--white); color: var(--primary); border-radius: var(--radius); font-size: 14.5px; font-weight: 700; text-align: center; transition: box-shadow var(--transition), transform var(--transition); }
+.cta-primary:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.22); transform: translateY(-1px); }
+.cta-secondary { padding: 14px 22px; background: transparent; color: rgba(255,255,255,0.85); border-radius: var(--radius); font-size: 13.5px; font-weight: 600; text-align: center; border: 1.5px solid rgba(255,255,255,0.25); transition: border-color var(--transition), color var(--transition); }
+.cta-secondary:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+
+/* disclaimer */
+.disclaimer { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; }
+.disclaimer p { font-size: 11px; color: var(--gray-mid); line-height: 1.6; }
+.disclaimer strong { color: var(--gray-dark); }
+
+/* FOOTER */
+footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding: 60px 32px 0; margin-top: 64px; }
+.footer-inner { max-width: 1180px; margin: 0 auto; }
+.footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; border-bottom: 1px solid rgba(255,255,255,0.09); }
+.footer-brand p { font-size: 14px; line-height: 1.7; max-width: 270px; margin: 18px 0 22px; }
+.footer-col h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.38); margin-bottom: 16px; }
+.footer-col a { display: block; font-size: 13.5px; color: rgba(255,255,255,0.55); margin-bottom: 11px; transition: color var(--transition); }
+.footer-col a:hover { color: var(--white); }
+.footer-logo-text { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--white); }
+.footer-logo-text span { color: #93c5fd; }
+.footer-contact { display: flex; flex-direction: column; gap: 8px; }
+.footer-contact a { color: rgba(255,255,255,0.65); font-size: 13.5px; }
+.footer-bottom { padding: 24px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: 12px; color: rgba(255,255,255,0.3); }
+.footer-bottom a { color: rgba(255,255,255,0.35); transition: color var(--transition); }
+.footer-bottom a:hover { color: rgba(255,255,255,0.65); }
+.footer-bottom-links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+/* RESPONSIVE */
+@media(max-width: 960px) {
+  .calc-grid { grid-template-columns: 1fr; }
+  .left-col { position: static; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width: 760px) {
+  /* quote controls stack full-width under the heading */
+  .quote-block-head { flex-direction: column; align-items: stretch; gap: 16px; }
+  .quote-controls { width: 100%; }
+  .quote-controls .qc-field { flex: 1; }
+  .quote-controls #coverageInput, .quote-controls #termSelect { width: 100%; }
+  .best-row { margin-top: 34px; }
+  /* keep tooltips inside the viewport: anchor coverage tip left, term tip right */
+  .qc-field { position: relative; }
+  .info-tip { position: static; }
+  .info-tip .tip-bubble { width: 210px; max-width: calc(100vw - 48px); }
+  .qc-field:first-child .info-tip .tip-bubble { left: 0; right: auto; }
+  .qc-field:first-child .info-tip .tip-bubble::after { left: 18px; right: auto; }
+  .qc-field:last-child .info-tip .tip-bubble { right: 0; left: auto; }
+  .qc-field:last-child .info-tip .tip-bubble::after { right: 18px; left: auto; }
+}
+@media(max-width: 600px) {
+  .calc-hero { padding: 28px 20px 32px; }
+  .calc-hero-inner { gap: 22px; }
+  .page { padding: 24px 16px 48px; }
+  .analysis-for { gap: 8px 14px; padding: 14px 18px; }
+  .analysis-for .risk-tag { margin-left: 0; }
+  .headline-card { padding: 24px 22px; }
+  .headline-inner { flex-direction: column; align-items: flex-start; gap: 18px; }
+  .headline-value { font-size: 40px; }
+  .headline-mini { width: 100%; justify-content: space-between; }
+  .headline-mini-item { text-align: left; }
+  .comp-card { padding: 20px 18px; }
+  .cat-header { gap: 12px; padding: 16px 16px; }
+  .cat-badge { width: 36px; height: 36px; font-size: 18px; }
+  .cat-name { font-size: 15.5px; }
+  .cat-amount { font-size: 20px; }
+  .cat-detail { padding: 4px 16px 20px; }
+  .offset-card { padding: 20px 18px; }
+  .offset-row.total .amt { font-size: 23px; }
+  .cta-card { padding: 26px 22px; }
+  .cta-card h3 { font-size: 19px; }
+  .cta-primary { min-width: 100%; }
+  .footer-top { grid-template-columns: 1fr; gap: 28px; }
+  footer { padding: 48px 22px 0; }
+}
+@media(max-width: 420px) {
+  .hero-letters { gap: 8px; }
+  .hero-letter { width: 50px; height: 50px; font-size: 22px; }
+  .headline-value { font-size: 34px; }
+  .field-row { gap: 10px; }
+}
+</style>
+  <script src="/js/quotebot-capture.js"
+          data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
+          data-tool="dime"></script>
+  <!-- The assistant. Never opens itself on a timer; see the file header. -->
+  <script src="/js/quotebot-chat.js"
+          data-endpoint="https://im62dp4hwe34ez7lmhvtfk75xa0zkkxv.lambda-url.us-east-2.on.aws/"
+          data-tool="dime" data-state="#state" data-context></script>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <span><strong>D.I.M.E. Method</strong> &middot; the classic 4-part needs analysis</span>
+  <span class="topbar-divider">|</span>
+  <span>Questions? Call <a href="tel:8888048590">(888) 804-8590</a></span>
+</div>
+
+<!-- HERO -->
+<div class="calc-hero">
+  <div class="calc-hero-inner">
+    <div>
+      <div class="calc-hero-eyebrow">🛡️ Life Insurance Needs Analysis</div>
+      <h1>How Much Life Insurance<br>Do You <em>Really</em> Need?</h1>
+      <p>The D.I.M.E. method adds up the four things your family would still have to pay for if your income disappeared — <strong>D</strong>ebt, <strong>I</strong>ncome, <strong>M</strong>ortgage, and <strong>E</strong>ducation. Fill in the details and see your coverage target, category by category.</p>
+    </div>
+    <div class="hero-letters">
+      <div class="hero-letter d">D<small>Debt</small></div>
+      <div class="hero-letter i">I<small>Income</small></div>
+      <div class="hero-letter m">M<small>Mortgage</small></div>
+      <div class="hero-letter e">E<small>Education</small></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="calc-grid">
+
+    <!-- ============ LEFT: INPUT PANEL ============ -->
+    <div class="left-col">
+      <div class="inputs-panel">
+        <div class="inputs-header">
+          <h2>Your Needs Analysis</h2>
+          <p>The more accurate your inputs, the better your target</p>
+        </div>
+        <div class="inputs-body">
+
+          <!-- About you (calculation inputs from quote tool) -->
+          <div class="field-row">
+            <div class="field">
+              <label>First Name <span class="req">*</span></label>
+              <input type="text" id="firstName" value="Scott" placeholder="First">
+            </div>
+            <div class="field">
+              <label>Last Name</label>
+              <input type="text" id="lastName" value="Karstens" placeholder="Last">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Date of Birth <span class="req">*</span><span class="age-pill" id="agePill">Age 48</span></label>
+            <input type="date" id="dob" value="1978-01-26">
+          </div>
+
+          <div class="field">
+            <label>State <span class="req">*</span></label>
+            <select id="state"></select>
+          </div>
+
+          <div class="field">
+            <label>Gender <span class="req">*</span></label>
+            <div class="seg" id="genderSeg">
+              <button type="button" class="active" data-val="Male">Male</button>
+              <button type="button" data-val="Female">Female</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Underwriting Class <span class="req">*</span></label>
+            <select id="uwClass">
+              <option value="Preferred Plus">Preferred Plus</option>
+              <option value="Preferred">Preferred</option>
+              <option value="Standard Plus">Standard Plus</option>
+              <option value="Standard" selected>Standard</option>
+            </select>
+          </div>
+
+          <!-- D - DEBT -->
+          <div class="input-section"><span class="badge d">D</span><h3>Debt</h3><span class="line"></span></div>
+          <div class="field">
+            <label>Credit Cards &amp; Personal Loans</label>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtCards" class="has-prefix" value="12,000" inputmode="numeric"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Auto Loans</label>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtAuto" class="has-prefix" value="18,000" inputmode="numeric"></div>
+            </div>
+            <div class="field">
+              <label>Other Debts</label>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtOther" class="has-prefix" value="5,000" inputmode="numeric"></div>
+            </div>
+          </div>
+
+          <!-- I - INCOME -->
+          <div class="input-section"><span class="badge i">I</span><h3>Income Replacement</h3><span class="line"></span></div>
+          <div class="field">
+            <label>Annual Income to Replace</label>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="incAnnual" class="has-prefix" value="90,000" inputmode="numeric"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Years to Replace</label>
+              <div class="input-wrap"><input type="number" id="incYears" value="15" min="1" max="40"><span class="input-suffix">yrs</span></div>
+            </div>
+            <div class="field">
+              <label>Expected Return</label>
+              <div class="input-wrap"><input type="number" id="incReturn" value="5" min="0" max="12" step="0.5"><span class="input-suffix">%</span></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Annual Income Growth <span class="tip">raises &amp; inflation</span></label>
+            <div class="input-wrap"><input type="number" id="incGrowth" value="3" min="0" max="8" step="0.5"><span class="input-suffix">%</span></div>
+          </div>
+
+          <!-- M - MORTGAGE -->
+          <div class="input-section"><span class="badge m">M</span><h3>Mortgage Payoff</h3><span class="line"></span></div>
+          <div class="field">
+            <label>Remaining Mortgage Balance</label>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="mortBal" class="has-prefix" value="320,000" inputmode="numeric"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Interest Rate</label>
+              <div class="input-wrap"><input type="number" id="mortRate" value="6.5" min="0" max="15" step="0.125"><span class="input-suffix">%</span></div>
+            </div>
+            <div class="field">
+              <label>Years Remaining</label>
+              <div class="input-wrap"><input type="number" id="mortYears" value="25" min="1" max="40"><span class="input-suffix">yrs</span></div>
+            </div>
+          </div>
+
+          <!-- E - EDUCATION & EVERYTHING ELSE -->
+          <div class="input-section"><span class="badge e">E</span><h3>Education &amp; Everything Else</h3><span class="line"></span></div>
+          <div class="field-row">
+            <div class="field">
+              <label>Children to Fund</label>
+              <div class="input-wrap"><input type="number" id="eduKids" value="2" min="0" max="10"></div>
+            </div>
+            <div class="field">
+              <label>Years Each</label>
+              <div class="input-wrap"><input type="number" id="eduYears" value="4" min="1" max="8"><span class="input-suffix">yrs</span></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Cost Per Child / Year</label>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="eduCost" class="has-prefix" value="30,000" inputmode="numeric"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Emergency Fund <span class="tip sm">3–6 mo</span></label>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="emergFund" class="has-prefix" value="25,000" inputmode="numeric"></div>
+            </div>
+            <div class="field">
+              <label>Final Expenses <span class="tip">funeral</span></label>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="finalExp" class="has-prefix" value="15,000" inputmode="numeric"></div>
+            </div>
+          </div>
+
+          <!-- existing resources -->
+          <div class="input-section"><span class="badge plus">−</span><h3>Resources You Already Have</h3><span class="line"></span></div>
+          <div class="field-row align-fields">
+            <div class="field">
+              <label>Existing Life Insurance</label>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existLife" class="has-prefix" value="100,000" inputmode="numeric"></div>
+            </div>
+            <div class="field">
+              <label>Liquid Savings</label>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existSavings" class="has-prefix" value="50,000" inputmode="numeric"></div>
+            </div>
+          </div>
+
+          <!-- contact (lead capture, like the quote tool) -->
+          <div class="field-divider" style="height:1px;background:var(--gray-light);margin:2px 0;"></div>
+          <div class="field">
+            <label>Phone <span class="req">*</span></label>
+            <div class="phone-wrap"><span class="phone-flag">🇺🇸</span><input type="tel" id="phone" placeholder="(555) 123-4567"></div>
+          </div>
+          <div class="field">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" id="email" placeholder="you@email.com">
+          </div>
+
+          <button class="cta-btn" id="calcBtn">Calculate My Coverage Need →</button>
+          <button class="reset-btn" id="resetBtn">Reset to defaults</button>
+          <p class="privacy-note">By continuing you agree to our <a href="https://quotebot.io/Terms-Conditions" target="_blank">Terms</a> &amp; <a href="https://quotebot.io/Privacy-Policy" target="_blank">Privacy Policy</a>. No spam, ever.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT: RESULTS PANEL ============ -->
+    <div class="results-panel">
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Your coverage target appears here</div>
+        <p class="empty-sub">Fill in the four D.I.M.E. categories on the left and tap <b>Calculate My Coverage Need</b>. You'll see a clear total — and you can expand any category to see exactly how it was built.</p>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="results-content" id="resultsContent"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer role="contentinfo">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo-text">Quote<span>-Bot</span></div>
+        <p>Fast, transparent insurance — buy online with or without an agent.</p>
+        <div class="footer-contact">
+          <a href="tel:8888048590">📞 (888) 804-8590</a>
+          <a href="mailto:info@quotebot.io">✉ info@quotebot.io</a>
+          <p style="font-size:12.5px;margin-top:6px;color:rgba(255,255,255,0.35);">Buy online 24/7 · Licensed agents available Mon–Fri</p>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Solutions</h4>
+        <a href="https://app.quotebot.io/public/life-insurance" target="_blank">Life Insurance</a>
+        <a href="#">Disability Insurance</a>
+        <a href="#">Long-Term Care</a>
+        <a href="#">Annuities</a>
+        <a href="https://app.quotebot.io/public/life-insurance" target="_blank">Get a Quote</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="#">Our Licenses</a>
+        <a href="#">Editorial Standards</a>
+        <a href="#">Careers</a>
+        <a href="https://trust.quotebot.io/" target="_blank">Trust Center</a>
+      </div>
+      <div class="footer-col">
+        <h4>Education &amp; Ideas</h4>
+        <a href="https://quotebot.io/education" target="_blank">Education Center</a>
+        <a href="#">How Much Do I Need?</a>
+        <a href="#">Ideas &amp; Articles</a>
+        <a href="#">Retirement Funding Gaps</a>
+        <a href="#">Tax-Free Retirement Guide</a>
+      </div>
+      <div class="footer-col">
+        <h4>Partners</h4>
+        <a href="#">P&amp;C Agents</a>
+        <a href="#">Investment Advisors</a>
+        <a href="#">Attorneys &amp; CPAs</a>
+        <a href="#">Financial Planners</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 QB Insurance LLC dba Quote-Bot. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="https://quotebot.io/Privacy-Policy" target="_blank">Privacy</a>
+        <a href="https://quotebot.io/Terms-Conditions" target="_blank">Terms</a>
+        <a href="https://quotebot.io/cookie-policy/" target="_blank">Cookies</a>
+        <a href="https://quotebot.io/disclaimer/" target="_blank">Disclaimer</a>
+        <a href="#">Licenses</a>
+        <a href="#">Do Not Sell</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- STATES ---------- */
+const STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","District of Columbia","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"];
+const stateSel = document.getElementById('state');
+STATES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; if (s === "Colorado") o.selected = true; stateSel.appendChild(o); });
+
+/* ---------- FORMAT HELPERS ---------- */
+const fmt$ = n => '$' + Math.round(n).toLocaleString('en-US');
+function fmtShort(n){
+  const a = Math.abs(n);
+  if (a >= 1000000) return '$' + (n/1000000).toFixed(a>=10000000?1:2) + 'M';
+  if (a >= 1000) return '$' + Math.round(n/1000) + 'K';
+  return '$' + Math.round(n);
+}
+function parseNum(id){ return parseFloat(String(document.getElementById(id).value).replace(/[^0-9.]/g,'')) || 0; }
+function computeAge(dobStr){
+  if(!dobStr) return 0;
+  const d = new Date(dobStr), n = new Date();
+  let a = n.getFullYear() - d.getFullYear();
+  const m = n.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && n.getDate() < d.getDate())) a--;
+  return a;
+}
+
+/* ---------- GATHER INPUTS ---------- */
+function getInputs(){
+  const dob = document.getElementById('dob').value;
+  return {
+    firstName: document.getElementById('firstName').value.trim(),
+    lastName:  document.getElementById('lastName').value.trim(),
+    age: computeAge(dob),
+    state: document.getElementById('state').value,
+    gender: document.querySelector('#genderSeg .active').dataset.val,
+    uwClass: document.getElementById('uwClass').value,
+    debt: { cards: parseNum('debtCards'), auto: parseNum('debtAuto'), other: parseNum('debtOther') },
+    inc:  { annual: parseNum('incAnnual'), years: Math.max(1, parseNum('incYears')), ret: parseNum('incReturn'), growth: parseNum('incGrowth') },
+    mort: { bal: parseNum('mortBal'), rate: parseNum('mortRate'), years: Math.max(1, parseNum('mortYears')) },
+    edu:  { kids: Math.max(0, Math.round(parseNum('eduKids'))), years: Math.max(1, parseNum('eduYears')), cost: parseNum('eduCost') },
+    extra:{ emergency: parseNum('emergFund'), final: parseNum('finalExp') },
+    exist:{ life: parseNum('existLife'), savings: parseNum('existSavings') }
+  };
+}
+
+/* ---------- CALCULATIONS ---------- */
+// Debt = simple sum of line items
+function calcDebt(d){
+  const items = [
+    { label:'Credit cards & loans', val:d.cards },
+    { label:'Auto loans',           val:d.auto },
+    { label:'Other debts',          val:d.other }
+  ];
+  return { total: items.reduce((s,i)=>s+i.val,0), items };
+}
+
+// Income = present value of a growing income stream (lump sum needed today)
+function calcIncome(inc){
+  const r = inc.ret/100, g = inc.growth/100;
+  const rows = []; let pvTotal = 0, nominalTotal = 0;
+  for (let t=1; t<=inc.years; t++){
+    const nominal = inc.annual * Math.pow(1+g, t-1);
+    const pv = nominal / Math.pow(1+r, t);
+    pvTotal += pv; nominalTotal += nominal;
+    rows.push({ t, nominal, pv });
+  }
+  return { total: pvTotal, nominalTotal, rows };
+}
+
+// Mortgage = remaining balance (payoff). Schedule for the "details" view.
+function calcMortgage(m){
+  const im = (m.rate/100)/12, nM = Math.round(m.years*12);
+  let monthly;
+  if (im === 0) monthly = m.bal / nM;
+  else monthly = m.bal * im / (1 - Math.pow(1+im, -nM));
+  // build monthly then aggregate to annual rows
+  let bal = m.bal, totalInterest = 0;
+  const yearly = []; let yPrin = 0, yInt = 0, yStartBal = bal;
+  const balanceByYear = [bal];
+  for (let k=1; k<=nM; k++){
+    const interest = bal * im;
+    let principal = monthly - interest;
+    if (principal > bal) principal = bal;
+    bal -= principal; totalInterest += interest;
+    yPrin += principal; yInt += interest;
+    if (k % 12 === 0 || k === nM){
+      yearly.push({ year: Math.ceil(k/12), startBal: yStartBal, principal: yPrin, interest: yInt, endBal: Math.max(0,bal) });
+      balanceByYear.push(Math.max(0,bal));
+      yStartBal = bal; yPrin = 0; yInt = 0;
+    }
+  }
+  return { payoff: m.bal, monthly, totalInterest, totalPaid: m.bal + totalInterest, yearly, balanceByYear, termYears: m.years };
+}
+
+// Education & Everything Else = schooling + emergency fund + final expenses
+function calcEducation(e, extra){
+  const perChild = e.years * e.cost;
+  const children = [];
+  for (let i=1; i<=e.kids; i++) children.push({ n:i, years:e.years, cost:e.cost, total:perChild });
+  const eduTotal = e.kids * perChild;
+  return { total: eduTotal + extra.emergency + extra.final, eduTotal, perChild, children, emergency: extra.emergency, final: extra.final };
+}
+
+/* ---------- SVG CHART BUILDERS ---------- */
+// Income: bars per year (nominal) with a present-value overlay
+function svgIncomeBars(inc){
+  const rows = inc.rows, W = 640, H = 200, padL = 8, padR = 8, padT = 14, padB = 26;
+  const maxV = Math.max(...rows.map(r=>r.nominal), 1);
+  const n = rows.length;
+  const gap = 5;
+  const bw = (W - padL - padR - gap*(n-1)) / n;
+  const plotH = H - padT - padB;
+  let bars = '';
+  rows.forEach((r,i)=>{
+    const x = padL + i*(bw+gap);
+    const hNom = (r.nominal/maxV)*plotH;
+    const hPv  = (r.pv/maxV)*plotH;
+    const yNom = padT + plotH - hNom;
+    const yPv  = padT + plotH - hPv;
+    // nominal (light) behind, present value (solid) in front
+    bars += `<rect x="${x.toFixed(1)}" y="${yNom.toFixed(1)}" width="${bw.toFixed(1)}" height="${hNom.toFixed(1)}" rx="2.5" fill="#cfe0f3"></rect>`;
+    bars += `<rect x="${x.toFixed(1)}" y="${yPv.toFixed(1)}" width="${bw.toFixed(1)}" height="${hPv.toFixed(1)}" rx="2.5" fill="#4a90d9"><title>Year ${r.t}: ${fmt$(r.nominal)} (PV ${fmt$(r.pv)})</title></rect>`;
+    if (n <= 20){
+      bars += `<text x="${(x+bw/2).toFixed(1)}" y="${H-9}" text-anchor="middle" font-size="9" fill="#8a9ab5" font-family="Plus Jakarta Sans">${r.t}</text>`;
+    }
+  });
+  return `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}<text x="${padL}" y="${H-9}" font-size="9" fill="#8a9ab5" font-family="Plus Jakarta Sans">${n>20?'Year 1':''}</text></svg>`;
+}
+
+// Mortgage: declining-balance area curve over remaining years
+function svgMortgageCurve(m){
+  const pts = m.balanceByYear, W = 640, H = 210, padL = 46, padR = 12, padT = 14, padB = 26;
+  const maxV = pts[0] || 1, n = pts.length;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const X = i => padL + (i/(n-1))*plotW;
+  const Y = v => padT + plotH - (v/maxV)*plotH;
+  let line = '', area = `M ${X(0).toFixed(1)} ${Y(pts[0]).toFixed(1)} `;
+  pts.forEach((v,i)=>{ const cmd = (i===0?'M':'L'); line += `${cmd} ${X(i).toFixed(1)} ${Y(v).toFixed(1)} `; if(i>0) area += `L ${X(i).toFixed(1)} ${Y(v).toFixed(1)} `; });
+  area += `L ${X(n-1).toFixed(1)} ${(padT+plotH).toFixed(1)} L ${X(0).toFixed(1)} ${(padT+plotH).toFixed(1)} Z`;
+  // gridlines + y labels (0, 50%, 100% of balance)
+  let grid = '';
+  [0,0.5,1].forEach(f=>{
+    const y = padT + plotH - f*plotH;
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="#eef1f6" stroke-width="1"></line>`;
+    grid += `<text x="${padL-8}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a9ab5" font-family="Plus Jakarta Sans">${fmtShort(maxV*f)}</text>`;
+  });
+  // x labels (year 0, mid, end)
+  let xlab = '';
+  [0, Math.floor((n-1)/2), n-1].forEach(i=>{
+    xlab += `<text x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9" fill="#8a9ab5" font-family="Plus Jakarta Sans">Yr ${i}</text>`;
+  });
+  // dots
+  let dots = '';
+  pts.forEach((v,i)=>{ if(i===0||i===n-1) dots += `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3.5" fill="#d97706"></circle>`; });
+  return `<svg class="chart-svg" viewBox="0 0 ${W} ${H}">${grid}<path d="${area}" fill="rgba(217,119,6,0.12)"></path><path d="${line}" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linejoin="round"></path>${dots}${xlab}</svg>`;
+}
+
+/* ---------- RENDER DETAIL HTML PER CATEGORY ---------- */
+function detailDebt(d, dc){
+  const max = Math.max(...dc.items.map(i=>i.val), 1);
+  const rows = dc.items.map(i=>`
+    <div class="item-row">
+      <div class="item-label">${i.label}</div>
+      <div class="item-track"><div class="item-fill" style="width:${(i.val/max*100).toFixed(1)}%"></div></div>
+      <div class="item-val">${fmt$(i.val)}</div>
+    </div>`).join('');
+  return `
+    <p class="cat-detail-intro">Debt is paid off dollar-for-dollar, so your family isn't left servicing balances on a single income. We add up your outstanding non-mortgage debts — credit cards, auto loans, and anything else owed.</p>
+    ${rows}
+    <div class="insight-box blue">
+      <div class="insight-icon">💡</div>
+      <div class="insight-text"><h4>Why pay off debt first?</h4><p>Clearing these balances removes monthly payments that would otherwise compete with everyday living expenses — and it stops interest from quietly growing the amount owed while your family adjusts.</p></div>
+    </div>`;
+}
+
+function detailIncome(inc, ic){
+  const r = inc; // raw inputs ({ annual, years, ret, growth })
+  const tbl = ic.rows.map(row=>`
+    <tr><td>Year ${row.t}</td><td>${fmt$(row.nominal)}</td><td class="pv-cell">${fmt$(row.pv)}</td></tr>`).join('');
+  return `
+    <p class="cat-detail-intro">Rather than just multiplying income by years, we calculate the <strong>lump sum needed today</strong> that — invested at ${r.ret}% — could replace ${fmt$(r.annual)}/yr (growing ${r.growth}%/yr for raises &amp; inflation) for ${r.years} years. That present-value approach avoids over-insuring.</p>
+    <div class="stat-strip">
+      <div class="stat-box"><div class="l">Annual income</div><div class="v">${fmt$(r.annual)}</div></div>
+      <div class="stat-box"><div class="l">Years replaced</div><div class="v">${r.years}</div></div>
+      <div class="stat-box"><div class="l">Total paid out</div><div class="v">${fmtShort(ic.nominalTotal)}</div></div>
+      <div class="stat-box"><div class="l">Lump sum today</div><div class="v accent">${fmtShort(ic.total)}</div></div>
+    </div>
+    <div class="chart-frame">
+      <div class="chart-frame-title">Income replaced each year
+        <span class="legend"><span><i style="background:#cfe0f3"></i>Income paid</span><span><i style="background:#4a90d9"></i>Present value</span></span>
+      </div>
+      ${svgIncomeBars(ic)}
+    </div>
+    <span class="toggle-schedule" data-target="incSchedule">▾ Show year-by-year table</span>
+    <div class="schedule-wrap" id="incSchedule">
+      <div class="detail-table-wrap"><div class="detail-table-scroll">
+        <table class="detail">
+          <thead><tr><th>Year</th><th>Income Needed</th><th>Present Value</th></tr></thead>
+          <tbody>${tbl}</tbody>
+          <tfoot><tr><td>Lump sum needed</td><td>${fmt$(ic.nominalTotal)}</td><td>${fmt$(ic.total)}</td></tr></tfoot>
+        </table>
+      </div></div>
+    </div>`;
+}
+
+function detailMortgage(m, mc){
+  const sched = mc.yearly.map(y=>`
+    <tr><td>Year ${y.year}</td><td>${fmt$(y.startBal)}</td><td>${fmt$(y.principal)}</td><td>${fmt$(y.interest)}</td><td>${fmt$(y.endBal)}</td></tr>`).join('');
+  return `
+    <p class="cat-detail-intro">Paying off the mortgage frees your family of their largest monthly bill. The coverage need is simply today's payoff balance — but the schedule below shows how much interest you'd otherwise pay over the remaining ${mc.termYears} years.</p>
+    <div class="stat-strip">
+      <div class="stat-box"><div class="l">Payoff balance</div><div class="v gold">${fmtShort(mc.payoff)}</div></div>
+      <div class="stat-box"><div class="l">Monthly P&amp;I</div><div class="v">${fmt$(mc.monthly)}</div></div>
+      <div class="stat-box"><div class="l">Interest remaining</div><div class="v">${fmtShort(mc.totalInterest)}</div></div>
+      <div class="stat-box"><div class="l">Total if paid out</div><div class="v">${fmtShort(mc.totalPaid)}</div></div>
+    </div>
+    <div class="chart-frame">
+      <div class="chart-frame-title">Balance paid down over time</div>
+      ${svgMortgageCurve(mc)}
+    </div>
+    <span class="toggle-schedule" data-target="mortSchedule">▾ Show amortization schedule</span>
+    <div class="schedule-wrap" id="mortSchedule">
+      <div class="detail-table-wrap"><div class="detail-table-scroll">
+        <table class="detail">
+          <thead><tr><th>Year</th><th>Beginning</th><th>Principal</th><th>Interest</th><th>Ending</th></tr></thead>
+          <tbody>${sched}</tbody>
+          <tfoot><tr><td>Totals</td><td>—</td><td>${fmt$(mc.payoff)}</td><td>${fmt$(mc.totalInterest)}</td><td>$0</td></tr></tfoot>
+        </table>
+      </div></div>
+    </div>
+    <div class="insight-box gold">
+      <div class="insight-icon">🏠</div>
+      <div class="insight-text"><h4>The hidden cost of the loan</h4><p>Over the remaining term you're scheduled to pay about <strong>${fmt$(mc.totalInterest)}</strong> in interest alone. Coverage that retires the mortgage erases that future obligation entirely.</p></div>
+    </div>`;
+}
+
+function detailEducation(e, ec){
+  // top-level breakdown across the three sub-buckets
+  const buckets = [
+    { label:'Education funding', val:ec.eduTotal },
+    { label:'Emergency fund',    val:ec.emergency },
+    { label:'Final expenses',    val:ec.final }
+  ];
+  const max = Math.max(...buckets.map(b=>b.val), 1);
+  const bucketRows = buckets.map(b=>`
+    <div class="item-row">
+      <div class="item-label">${b.label}</div>
+      <div class="item-track"><div class="item-fill" style="width:${(b.val/max*100).toFixed(1)}%;background:var(--cat-e)"></div></div>
+      <div class="item-val">${fmt$(b.val)}</div>
+    </div>`).join('');
+
+  const childGrid = ec.children.length ? `
+    <div class="chart-frame-title" style="margin:20px 0 10px;">Education detail</div>
+    <div class="child-grid">${ec.children.map(c=>`
+      <div class="child-box">
+        <div class="who">🎓 Child ${c.n}</div>
+        <div class="amt">${fmtShort(c.total)}</div>
+        <div class="meta">${c.years} yrs × ${fmt$(c.cost)}/yr</div>
+      </div>`).join('')}</div>` : '';
+
+  return `
+    <p class="cat-detail-intro">This bucket covers your children's schooling plus the cash needs that don't fit anywhere else — an <strong>emergency fund</strong> so your family isn't forced to sell assets in a crisis, and <strong>final expenses</strong> for funeral and uncovered medical costs.</p>
+    ${bucketRows}
+    ${childGrid}
+    <div class="insight-box gold">
+      <div class="insight-icon">🛟</div>
+      <div class="insight-text"><h4>Why the emergency fund &amp; final expenses?</h4><p>An emergency fund (typically 3–6 months of expenses) buys your family time to grieve and regroup without rushing decisions, and final expenses of ${fmt$(ec.final)} keep funeral and medical costs off their shoulders.</p></div>
+    </div>`;
+}
+
+/* ---------- QUOTE ENGINE (ported from the Quote-Bot life quote tool) ---------- */
+const CARRIERS = [
+  { id:'amgen',  name:'American General Life Insurance Company', prod:'Select-a-Term - {T} Year',     rating:'A',       per1000:1.557, logo:`<div class="logo logo-corebridge">corebridge<i> :</i><small>financial</small></div>` },
+  { id:'banner', name:'Banner Life Insurance Company',          prod:'OPTerm {T} - {T} Year Term',    rating:'A',       per1000:1.566, logo:`<div class="logo"><div class="logo-banner">BannerLife</div></div>` },
+  { id:'better', name:'BetterLife',                              prod:'Term to 95 - {T} Year Level (Par)', rating:'Unknown', per1000:1.600, logo:`<div class="logo logo-better">Better<i>Life</i></div>` },
+  { id:'cinci',  name:'Cincinnati Life Insurance Company',      prod:'Termsetter {T}',                rating:'A+',      per1000:1.710, logo:`<div class="logo logo-cinci">CINCINNATI<small>LIFE INSURANCE CO.</small></div>` },
+  { id:'northam',name:'North American Co for Life and Health',  prod:'ADDvantage Term {T} Gen 9',     rating:'A+',      per1000:1.730, logo:`<div class="logo logo-northam">NORTH AMERICAN<small>A Sammons Company</small></div>` },
+  { id:'aaa',    name:'AAA Life Insurance Company',             prod:'{T} Year Level Term',           rating:'A',       per1000:2.050, logo:`<div class="logo logo-aaa">AAA<small>Life Insurance Co.</small></div>` },
+  { id:'sw',     name:'Life Insurance Company of the Southwest',prod:'{T}-Year Term',                 rating:'A+',      per1000:2.120, logo:`<div class="logo logo-sw"><div class="logo-tri"></div>National Life<small>Group</small></div>` },
+];
+const TERM_FACTOR   = { 10:1.0, 15:1.28, 20:1.65, 30:2.55 };
+const HEALTH_FACTOR = { 'Preferred Plus':0.68, 'Preferred':0.80, 'Standard Plus':0.91, 'Standard':1.0 };
+const ANNUAL_DIVISOR = 11.832;
+function rateFor(carrier, q){
+  const ageF = Math.pow(1.072, q.age - 48);
+  const termF = TERM_FACTOR[q.term] || 1;
+  const healthF = HEALTH_FACTOR[q.health] || 1;
+  const genderF = q.gender === 'Female' ? 0.86 : 1.0;
+  const annual = carrier.per1000 * (q.coverage/1000) * ageF * termF * healthF * genderF;
+  return { annual, monthly: annual / ANNUAL_DIVISOR };
+}
+const fmtMo = n => '$' + n.toFixed(2);
+const fmtYr = n => '$' + Math.round(n).toLocaleString('en-US');
+
+let selectedTerm = 20;      // results-page control (the input panel has no term)
+let currentCoverage = 0;    // rounded recommended need, set by render()
+let coverageOverride = null;// user-entered coverage; null = use recommendation
+let currentInp = null;      // last computed inputs, set by render()
+function effectiveCoverage(){ return coverageOverride != null ? coverageOverride : currentCoverage; }
+
+function renderQuoteCards(){
+  const host = document.getElementById('quoteCards');
+  if (!host || !currentInp) return;
+  const cvg = effectiveCoverage();
+  if (cvg < 1000){
+    host.innerHTML = `<div class="no-need-card"><span class="ic">💬</span><p>Enter a coverage amount above to see sample term-life rates for your profile.</p></div>`;
+    return;
+  }
+  const q = { age: currentInp.age, term: selectedTerm, health: currentInp.uwClass, gender: currentInp.gender, coverage: cvg };
+  const QUOTES = CARRIERS.map(c => {
+    const { annual, monthly } = rateFor(c, q);
+    return { ...c, prodResolved: c.prod.replace(/\{T\}/g, selectedTerm), coverage: cvg, annual, monthly };
+  });
+  const sorted = [...QUOTES].sort((a,b)=>a.monthly-b.monthly);
+  const cheapest = sorted.find(x => x.id !== 'cinci') || sorted[0];
+  const cinci = QUOTES.find(x => x.id === 'cinci') || sorted[1];
+  const ASSURITY_PER1000 = 1.62, ASSURITY_RATING = 'A-';
+  const ratio = ASSURITY_PER1000 / cheapest.per1000;
+  const assurity = { monthly: cheapest.monthly * ratio, annual: cheapest.annual * ratio, coverage: cvg };
+  const ASSURITY_LOGO = `<div class="logo logo-assurity">assurity<i>.</i><small>LIFE INSURANCE</small></div>`;
+
+  const cardHTML = (cfg) => `
+    <div class="best-card ${cfg.cardClass}">
+      <span class="best-badge ${cfg.badgeClass}">${cfg.badgeText}</span>
+      <div class="best-top">
+        <div class="best-price">
+          <div class="mo">${fmtMo(cfg.monthly)} <small>/m</small></div>
+          <div class="yr">${fmtYr(cfg.annual)} <small>annual</small></div>
+        </div>
+        <div style="width:104px;display:flex;justify-content:center;">${cfg.logo}</div>
+      </div>
+      <div class="best-mid">${cfg.mid}</div>
+      <div class="best-bottom">
+        <div class="best-carrier">
+          <div>
+            <div class="best-carrier-name">${cfg.name}</div>
+            <div class="best-carrier-prod">${cfg.prod} • $${cfg.coverage.toLocaleString()}</div>
+          </div>
+          <div class="best-rating">Rating: <b>${cfg.rating}</b></div>
+        </div>
+        <a class="select-btn" href="https://app.quotebot.io/public/life-insurance" target="_blank">Apply Now</a>
+      </div>
+    </div>`;
+
+  host.innerHTML =
+    cardHTML({ cardClass:'', badgeClass:'affordable', badgeText:'Most Affordable',
+      monthly:cheapest.monthly, annual:cheapest.annual, logo:cheapest.logo,
+      name:cheapest.name, prod:cheapest.prodResolved, coverage:cheapest.coverage, rating:cheapest.rating,
+      mid:`<div class="trophy">🏆 Lowest Price</div><p>The most affordable rate available for your profile.</p>` }) +
+    cardHTML({ cardClass:'recommended', badgeClass:'recommended', badgeText:'Recommended',
+      monthly:cinci.monthly, annual:cinci.annual, logo:cinci.logo,
+      name:cinci.name, prod:cinci.prodResolved, coverage:cinci.coverage, rating:cinci.rating,
+      mid:`<div class="trophy">🏆 Best Overall Value</div><ul><li>Top-rated A+ carrier</li><li>Trusted, established insurer</li></ul>` }) +
+    cardHTML({ cardClass:'agentless', badgeClass:'agentless', badgeText:'Agent-less',
+      monthly:assurity.monthly, annual:assurity.annual, logo:ASSURITY_LOGO,
+      name:'Assurity Life', prod:`Term Life - ${selectedTerm} Year`, coverage:assurity.coverage, rating:ASSURITY_RATING,
+      mid:`<div class="trophy">🏆 Best Experience!</div><ul><li>Fast, all-digital application</li><li>No agent required to buy</li></ul>` });
+}
+
+/* ---------- MAIN RENDER ---------- */
+function render(){
+  const inp = getInputs();
+  const dc = calcDebt(inp.debt);
+  const ic = calcIncome(inp.inc); ic.inc = inp.inc;
+  const mc = calcMortgage(inp.mort);
+  const ec = calcEducation(inp.edu, inp.extra);
+
+  const gross = dc.total + ic.total + mc.payoff + ec.total;
+  const offset = inp.exist.life + inp.exist.savings;
+  const net = Math.max(0, gross - offset);
+  const name = (inp.firstName + ' ' + inp.lastName).trim() || 'Your';
+  currentInp = inp;
+  currentCoverage = Math.max(0, Math.round(net/1000)*1000);
+
+  const cats = [
+    { k:'d', letter:'D', name:'Debt', desc:'Wipe out outstanding balances', amt:dc.total, detail:detailDebt(inp.debt, dc), col:'var(--cat-d)' },
+    { k:'i', letter:'I', name:'Income Replacement', desc:'Lump sum to replace earnings', amt:ic.total, detail:detailIncome(inp.inc, ic), col:'var(--cat-i)' },
+    { k:'m', letter:'M', name:'Mortgage Payoff', desc:'Retire the home loan', amt:mc.payoff, detail:detailMortgage(inp.mort, mc), col:'var(--cat-m)' },
+    { k:'e', letter:'E', name:'Education & Everything Else', desc:'Schooling, emergency fund, final costs', amt:ec.total, detail:detailEducation(inp.edu, ec), col:'var(--cat-e)' }
+  ];
+
+  // composition segments
+  const segs = cats.map(c=>`<div class="comp-seg ${c.k}" style="width:${gross>0?(c.amt/gross*100):0}%"><title>${c.name}: ${fmt$(c.amt)}</title></div>`).join('');
+  const legend = cats.map(c=>`
+    <div class="comp-leg-item">
+      <div class="comp-leg-top"><span class="comp-leg-dot" style="background:${c.col}"></span>${c.letter} · ${c.name.split(' ')[0]}</div>
+      <div class="comp-leg-val">${fmtShort(c.amt)}</div>
+      <div class="comp-leg-pct">${gross>0?(c.amt/gross*100).toFixed(0):0}% of need</div>
+    </div>`).join('');
+
+  // category cards
+  const cards = cats.map(c=>`
+    <div class="cat-card ${c.k}" data-cat="${c.k}">
+      <div class="cat-header">
+        <div class="cat-badge">${c.letter}</div>
+        <div class="cat-titlewrap">
+          <div class="cat-name">${c.name}</div>
+          <div class="cat-desc">${c.desc}</div>
+        </div>
+        <div class="cat-amount">${fmt$(c.amt)}<small>see details</small></div>
+        <div class="cat-chevron">▾</div>
+      </div>
+      <div class="cat-detail">${c.detail}</div>
+    </div>`).join('');
+
+  document.getElementById('resultsContent').innerHTML = `
+    <div class="analysis-for">
+      <span class="analysis-for-name">${name === 'Your' ? 'Your Analysis' : name + "'s Analysis"}</span>
+      <span class="analysis-for-item">Age <b>${inp.age}</b></span>
+      <span class="analysis-for-item">${inp.gender}</span>
+      <span class="analysis-for-item">${inp.uwClass}</span>
+      <span class="analysis-for-item">${inp.state}</span>
+      <span class="risk-tag">D.I.M.E. Method</span>
+      <button class="edit-inputs-btn" id="editInputsBtn">✎ Edit Inputs</button>
+    </div>
+
+    <div class="headline-card">
+      <div class="headline-inner">
+        <div>
+          <div class="headline-label">Recommended Coverage</div>
+          <div class="headline-value">${fmt$(net)}</div>
+          <div class="headline-sub">The total D.I.M.E. need of ${fmt$(gross)}, less ${fmt$(offset)} you already have set aside.</div>
+        </div>
+        <div class="headline-mini">
+          <div class="headline-mini-item"><div class="v">${fmtShort(gross)}</div><div class="l">Total need</div></div>
+          <div class="headline-mini-item"><div class="v minus">−${fmtShort(offset)}</div><div class="l">Resources</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-block">
+      <div class="quote-block-head">
+        <div>
+          <div class="quote-block-title">Here is your recommended coverage</div>
+        </div>
+        <div class="quote-controls">
+          <div class="qc-field">
+            <label>Coverage Amount <span class="info-tip" tabindex="0">i<span class="tip-bubble">You can change your coverage amount here.</span></span></label>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="coverageInput" class="has-prefix" value="${effectiveCoverage().toLocaleString('en-US')}" inputmode="numeric"></div>
+          </div>
+          <div class="qc-field">
+            <label>Term Length <span class="info-tip" tabindex="0">i<span class="tip-bubble">You can change the term length to match your desired coverage goal or budget.</span></span></label>
+            <select id="termSelect">
+              <option value="10">10-Year Term</option>
+              <option value="15">15-Year Term</option>
+              <option value="20">20-Year Term</option>
+              <option value="30">30-Year Term</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="best-row" id="quoteCards"></div>
+    </div>
+
+    <div class="comp-card">
+      <div class="comp-head">
+        <div class="comp-title">Where your coverage comes from</div>
+        <div class="comp-total">Total D.I.M.E. need: <b>${fmt$(gross)}</b></div>
+      </div>
+      <div class="comp-bar">${segs}</div>
+      <div class="comp-legend">${legend}</div>
+    </div>
+
+    ${cards}
+
+    <div class="offset-card">
+      <div class="offset-title">How we get to your number</div>
+      <div class="offset-row"><span class="lbl"><span class="dot" style="background:var(--cat-d)"></span>Debt</span><span class="amt">${fmt$(dc.total)}</span></div>
+      <div class="offset-row"><span class="lbl"><span class="dot" style="background:var(--cat-i)"></span>Income replacement</span><span class="amt">${fmt$(ic.total)}</span></div>
+      <div class="offset-row"><span class="lbl"><span class="dot" style="background:var(--cat-m)"></span>Mortgage payoff</span><span class="amt">${fmt$(mc.payoff)}</span></div>
+      <div class="offset-row"><span class="lbl"><span class="dot" style="background:var(--cat-e)"></span>Education &amp; everything else</span><span class="amt">${fmt$(ec.total)}</span></div>
+      <div class="offset-row subtract"><span class="lbl"><span class="dot" style="background:var(--green)"></span>Less: existing life insurance</span><span class="amt">−${fmt$(inp.exist.life)}</span></div>
+      <div class="offset-row subtract"><span class="lbl"><span class="dot" style="background:var(--green)"></span>Less: liquid savings</span><span class="amt">−${fmt$(inp.exist.savings)}</span></div>
+      <div class="offset-row total"><span class="lbl">Recommended coverage</span><span class="amt">${fmt$(net)}</span></div>
+    </div>
+
+    <div class="cta-card">
+      <div class="cta-inner">
+        <div class="cta-eyebrow">🛡️ Ready to put this in place?</div>
+        <h3>Let Quote-Bot design the <em>right policy</em> around your number</h3>
+        <p>Your analysis shows a ${fmt$(net)} target. Our licensed advisors can compare term, indexed UL, and whole life options built around that figure — online, with or without an agent, and no pressure.</p>
+        <div class="cta-feats">
+          <div class="cta-feat"><span class="ck">✓</span> Term &amp; permanent options</div>
+          <div class="cta-feat"><span class="ck">✓</span> Built around your D.I.M.E. need</div>
+          <div class="cta-feat"><span class="ck">✓</span> Buy online or with an agent</div>
+        </div>
+        <div class="cta-actions">
+          <a class="cta-primary" href="https://app.quotebot.io/public/life-insurance" target="_blank">Help Me With My Plan</a>
+          <a class="cta-secondary" href="tel:8888048590">📞 (888) 804-8590</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // wire collapsibles + schedule toggles for the freshly-rendered content
+  const termSel = document.getElementById('termSelect');
+  if (termSel){
+    termSel.value = String(selectedTerm);
+    termSel.addEventListener('change', ()=>{ selectedTerm = parseInt(termSel.value); renderQuoteCards(); });
+  }
+  const covInput = document.getElementById('coverageInput');
+  if (covInput){
+    covInput.addEventListener('input', e=>{
+      const n = e.target.value.replace(/[^0-9]/g,'');
+      e.target.value = n ? parseInt(n).toLocaleString('en-US') : '';
+      coverageOverride = n ? parseInt(n) : 0;
+      renderQuoteCards();
+    });
+  }
+  renderQuoteCards();
+  const editBtn = document.getElementById('editInputsBtn');
+  if (editBtn) editBtn.addEventListener('click', editInputs);
+  document.querySelectorAll('.cat-header').forEach(h=>{
+    h.addEventListener('click', ()=> h.closest('.cat-card').classList.toggle('open'));
+  });
+  document.querySelectorAll('.toggle-schedule').forEach(t=>{
+    t.addEventListener('click', e=>{
+      e.stopPropagation();
+      const el = document.getElementById(t.dataset.target);
+      const open = el.classList.toggle('show');
+      t.textContent = (open ? '▴ Hide' : '▾ Show') + t.textContent.replace(/^[▾▴]\s\w+/, '');
+    });
+  });
+}
+
+/* ---------- INTERACTIONS ---------- */
+let shown = false;
+function liveUpdate(){ if (shown) render(); }
+
+// comma-format money inputs
+['debtCards','debtAuto','debtOther','incAnnual','mortBal','eduCost','emergFund','finalExp','existLife','existSavings'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', e=>{
+    const n = e.target.value.replace(/[^0-9]/g,'');
+    e.target.value = n ? parseInt(n).toLocaleString('en-US') : '';
+    liveUpdate();
+  });
+});
+// numeric / select fields
+['incYears','incReturn','incGrowth','mortRate','mortYears','eduKids','eduYears','state','uwClass'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', liveUpdate);
+  document.getElementById(id).addEventListener('change', liveUpdate);
+});
+['firstName','lastName'].forEach(id=> document.getElementById(id).addEventListener('input', liveUpdate));
+
+// gender toggle
+document.getElementById('genderSeg').addEventListener('click', e=>{
+  if (e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#genderSeg button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  liveUpdate();
+});
+
+// age pill
+document.getElementById('dob').addEventListener('change', ()=>{
+  document.getElementById('agePill').textContent = 'Age ' + computeAge(document.getElementById('dob').value);
+  liveUpdate();
+});
+
+// US phone auto-format → (123) 456-7890
+document.getElementById('phone').addEventListener('input', e=>{
+  const d = e.target.value.replace(/\D/g,'').slice(0,10);
+  let out = '';
+  if (d.length === 0) out = '';
+  else if (d.length < 4) out = '(' + d;
+  else if (d.length < 7) out = '(' + d.slice(0,3) + ') ' + d.slice(3);
+  else out = '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6);
+  e.target.value = out;
+});
+
+// main calculate
+document.getElementById('calcBtn').addEventListener('click', ()=>{
+  render();
+  qbCaptureLead();
+  shown = true;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultsContent').classList.add('show');
+  document.querySelector('.calc-grid').classList.add('results-mode');
+  document.body.classList.add('results-active');
+  // open the income card by default so the "artful" detail is discoverable
+  const ic = document.querySelector('.cat-card.i'); if (ic) ic.classList.add('open');
+  window.scrollTo({ top: 0, behavior:'smooth' });
+});
+
+/* ---- Quote Bot lead capture ------------------------------------------ */
+function qbCaptureLead(){
+  if (!window.QuoteBot) return;
+  try {
+    var V = function(id){ var e=document.getElementById(id); return e ? String(e.value).trim() : ""; };
+    var N = function(id){ var e=document.getElementById(id); return e ? (parseFloat(String(e.value).replace(/[^0-9.\-]/g,""))||0) : null; };
+    var C = function(sel){ var e=document.querySelector(sel); return e ? e.textContent.replace(/\s+/g," ").trim() : null; };
+    var inp = getInputs();
+    if (!V('email')) return;
+    window.QuoteBot.capture({
+      email: V('email'), phone: V('phone'),
+      firstName: inp.firstName, lastName: inp.lastName,
+      productLine: 'TERM_LIFE',
+      inputs: inp,
+      results: { totalCoverageNeed: (typeof effectiveCoverage === 'function' ? effectiveCoverage() : null) },
+      consentText: C('.privacy-note')
+    });
+  } catch (e) { /* capture must never break the calculator */ }
+}
+
+// "Edit Inputs" on the results page brings the input panel back
+function editInputs(){
+  document.querySelector('.calc-grid').classList.remove('results-mode');
+  document.body.classList.remove('results-active');
+  document.querySelector('.left-col').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// reset
+const DEFAULTS = { firstName:'Scott', lastName:'Karstens', dob:'1978-01-26', gender:'Male', state:'Colorado', uwClass:'Standard',
+  debtCards:'12,000', debtAuto:'18,000', debtOther:'5,000',
+  incAnnual:'90,000', incYears:'15', incReturn:'5', incGrowth:'3',
+  mortBal:'320,000', mortRate:'6.5', mortYears:'25',
+  eduKids:'2', eduYears:'4', eduCost:'30,000', emergFund:'25,000', finalExp:'15,000',
+  existLife:'100,000', existSavings:'50,000' };
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  Object.entries(DEFAULTS).forEach(([id,v])=>{
+    const el = document.getElementById(id); if (el) el.value = v;
+  });
+  document.querySelectorAll('#genderSeg button').forEach(b=>b.classList.toggle('active', b.dataset.val==='Male'));
+  document.getElementById('agePill').textContent = 'Age ' + computeAge(DEFAULTS.dob);
+  liveUpdate();
+});
+</script>
+</body>
+</html>

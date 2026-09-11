@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculators | Quote-Bot</title>
+<meta name="description" content="Free insurance and retirement calculators from Quote-Bot — coverage need, guaranteed income, long-term care and business continuation.">
+<!-- No index page existed, so the root URL returned 404. This is it. Same
+     palette and type as the calculators so it does not read as a different
+     site; no build step, no dependencies beyond the fonts they already use. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary:#1a3d6b; --primary-dark:#0f2540; --primary-mid:#1e4d85;
+    --accent:#4a90d9; --accent-light:#e8f2fb;
+    --teal:#0d9488; --gold:#b45309; --gold-light:#fef3c7;
+    --white:#fff; --off-white:#f7f9fc; --gray-light:#eef1f6;
+    --gray-mid:#8a9ab5; --gray-dark:#2c3e58; --text:#1c2a3a; --border:#d8e2f0;
+    --shadow:0 4px 24px rgba(26,61,107,.10); --shadow-lg:0 16px 56px rgba(26,61,107,.16);
+    --radius:12px; --radius-lg:20px; --transition:.2s ease;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--off-white); color:var(--text);
+    font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .hero {
+    background:linear-gradient(160deg,var(--primary-dark),var(--primary) 62%,var(--primary-mid));
+    color:var(--white); padding:56px 24px 64px;
+  }
+  .inner { max-width:1060px; margin:0 auto; }
+  .brand {
+    font-family:'Fraunces',Georgia,serif; font-weight:700; font-size:22px;
+    letter-spacing:-.2px; margin:0 0 22px;
+  }
+  .hero h1 {
+    font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:clamp(28px,4.4vw,42px);
+    line-height:1.15; margin:0 0 12px; max-width:19ch;
+  }
+  .hero p { margin:0; max-width:60ch; font-size:16.5px; color:#c9dcf2; }
+
+  main { max-width:1060px; margin:0 auto; padding:0 24px 72px; }
+  section { margin-top:44px; }
+  h2 {
+    font-family:'Fraunces',Georgia,serif; font-size:19px; font-weight:600;
+    margin:0 0 4px; color:var(--primary-dark);
+  }
+  .lede { margin:0 0 18px; font-size:14px; color:var(--gray-mid); max-width:64ch; }
+
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(268px,1fr)); }
+  a.card {
+    display:block; background:var(--white); border:1px solid var(--border);
+    border-radius:var(--radius-lg); padding:20px 20px 18px; text-decoration:none;
+    color:inherit; box-shadow:var(--shadow); transition:var(--transition);
+  }
+  a.card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); border-color:var(--accent); }
+  a.card:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  .card h3 { margin:0 0 5px; font-size:15.5px; font-weight:700; color:var(--primary-dark); }
+  .card p { margin:0; font-size:13.5px; color:var(--gray-dark); line-height:1.5; }
+  .tag {
+    display:inline-block; margin-bottom:9px; font-size:10.5px; font-weight:700;
+    letter-spacing:.7px; text-transform:uppercase; padding:3px 9px; border-radius:20px;
+    background:var(--accent-light); color:var(--primary-mid);
+  }
+  .tag.ltc { background:#ccfbf1; color:var(--teal); }
+  .tag.biz { background:var(--gold-light); color:var(--gold); }
+
+  .feature { border-left:4px solid var(--accent); }
+
+  footer {
+    border-top:1px solid var(--border); background:var(--white);
+    padding:28px 24px 40px; font-size:12.5px; color:var(--gray-mid);
+  }
+  footer .inner { max-width:1060px; }
+  footer p { margin:0 0 8px; max-width:86ch; }
+  @media (max-width:600px) { .hero { padding:40px 20px 46px; } main { padding:0 20px 56px; } }
+</style>
+  <!-- The assistant. Never opens itself on a timer; see the file header. -->
+  <script src="/js/quotebot-chat.js"
+          data-endpoint="https://im62dp4hwe34ez7lmhvtfk75xa0zkkxv.lambda-url.us-east-2.on.aws/"
+          data-tool="index" data-context></script>
+  <!-- This page is where an affiliate's "All tools" link lands
+       (tools.quotebot.io/?qb=CODE-TOOLS). Without the capture script the
+       landing went unrecorded and the code fell off the first click, so the
+       affiliate's main link earned nothing. -->
+  <script src="/js/quotebot-capture.js"
+          data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
+          data-tool="tools-index"></script>
+</head>
+<body>
+
+<div class="hero">
+  <div class="inner">
+    <div class="brand">Quote-Bot</div>
+    <h1>Work out what you actually need</h1>
+    <p>Straightforward calculators for coverage, retirement income and long-term care.
+       No account, no sales call to get an answer — run the numbers yourself.</p>
+  </div>
+</div>
+
+<main>
+
+  <section>
+    <h2>Retirement income</h2>
+    <p class="lede">What your money earns, what it pays out, and what happens if the market
+       turns at the wrong moment.</p>
+    <div class="grid">
+      <a class="card feature" href="/mygacalculator.html">
+        <span class="tag">Guaranteed rates</span>
+        <h3>MYGA Calculator</h3>
+        <p>Compare multi-year guaranteed annuity rates by term and deposit, and see what a
+           fixed rate grows to.</p>
+      </a>
+      <a class="card" href="/fiaincomeridercalculator.html">
+        <span class="tag">Income rider</span>
+        <h3>FIA Income Rider Calculator</h3>
+        <p>Model the guaranteed lifetime income an indexed annuity rider would pay, and when.</p>
+      </a>
+      <a class="card" href="/incomefloorcalculator.html">
+        <span class="tag">Planning</span>
+        <h3>Guaranteed Income Floor</h3>
+        <p>Find the gap between your essential expenses and the income you can count on.</p>
+      </a>
+      <a class="card" href="/sequenceofreturnscalculator.html">
+        <span class="tag">Risk</span>
+        <h3>Sequence of Returns</h3>
+        <p>See why losses early in retirement cost far more than the same losses later.</p>
+      </a>
+      <a class="card" href="/retirementdistributioncalculator.html">
+        <span class="tag">Tax</span>
+        <h3>Tax-Free Retirement Strategy</h3>
+        <p>Compare how different account types are taxed as you draw them down.</p>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Life insurance need</h2>
+    <p class="lede">Two accepted methods for sizing coverage, and what each assumes.</p>
+    <div class="grid">
+      <a class="card" href="/dimeneedscalculator.html">
+        <span class="tag">Coverage</span>
+        <h3>D.I.M.E. Needs Calculator</h3>
+        <p>Debt, income, mortgage and education — the standard four-part method for
+           sizing a policy.</p>
+      </a>
+      <a class="card" href="/mugcalculator.html">
+        <span class="tag">Coverage</span>
+        <h3>M.U.G. Coverage Calculator</h3>
+        <p>Mortgage, unpaid obligations and goals — a quicker estimate when you want a
+           sense of scale.</p>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Long-term care</h2>
+    <p class="lede">What care costs, and how a policy or annuity changes the tax picture.</p>
+    <div class="grid">
+      <a class="card" href="/careltccalculator.html">
+        <span class="tag ltc">Care need</span>
+        <h3>C.A.R.E. LTC Needs Calculator</h3>
+        <p>Estimate the cost of care in your situation and how long savings would last
+           against it.</p>
+      </a>
+      <a class="card" href="/ltcannuitytaxillustration.html">
+        <span class="tag ltc">Tax</span>
+        <h3>LTC Annuity Tax Illustration</h3>
+        <p>How qualified long-term care withdrawals from an annuity are treated for tax.</p>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Business continuation</h2>
+    <p class="lede">Valuing the people a business depends on, and funding the agreement
+       that survives them.</p>
+    <div class="grid">
+      <a class="card" href="/keypersoncalculator.html">
+        <span class="tag biz">Valuation</span>
+        <h3>Key Person Valuation</h3>
+        <p>Put a figure on what losing an essential person would cost the business.</p>
+      </a>
+      <a class="card" href="/crosspurchasebuysellcalculator.html">
+        <span class="tag biz">Buy-sell</span>
+        <h3>Cross-Purchase Buy-Sell Funding</h3>
+        <p>Work out the insurance needed to fund a cross-purchase agreement between owners.</p>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ready for a number?</h2>
+    <p class="lede">When you have worked out what you need, this prices it.</p>
+    <div class="grid">
+      <a class="card feature" href="/quotetool.html">
+        <span class="tag">Quote</span>
+        <h3>Get Your Quote</h3>
+        <p>Real rates from the carriers we represent, based on what you tell us.</p>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <p><strong>These are illustrations, not offers.</strong> Every figure shown is an estimate
+       based on what you enter and on assumptions stated on each calculator. Actual rates,
+       costs and benefits depend on the carrier, the product, your state, and underwriting.
+       Nothing here is a contract, a guarantee, or tax or legal advice.</p>
+    <p>&copy; Quote-Bot. Insurance products offered through QB Insurance LLC.</p>
+  </div>
+</footer>
+
+</body>
+</html>
