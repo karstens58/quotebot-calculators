@@ -31,12 +31,42 @@
   var SESSION_KEY = 'qb.session';
   var SENT_KEY = 'qb.sent';
   var FIRST_TOUCH_DAYS = 365;
+  /* Long enough to swallow a double-click, short enough that a visitor who
+     changes a number and recalculates is never silently dropped. */
+  var DEDUPE_MS = 60 * 1000;
 
   var config = {
     endpoint: (SCRIPT && SCRIPT.getAttribute('data-endpoint')) || '',
     toolKey: (SCRIPT && SCRIPT.getAttribute('data-tool')) || 'unknown',
     debug: !!(SCRIPT && SCRIPT.getAttribute('data-debug'))
   };
+
+  /*
+   * A stable string for an inputs object, for dedupe keys only.
+   *
+   * JSON.stringify alone will not do: these tools rebuild their inputs object
+   * on every calculate, and V8 preserves insertion order, so two identical
+   * submissions can serialise to different strings and defeat the dedupe
+   * entirely. Sorting the keys is what makes "the same numbers" compare equal.
+   *
+   * Depth is capped because one bad tool passing a circular or enormous object
+   * must not throw inside capture() or fill localStorage.
+   */
+  function stableKey(value, depth) {
+    depth = depth || 0;
+    if (value === null || value === undefined) return '';
+    if (depth > 4) return '~';
+    if (typeof value !== 'object') return String(value);
+    if (Object.prototype.toString.call(value) === '[object Array]') {
+      return '[' + value.map(function (v) { return stableKey(v, depth + 1); }).join(',') + ']';
+    }
+    var keys = Object.keys(value).sort();
+    var parts = [];
+    for (var i = 0; i < keys.length && i < 40; i++) {
+      parts.push(keys[i] + ':' + stableKey(value[keys[i]], depth + 1));
+    }
+    return '{' + parts.join(',') + '}';
+  }
 
   function log() {
     if (config.debug && window.console) {
@@ -178,6 +208,37 @@
     });
   }
 
+  /*
+   * In-session retry for the queue.
+   *
+   * A queued lead used to wait for the visitor's NEXT page load, because boot()
+   * was the only thing that ever called drainQueue(). On a single-page visit —
+   * which is most of them, since people run one calculator and leave — that
+   * meant a lead lost to one flaky request, one Lambda cold start or one
+   * momentary offline was not late, it was gone. From the console it looked
+   * exactly like capture being slow or unreliable.
+   *
+   * So a failed send now retries a few times within the session, backing off,
+   * and the queue still survives to the next page load as the last resort.
+   * Retries are capped: a genuinely broken endpoint must not spin.
+   */
+  var retryTimer = null;
+  var retryDelay = 5000;
+  var RETRY_MAX = 60000;
+
+  function scheduleRetry() {
+    if (retryTimer) return;
+    if (retryDelay > RETRY_MAX) return;
+    retryTimer = setTimeout(function () {
+      retryTimer = null;
+      var before = (read(QUEUE_KEY) || []).length;
+      if (!before) { retryDelay = 5000; return; }
+      drainQueue();
+      retryDelay *= 2;
+      scheduleRetry();
+    }, retryDelay);
+  }
+
   function enqueue(path, body) {
     var q = read(QUEUE_KEY) || [];
     q.push({ path: path, body: body, at: Date.now() });
@@ -192,7 +253,10 @@
     q.forEach(function (item) {
       // Drop anything older than 7 days; a stale lead is worse than none.
       if (Date.now() - item.at > 7 * 864e5) return;
-      post(item.path, item.body).catch(function () { enqueue(item.path, item.body); });
+      post(item.path, item.body).catch(function () {
+        enqueue(item.path, item.body);
+        scheduleRetry();
+      });
     });
   }
 
@@ -290,21 +354,6 @@
         if (!lead || !lead.email) { log('capture called without an email'); return Promise.resolve(false); }
         var attr = resolveAttribution();
 
-        /*
-         * Dedupe. Several of these tools recalculate on every click of the
-         * primary button, so a visitor who presses "Calculate" four times
-         * would otherwise create four leads. Same tool + same email inside
-         * 30 minutes is treated as one submission. The server should still
-         * upsert on email — this only keeps the obvious noise off the wire.
-         */
-        var dedupeKey = config.toolKey + '|' + String(lead.email).trim().toLowerCase();
-        var sent = read(SENT_KEY) || {};
-        var now = Date.now();
-        Object.keys(sent).forEach(function (k) { if (now - sent[k] > 30 * 60 * 1000) delete sent[k]; });
-        if (sent[dedupeKey]) { log('duplicate submission suppressed', dedupeKey); return Promise.resolve(false); }
-        sent[dedupeKey] = now;
-        write(SENT_KEY, sent);
-
         var body = {
           toolKey: config.toolKey,
           submittedAt: new Date().toISOString(),
@@ -334,11 +383,40 @@
           }
         };
 
+        /*
+         * Dedupe: identical submission, twice, within a minute.
+         *
+         * This used to key on tool + email for THIRTY MINUTES, which is a far
+         * bigger net than the problem. What it was written for is a visitor
+         * double-clicking "Calculate" — tens of milliseconds apart, same
+         * numbers. What it actually suppressed was anyone who ran the tool,
+         * looked at the answer, changed their coverage amount or term and ran
+         * it again: a different quote, silently never sent, for half an hour.
+         * Testing the form repeatedly with your own address looked exactly
+         * like the endpoint being broken or lagging, because nothing left the
+         * browser and nothing said so.
+         *
+         * So the key now covers the inputs, and the window is 60 seconds. A
+         * changed figure is a new quote request and goes; an unchanged one
+         * inside a minute is the double-click. Dedupe happens AFTER the body
+         * is built precisely so the inputs can be part of the key.
+         */
+        var dedupeKey = config.toolKey + '|'
+          + body.applicant.email + '|'
+          + stableKey(body.inputs);
+        var sent = read(SENT_KEY) || {};
+        var now = Date.now();
+        Object.keys(sent).forEach(function (k) { if (now - sent[k] > DEDUPE_MS) delete sent[k]; });
+        if (sent[dedupeKey]) { log('duplicate submission suppressed', dedupeKey); return Promise.resolve(false); }
+        sent[dedupeKey] = now;
+        write(SENT_KEY, sent);
+
         return post('/lead', body)
           .then(function () { log('captured', body.applicant.email); return true; })
           .catch(function (err) {
             log('capture failed, queued', err);
             enqueue('/lead', body);
+            scheduleRetry();
             return false;
           });
       } catch (e) {
