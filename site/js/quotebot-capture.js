@@ -354,6 +354,28 @@
         if (!lead || !lead.email) { log('capture called without an email'); return Promise.resolve(false); }
         var attr = resolveAttribution();
 
+        /*
+         * Tell anything else on the page that this visitor has just handed
+         * over their details.
+         *
+         * quotebot-chat.js listens for this and stops offering to chat: a
+         * person who has converted is the one moment an invitation is purely
+         * an interruption. Fired here rather than after the network call
+         * because the visitor has done their part either way — whether our
+         * POST succeeds is our problem, not a reason to nag them.
+         *
+         * Dispatched in its own try/catch, like everything else in this file:
+         * a listener that throws must not stop a lead being sent.
+         */
+        try {
+          window.dispatchEvent(new CustomEvent('quotebot:captured', {
+            detail: { toolKey: config.toolKey }
+          }));
+          document.dispatchEvent(new CustomEvent('quotebot:captured', {
+            detail: { toolKey: config.toolKey }
+          }));
+        } catch (evtErr) { log('captured event not dispatched', evtErr); }
+
         var body = {
           toolKey: config.toolKey,
           submittedAt: new Date().toISOString(),
