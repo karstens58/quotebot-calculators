@@ -65,6 +65,16 @@
 
   var BRAND = '#1e72b9';
 
+  /**
+   * Matches MAX_MESSAGE_CHARS in the chat Lambda's limits.ts.
+   *
+   * Enforced here as well as there so an honest visitor is stopped by the box
+   * rather than by a round trip that comes back refusing them. The server cap
+   * is the one that counts — this one is a courtesy, and anybody bypassing it
+   * meets the real one.
+   */
+  var MAX_CHARS = 2000;
+
   /** Engaged, then idle this long → they are stuck rather than reading. */
   var STALL_MS = 45000;
   /** Results on screen and nothing done about them. */
@@ -365,6 +375,7 @@
       + '<div class="qbc-disclosure"></div>'
       + '<div class="qbc-log" role="log" aria-live="polite"></div>'
       + '<div class="qbc-foot"><textarea rows="1" aria-label="Your question" '
+      + 'maxlength="' + MAX_CHARS + '" '
       + 'placeholder="Ask about coverage, terms, how any of it works…"></textarea>'
       + '<button type="button">Send</button></div>';
 
@@ -538,6 +549,7 @@
     STALL_MS: STALL_MS,
     RESULTS_MS: RESULTS_MS,
     DISMISS_DAYS: DISMISS_DAYS,
+    MAX_CHARS: MAX_CHARS,
     /* A calculator can drive it directly rather than waiting to be noticed. */
     open: function () { open('api'); },
     results: function () { state.resultsAt = Date.now(); },
