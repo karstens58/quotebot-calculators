@@ -493,7 +493,11 @@
     /* The opening. `greeted` stops it being said twice if the panel is closed
        and reopened; `named` is what they said to call them; `askedEmail`
        stops the email request repeating after every answer. */
-    greeted: false, named: '', askedEmail: false, answers: 0
+    greeted: false, named: '', askedEmail: false, answers: 0,
+    /* The host page's viewport meta, as it was before the panel asked the
+       browser to make room for the keyboard. Put back on close — the chat has
+       no business changing how the whole page behaves once it is shut. */
+    viewportWas: null
   };
   var sessionId = null;
   var el = {};
@@ -687,11 +691,50 @@
       node.style.transform = '';
       return;
     }
+    /*
+     * HEIGHT ONLY. There was a translateY(vv.offsetTop) here for one release
+     * and it was an over-correction: modern Safari already positions a fixed
+     * element against the visible viewport, so translating by the offset
+     * moved the panel down a second time. It ended up about a third of the
+     * screen, with replies arriving below the fold.
+     *
+     * The panel fills the space the keyboard leaves and nothing more, which
+     * is the whole of the screen when the keyboard is down. `position:fixed;
+     * inset:0` puts it in the right place; this only says how tall.
+     */
     node.style.height = vv.height + 'px';
-    /* offsetTop is how far the visible strip has moved down the layout
-       viewport. Translating by it cancels the scroll iOS just performed. */
-    node.style.transform = 'translateY(' + (vv.offsetTop || 0) + 'px)';
+    node.style.transform = '';
+    /* A reply that arrives while the keyboard is up must not land below the
+       fold, and the panel changing height is exactly when that happens. */
     if (el.log) el.log.scrollTop = el.log.scrollHeight;
+  }
+
+  /**
+   * Ask the browser to make room for the keyboard instead of scrolling past it.
+   *
+   * `interactive-widget=resizes-content` tells it to shrink the LAYOUT
+   * viewport when the keyboard opens, which is what makes `100dvh` and
+   * `position:fixed` behave the way anybody would expect — the panel is
+   * simply shorter while the keyboard is up, and nothing moves.
+   *
+   * Set while the panel is open and put back on close, because it changes how
+   * the whole host page behaves and the chat has no business holding onto
+   * that once it is shut. Browsers that do not know the property ignore it,
+   * which is why fitPanel above still does its own sizing.
+   */
+  function keyboardResizes(on) {
+    var meta = document.querySelector('meta[name=viewport]');
+    if (!meta) return;
+    var content = meta.getAttribute('content') || '';
+    var KEY = 'interactive-widget=resizes-content';
+    if (on) {
+      if (content.indexOf('interactive-widget') >= 0) return;
+      state.viewportWas = content;
+      meta.setAttribute('content', content + (content ? ', ' : '') + KEY);
+    } else if (typeof state.viewportWas === 'string') {
+      meta.setAttribute('content', state.viewportWas);
+      state.viewportWas = null;
+    }
   }
 
   /**
@@ -771,6 +814,7 @@
 
     /* Before the focus below, so the first keyboard event is already being
        listened for rather than arriving at nothing. */
+    keyboardResizes(true);
     watchViewport(true);
     fitPanel();
 
@@ -785,6 +829,7 @@
   function close() {
     state.open = false;
     watchViewport(false);
+    keyboardResizes(false);
     if (el.panel && el.panel.parentNode) el.panel.parentNode.removeChild(el.panel);
     el.panel = null;
     el.btn.style.display = '';
@@ -1167,6 +1212,7 @@
     PHONE_MAX: PHONE_MAX,
     fitPanel: fitPanel,
     watchViewport: watchViewport,
+    keyboardResizes: keyboardResizes,
     wantsAgent: wantsAgent,
     readName: readName,
     GREETING: GREETING,
