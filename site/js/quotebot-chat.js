@@ -410,6 +410,13 @@
     'yes', 'yeah', 'yep', 'no', 'nope', 'sure', 'maybe', 'none', 'nothing',
     'anonymous', 'nobody', 'test', 'testing', 'na', 'n a', 'skip', 'rather not',
     'why', 'who', 'what', 'none of your business',
+    /*
+     * Checked per WORD as well as against the whole string, so these also
+     * knock out the pairs they turn up in: "yes please", "not today",
+     * "how much", "tell me", "just looking", "need help".
+     */
+    'there', 'please', 'how', 'much', 'tell', 'me', 'need', 'want', 'know',
+    'just', 'looking', 'today', 'not', 'more', 'about', 'still', 'first',
   ];
 
   /**
@@ -431,10 +438,28 @@
     if (raw.indexOf('?') >= 0) return null;
     if (wantsAgent(raw)) return null;
 
+    /*
+     * A pleasantry in front of the name.
+     *
+     * "Hi I'm Scott" is how a person actually answers "may I ask your first
+     * name?", and every rule below was anchored at the start of the string,
+     * so the greeting pushed the name out of reach and the whole line went to
+     * the model as a question. It came back with a paragraph about the
+     * founder of the company, read off the knowledge base, to somebody who
+     * had asked nothing.
+     *
+     * Stripped before anything else looks at the text. "Hi" on its own leaves
+     * nothing behind and is refused a line later; "hey what are your rates"
+     * leaves four words and is refused by the word count.
+     */
+    var raw2 = raw.replace(
+      /^(?:hi|hiya|hey|hello|yo|greetings|good\s+(?:morning|afternoon|evening))\b[\s,.!\u2014-]*/i, ''
+    ).trim();
+
     /* "I'm Dana", "my name is Dana", "this is Dana", "Dana here". */
     var lead = /^(?:i\s*a?m|i'm|my name is|name(?:'s| is)?|this is|it'?s|call me)\s+(.+)$/i;
-    var m = lead.exec(raw);
-    var body = m ? m[1] : raw;
+    var m = lead.exec(raw2);
+    var body = m ? m[1] : raw2;
     body = body.replace(/[.,!]+$/, '').replace(/\s+here$/i, '').trim();
     if (!body) return null;
 
@@ -454,7 +479,18 @@
     for (var j = 0; j < words.length; j++) {
       if (!/^[a-z][a-z'\u2019-]*$/i.test(words[j])) return null;
       if (words[j].length > 20) return null;
+      /*
+       * EVERY word, not the phrase.
+       *
+       * NOT_NAMES was compared against the whole string, so it caught "yes"
+       * and "rates" and let through "yes please" and "term rates" — and
+       * "Thanks, No Thanks! How can I help?" is precisely the thing this
+       * function exists to never say.
+       */
+      var w = words[j].toLowerCase();
+      for (var k = 0; k < NOT_NAMES.length; k++) if (w === NOT_NAMES[k]) return null;
     }
+
     /* A single letter is an initial or a stray keystroke, not a name to
        greet somebody by. */
     if (body.replace(/[^a-z]/gi, '').length < 2) return null;
