@@ -233,7 +233,75 @@
       'border:1px solid #d6dde5;border-radius:10px;box-sizing:border-box}',
       '.qbc-foot button{border:0;background:' + BRAND + ';color:#fff;border-radius:10px;padding:0 15px;cursor:pointer;font:inherit;font-size:13.5px}',
       '.qbc-foot button[disabled]{opacity:.5;cursor:default}',
-      '@media (max-width:420px){.qbc-panel{right:8px;bottom:8px;width:calc(100vw - 16px);height:calc(100vh - 16px)}}',
+      /* Keep the list's own scrolling to itself. Without this, reaching the
+         top of the transcript hands the gesture to the page behind it and the
+         calculator scrolls away under the panel. */
+      '.qbc-log{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}',
+
+      /*
+       * Phones.
+       * ------
+       * 560px, not 420px. A 428px iPhone reports 428 CSS pixels and was
+       * getting the desktop panel — a 376px card floating inside a 428px
+       * screen, with the page visible around it and a 13px input. The
+       * breakpoint has to clear the largest phone, not the smallest.
+       */
+      '@media (max-width:560px){',
+      /* Full screen, edge to edge. A floating card on a phone wastes the
+         only dimension there is. */
+      '.qbc-panel{inset:0;right:0;bottom:0;left:0;top:0;width:100%;max-width:100%;',
+      'height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;border-radius:0}',
+
+      /*
+       * 100dvh, with 100vh underneath it for browsers that do not know dvh.
+       * On iOS Safari 100vh is the height WITHOUT the toolbars, so a panel
+       * sized to it runs off the bottom of the screen and takes the message
+       * box with it — the one control the whole thing exists for, unreachable
+       * until you scroll a fixed element that does not scroll.
+       */
+
+      /* The home indicator sits over the send button otherwise. */
+      '.qbc-foot{padding-bottom:calc(11px + env(safe-area-inset-bottom));',
+      'padding-left:calc(12px + env(safe-area-inset-left));',
+      'padding-right:calc(12px + env(safe-area-inset-right))}',
+      '.qbc-head{padding-top:calc(13px + env(safe-area-inset-top))}',
+
+      /*
+       * 16px, and this is not a style preference.
+       * iOS zooms the whole page when a field smaller than 16px takes focus,
+       * and it does not zoom back out. Every input on this panel was 13px, so
+       * tapping the message box left somebody looking at a magnified corner
+       * of a chat they could no longer see.
+       */
+      '.qbc-foot textarea,.qbc-ident input,.qbc-cb select{font-size:16px}',
+      '.qbc-foot textarea{height:44px;padding:12px 12px}',
+
+      /* Thumbs, not cursors. 44px is the smallest target Apple and Google
+         both call reliable, and the close button was about 26. */
+      '.qbc-head button{font-size:26px;padding:6px 12px;min-width:44px;min-height:44px}',
+      '.qbc-foot button{min-height:44px;padding:0 18px}',
+      '.qbc-hand,.qbc-ident button,.qbc-invite button{min-height:44px;padding:11px 16px}',
+
+      /* A bubble at 85% of a phone leaves a stripe of dead space; at 92% the
+         text has somewhere to go. */
+      '.qbc-msg,.qbc-cite{max-width:92%}',
+      '.qbc-log{padding:12px;gap:9px}',
+      '}',
+
+      /* The launcher and the invite live above the home indicator too. */
+      '@media (max-width:560px){',
+      '.qbc-btn{right:16px;bottom:calc(16px + env(safe-area-inset-bottom));width:56px;height:56px}',
+      '.qbc-invite{right:12px;left:12px;max-width:none;',
+      'bottom:calc(84px + env(safe-area-inset-bottom))}',
+      '}',
+
+      /* Landscape on a phone is mostly keyboard. Give the transcript what is
+         left rather than the disclosure and the header. */
+      '@media (max-width:900px) and (max-height:460px) and (orientation:landscape){',
+      '.qbc-disclosure{padding:6px 14px;font-size:11px}',
+      '.qbc-head{padding:8px 14px}',
+      '}',
+
       '@media (prefers-reduced-motion:reduce){.qbc-btn{transition:none}}'
     ].join('');
   }
@@ -1014,6 +1082,9 @@
     boot: boot,
     /* Pure, and the only part with rules worth testing. */
     decideOffer: decideOffer,
+    /* Exported so the phone rules can be asserted rather than eyeballed on a
+       handset — see tests/quotebot-chat.test.mjs. */
+    css: css,
     wantsAgent: wantsAgent,
     readName: readName,
     GREETING: GREETING,
