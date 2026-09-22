@@ -311,6 +311,28 @@
       '.qbc-head{padding:8px 14px}',
       '}',
 
+      /*
+       * The same idea in portrait, applied by fitPanel when the VISIBLE
+       * viewport gets short — which on a phone means the keyboard is up.
+       * A media query cannot see this: the layout viewport does not change
+       * when an iOS keyboard opens, which is the whole finding behind this
+       * class, so it is set from the measurement instead.
+       *
+       * The disclosure is CLAMPED, never hidden. Several states require a
+       * consumer to be told plainly that they are talking to software, and to
+       * keep being told — so it stays on screen, stays readable, and opens in
+       * full on a tap or the moment the keyboard goes away. Two lines of it
+       * are visible at all times.
+       */
+      '.qbc-panel.qbc-tight .qbc-head{padding:8px 14px;',
+      'padding-top:calc(8px + env(safe-area-inset-top))}',
+      '.qbc-panel.qbc-tight .qbc-head img{width:22px}',
+      '.qbc-panel.qbc-tight .qbc-disclosure{padding:6px 14px;font-size:11px;line-height:1.45;',
+      'display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;',
+      'cursor:pointer}',
+      /* Tapped open. Wins over the clamp above by being more specific. */
+      '.qbc-panel.qbc-tight .qbc-disclosure.qbc-open{-webkit-line-clamp:unset;overflow:visible}',
+
       '@media (prefers-reduced-motion:reduce){.qbc-btn{transition:none}}'
     ].join('');
   }
@@ -554,10 +576,6 @@
        and reopened; `named` is what they said to call them; `askedEmail`
        stops the email request repeating after every answer. */
     greeted: false, named: '', askedEmail: false, answers: 0,
-    /* The host page's viewport meta, as it was before the panel asked the
-       browser to make room for the keyboard. Put back on close — the chat has
-       no business changing how the whole page behaves once it is shut. */
-    viewportWas: null,
     /* Only ever set under ?qbcdebug=1. */
     readoutTimer: null
   };
@@ -745,11 +763,25 @@
    * 100dvh in the stylesheet still does the work before the keyboard appears,
    * and on anything without visualViewport. This adjusts; it does not replace.
    */
+  /** One definition of "phone", so the CSS breakpoint and the JS agree. */
+  function isPhone() {
+    return (window.innerWidth || 0) <= PHONE_MAX;
+  }
+
+  /*
+   * How little visible height counts as "the keyboard is up".
+   *
+   * Not a guess: with the keyboard down this panel had 714 points and with it
+   * up it had 377, on the handset the readout came from. Anything under this
+   * is a screen with a keyboard across the bottom of it, whatever the device.
+   */
+  var TIGHT_BELOW = 560;
+
   function fitPanel(panel) {
     var node = panel || el.panel;
     if (!node) return;
     var vv = window.visualViewport;
-    var phone = (window.innerWidth || 0) <= PHONE_MAX;
+    var phone = isPhone();
     if (!vv || !phone) {
       /* Cleared rather than left behind. A panel carrying a phone's height
          after a rotation to landscape, or on a desktop that was narrow for a
@@ -771,6 +803,21 @@
      * is the whole of the screen when the keyboard is down. `position:fixed;
      * inset:0` puts it in the right place; this only says how tall.
      */
+    /*
+     * Give the conversation the room, when room is short.
+     *
+     * With the keyboard up there are 377 points for everything. The header
+     * took about 55 of those and the disclosure about 110, so two thirds of
+     * what was left went to furniture and a reply landed below the fold. The
+     * disclosure is not decoration and does not get hidden - several states
+     * require it to stay visible for the whole conversation - but it does not
+     * have to be five lines while somebody is typing. Tight clamps it to two
+     * and it opens again on a tap, or the moment the keyboard goes away.
+     */
+    if (typeof node.className === 'string' && node.className.indexOf('qbc-panel') === 0) {
+      var tight = vv.height < TIGHT_BELOW;
+      node.className = 'qbc-panel' + (tight ? ' qbc-tight' : '');
+    }
     if (cfg.fit) {
       node.style.height = vv.height + 'px';
     } else {
@@ -832,9 +879,8 @@
       add('panel', 'closed');
     }
     if (el.log) add('log.h', round(el.log.getBoundingClientRect().height));
-    var meta = document.querySelector('meta[name=viewport]');
-    add('iw-meta', meta && (meta.getAttribute('content') || '')
-      .indexOf('interactive-widget') >= 0 ? 'on' : 'off');
+    add('tight', el.panel && typeof el.panel.className === 'string'
+      && el.panel.className.indexOf('qbc-tight') >= 0 ? 'on' : 'off');
     add('fit', cfg.fit ? 'on' : 'off');
     return lines.join('\n');
   }
@@ -881,33 +927,29 @@
     el.readout = null;
   }
 
-  /**
-   * Ask the browser to make room for the keyboard instead of scrolling past it.
+  /*
+   * WHAT USED TO BE HERE: interactive-widget=resizes-content, set on the host
+   * page's viewport meta while the panel was open, to ask the browser to
+   * shrink the LAYOUT viewport when the keyboard opens so that 100dvh and
+   * position:fixed behave the way anybody would expect.
    *
-   * `interactive-widget=resizes-content` tells it to shrink the LAYOUT
-   * viewport when the keyboard opens, which is what makes `100dvh` and
-   * `position:fixed` behave the way anybody would expect — the panel is
-   * simply shorter while the keyboard is up, and nothing moves.
+   * It was removed on 22 September because a readout off the handset proved
+   * it does nothing where the problem is. With the property set and the
+   * keyboard up, an iPhone 17 Pro reported:
    *
-   * Set while the panel is open and put back on close, because it changes how
-   * the whole host page behaves and the chat has no business holding onto
-   * that once it is shut. Browsers that do not know the property ignore it,
-   * which is why fitPanel above still does its own sizing.
+   *   inner  402x714     layout viewport, unchanged
+   *   client 402x714     so 100dvh still resolves to 714
+   *   vv     402x377     what is actually visible
+   *
+   * If the property were working, client would have been 377. iOS Safari does
+   * not implement it. On Android it would have helped, but fitPanel already
+   * sizes the panel to vv.height there and gets the same answer, so it was
+   * redundant on the platform where it worked and useless on the one where it
+   * did not - while rewriting the host page's viewport meta on every open.
+   *
+   * Two guesses about this were shipped before anybody measured it. The
+   * measurement is in the commit; do not put it back without one.
    */
-  function keyboardResizes(on) {
-    var meta = document.querySelector('meta[name=viewport]');
-    if (!meta) return;
-    var content = meta.getAttribute('content') || '';
-    var KEY = 'interactive-widget=resizes-content';
-    if (on) {
-      if (content.indexOf('interactive-widget') >= 0) return;
-      state.viewportWas = content;
-      meta.setAttribute('content', content + (content ? ', ' : '') + KEY);
-    } else if (typeof state.viewportWas === 'string') {
-      meta.setAttribute('content', state.viewportWas);
-      state.viewportWas = null;
-    }
-  }
 
   /**
    * Bound while the panel is open and unbound when it closes.
@@ -955,7 +997,15 @@
     /* Always visible, not only on the first message. The requirement is that a
        consumer knows what they are talking to, which is a property of the
        whole conversation rather than of its opening line. */
-    el.panel.querySelector('.qbc-disclosure').textContent = DISCLOSURE;
+    var disc = el.panel.querySelector('.qbc-disclosure');
+    disc.textContent = DISCLOSURE;
+    /* Clamped only while the keyboard is up (see .qbc-tight), and a tap opens
+       it in full. Nothing is hidden: two lines stay on screen throughout, and
+       the clamp is gone the moment the keyboard is. */
+    disc.addEventListener('click', function () {
+      disc.className = disc.className.indexOf('qbc-open') >= 0
+        ? 'qbc-disclosure' : 'qbc-disclosure qbc-open';
+    });
 
     el.log = el.panel.querySelector('.qbc-log');
     el.input = el.panel.querySelector('textarea');
@@ -986,7 +1036,6 @@
 
     /* Before the focus below, so the first keyboard event is already being
        listened for rather than arriving at nothing. */
-    keyboardResizes(true);
     watchViewport(true);
     fitPanel();
     /* iOS settles the viewport over a second or so and does not always fire
@@ -997,18 +1046,29 @@
       state.readoutTimer = root.setInterval(showReadout, 400);
     }
 
-    el.input.focus();
-    /* iOS settles the viewport a moment after the keyboard animates in, and
-       the numbers during the animation are not the numbers afterwards. One
-       late correction costs nothing and is the difference between a header
-       that is visible and one that is half off the top. */
-    setTimeout(fitPanel, 300);
+    /*
+     * NOT FOCUSED ON A PHONE, and this is the fix rather than a preference.
+     *
+     * Focusing the box opens the keyboard, and the keyboard takes 337 of the
+     * 714 points this panel has - measured, on an iPhone 17 Pro. So the panel
+     * opened, and before the visitor had read a word, nearly half of it was
+     * gone. What was left had to carry the header, the disclosure, the
+     * message box AND the conversation, which is why replies were arriving
+     * out of sight.
+     *
+     * On a desktop the keyboard costs nothing and focusing is a courtesy, so
+     * it still happens there. On a phone the visitor taps the box when they
+     * have something to say, which is also when they want the keyboard.
+     */
+    if (!isPhone()) {
+      el.input.focus();
+      setTimeout(fitPanel, 300);
+    }
   }
 
   function close() {
     state.open = false;
     watchViewport(false);
-    keyboardResizes(false);
     if (state.readoutTimer) {
       root.clearInterval(state.readoutTimer);
       state.readoutTimer = null;
@@ -1394,13 +1454,13 @@
        handset — see tests/quotebot-chat.test.mjs. */
     css: css,
     PHONE_MAX: PHONE_MAX,
+    isPhone: isPhone,
     cfg: cfg,
     readout: readout,
     showReadout: showReadout,
     hideReadout: hideReadout,
     fitPanel: fitPanel,
     watchViewport: watchViewport,
-    keyboardResizes: keyboardResizes,
     wantsAgent: wantsAgent,
     readName: readName,
     GREETING: GREETING,
