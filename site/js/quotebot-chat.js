@@ -57,11 +57,25 @@
    * before any request is made — asking the server for the disclosure would
    * mean opening a conversation, and therefore writing a session row with a
    * hashed IP, for every visitor who is merely offered one.
+   *
+   * The match is now ENFORCED rather than requested: the backend repo's
+   * tests/disclosure-matches.test.mjs reads both files and fails if they
+   * differ by a character. For years this comment asked politely and nothing
+   * checked, which is how the sentence on a live page and the sentence in the
+   * source of truth come to say different things.
+   *
+   * The second sentence, added 22 September 2026, is why that matters more
+   * than it used to. Staff can now read a conversation in progress and may
+   * join one, and neither is covered by telling somebody they can ASK for a
+   * human. "business hours" means the hours in OFFICE in the backend's
+   * shared/callback.ts — Mon-Fri, 8am-5pm Mountain. Change the hours and this
+   * sentence moves too.
    */
   var DISCLOSURE =
     'You are chatting with an automated assistant. It can explain how coverage works, '
     + 'but it cannot give advice or quote rates — a licensed agent does that, and you can '
-    + 'ask for one at any point.';
+    + 'ask for one at any point. A licensed agent may read this chat, and during business '
+    + 'hours may check in on you.';
 
   var BRAND = '#1e72b9';
 
@@ -74,6 +88,18 @@
    * meets the real one.
    */
   var MAX_CHARS = 2000;
+
+  /**
+   * The states a visitor can pick from, and the reason it is a list.
+   *
+   * A typed state is the one field on this form that can fail silently: the
+   * server normalizes "Colorado" and "co" alike, but "Colordao" normalizes to
+   * nothing, and a callback with no state routes to whoever is next in the
+   * rotation rather than to somebody licensed where this person lives. That
+   * lead looks handled and is not. A list cannot be mistyped.
+   */
+  var STATES = ('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS '
+    + 'MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY').split(' ');
 
   /** Engaged, then idle this long → they are stuck rather than reading. */
   var STALL_MS = 45000;
@@ -194,6 +220,14 @@
       '.qbc-ident button{font:inherit;font-size:13px;border-radius:8px;padding:7px 12px;cursor:pointer;border:1px solid #d6dde5;background:#fff}',
       '.qbc-ident button.qbc-yes{background:' + BRAND + ';border-color:' + BRAND + ';color:#fff}',
       '.qbc-err{color:#8f2d24;font-size:12px;margin-top:4px}',
+      /* The callback form. Same furniture as the identity prompt, plus a
+         select for the state — a typed state that does not resolve is a lead
+         routed to nobody licensed, and a list makes that impossible. */
+      '.qbc-cb select{width:100%;box-sizing:border-box;font:inherit;font-size:13px;padding:7px 9px;',
+      'border:1px solid #d6dde5;border-radius:8px;margin-bottom:7px;background:#fff}',
+      '.qbc-cb .qbc-half{display:flex;gap:7px}',
+      '.qbc-cb .qbc-half input{flex:1}',
+      '.qbc-cb[aria-busy="true"]{opacity:.6;pointer-events:none}',
       '.qbc-foot{display:flex;gap:8px;padding:11px 12px;border-top:1px solid #e8edf2}',
       '.qbc-foot textarea{flex:1;font:inherit;font-size:13.5px;resize:none;height:38px;padding:9px 11px;',
       'border:1px solid #d6dde5;border-radius:10px;box-sizing:border-box}',
@@ -204,14 +238,194 @@
     ].join('');
   }
 
+  /**
+   * Did they just ask for a person?
+   *
+   * Scott's ask was that somebody can type "Agent" at any point and be put
+   * through, so the word has to work as well as the button. Kept here as a
+   * plain match on the whole message rather than as a rule in the compliance
+   * gate: the gate decides what may be ANSWERED, and this decides what the
+   * visitor meant by asking. Confusing the two would put a keyword list in
+   * the middle of the thing that has to be defensible to a regulator.
+   *
+   * Matched only when the request is the whole message. "Is an agent required
+   * to sell an annuity?" is a question about agents, not a request for one,
+   * and answering it with a callback form is the kind of thing that makes
+   * people stop typing.
+   */
+  function wantsAgent(text) {
+    var t = String(text || '').trim().toLowerCase().replace(/[.!?]+$/, '');
+    if (!t || t.length > 40) return false;
+    return /^(agent|human|a human|real person|person|rep|representative|a person|a human|a rep|an agent|a real person|live person|live agent|someone to talk to|talk to (an? )?(agent|human|person|someone|somebody)|speak (to|with) (an? )?(agent|human|person|someone|somebody)|(can|could) i (talk|speak) (to|with) (an? )?(agent|human|person|someone|somebody)|i want (to talk to )?(an? )?(agent|human|person)|call me|have (an? )?agent call me|get me (an? )?(agent|human|person))$/.test(t);
+  }
+
+  /**
+   * The opening, said before anybody types.
+   *
+   * Written here rather than fetched, for the same reason the disclosure is:
+   * asking the server for a greeting would open a conversation — and write a
+   * session row with a hashed IP — for every visitor who opened the panel and
+   * wandered off. Most of them do.
+   *
+   * No human name, and that is the rule rather than a preference. The
+   * console's assistant is called Evan because the people using it are
+   * licensed staff who know what it is; a visitor reasonably might not, and
+   * several states now take a dim view of exactly that confusion.
+   */
+  var GREETING = 'Hi there! Before we get started, may I ask your first name?';
+
+  /** After a name. Only ever used with a name that was actually given. */
+  function thanks(name) {
+    return 'Thanks, ' + name + '! How can I help?';
+  }
+
+  /**
+   * The email ask, after the first real answer.
+   *
+   * Says what is true TODAY. When a transcript can actually be sent (QBP-46 —
+   * SES is unverified, and until it is, a send is recorded and marked as not
+   * sent), this is the one line that changes, and it should change by asking
+   * the server rather than by somebody remembering. Promising a transcript
+   * before then would be the /apply mistake: telling somebody something
+   * happened when nothing did, to the people who trusted it enough to wait.
+   */
+  /**
+   * How many real answers before the email is asked for.
+   *
+   * Two, not one. Asking straight after the first answer means somebody has
+   * had one question answered and is immediately being asked for their
+   * address, which reads as the price of the next one. A second answer is
+   * enough for them to have decided whether this is worth anything, and the
+   * ask lands as an offer rather than a toll.
+   *
+   * A name reply does not count — it is not an answer to anything.
+   */
+  var ASK_EMAIL_AFTER = 2;
+
+  var EMAIL_ASK =
+    'What\u2019s your email? That way an agent can pick up where we left off '
+    + 'instead of starting over.';
+
+  /**
+   * Words that are not names, however much they look like one.
+   *
+   * Two kinds. The first is what people actually reply to a greeting —
+   * "hi", "sure", "rather not". The second is this site's own vocabulary: a
+   * visitor on a MYGA calculator who types "annuities" has named a topic, and
+   * answering "Thanks, Annuities! How can I help?" is the sort of thing
+   * people screenshot.
+   *
+   * The list is imperfect and will stay imperfect, which is survivable
+   * because the two failures are not the same size. Missing a real name costs
+   * nothing — the conversation carries on and the name is asked for again
+   * later. Greeting somebody by a product name cannot be taken back. So when
+   * this is unsure, it refuses.
+   */
+  var NOT_NAMES = [
+    /* topics, not people */
+    'annuity', 'annuities', 'insurance', 'life', 'life insurance', 'term',
+    'term life', 'whole life', 'myga', 'iul', 'ltc', 'rates', 'rate', 'quote',
+    'quotes', 'policy', 'policies', 'coverage', 'cover', 'premium', 'premiums',
+    'retirement', 'income', 'beneficiary', 'surrender', 'help', 'info',
+    'information', 'question', 'questions', 'pricing', 'price', 'cost',
+    'money', 'claim', 'claims', 'account', 'application',
+    'hi', 'hey', 'hello', 'yo', 'sup', 'thanks', 'thank you', 'ok', 'okay',
+    'yes', 'yeah', 'yep', 'no', 'nope', 'sure', 'maybe', 'none', 'nothing',
+    'anonymous', 'nobody', 'test', 'testing', 'na', 'n a', 'skip', 'rather not',
+    'why', 'who', 'what', 'none of your business',
+  ];
+
+  /**
+   * Did they answer with a name, and if so what is it?
+   *
+   * Returns the name or null, and the null cases are the ones that matter.
+   * Replying "Thanks, Annuities! How can I help?" to somebody who typed a
+   * question is the kind of thing people screenshot, so this refuses anything
+   * it is not fairly sure about and the conversation simply carries on.
+   *
+   * Lives in the widget beside wantsAgent for the same reason that does: the
+   * compliance gate decides what may be ANSWERED and has to stay defensible
+   * to a regulator, and a guess at what somebody MEANT does not belong in the
+   * middle of it.
+   */
+  function readName(text) {
+    var raw = String(text || '').trim();
+    if (!raw || raw.length > 40) return null;
+    if (raw.indexOf('?') >= 0) return null;
+    if (wantsAgent(raw)) return null;
+
+    /* "I'm Dana", "my name is Dana", "this is Dana", "Dana here". */
+    var lead = /^(?:i\s*a?m|i'm|my name is|name(?:'s| is)?|this is|it'?s|call me)\s+(.+)$/i;
+    var m = lead.exec(raw);
+    var body = m ? m[1] : raw;
+    body = body.replace(/[.,!]+$/, '').replace(/\s+here$/i, '').trim();
+    if (!body) return null;
+
+    var low = body.toLowerCase();
+    for (var i = 0; i < NOT_NAMES.length; i++) if (low === NOT_NAMES[i]) return null;
+
+    /* Nobody is called "a something". An article is the cheapest available
+       signal that this is a description rather than a name, and it catches
+       the whole family at once instead of one phrase at a time. */
+    if (/^(a|an|the|some|any|my|your)\s/i.test(low)) return null;
+
+    /* At most two words, letters only, plus the punctuation real names carry.
+       Three words is usually a sentence, and a sentence is usually a
+       question somebody forgot the mark on. */
+    var words = body.split(/\s+/);
+    if (words.length > 2) return null;
+    for (var j = 0; j < words.length; j++) {
+      if (!/^[a-z][a-z'\u2019-]*$/i.test(words[j])) return null;
+      if (words[j].length > 20) return null;
+    }
+    /* A single letter is an initial or a stray keystroke, not a name to
+       greet somebody by. */
+    if (body.replace(/[^a-z]/gi, '').length < 2) return null;
+
+    /*
+     * Title case, with the rest LOWERED, across the separators real names
+     * carry.
+     *
+     * Two bugs live here and both were caught by tests rather than by
+     * reading. Keeping the tail as typed greets "DANA" as "DANA", which reads
+     * as the system shouting back. Lowering the tail without splitting on the
+     * hyphen turns "Mary-Jane" into "Mary-jane", which is worse than either,
+     * because it is a name somebody will see spelled wrong every turn.
+     */
+    return words
+      .map(function (w) {
+        return w.split(/([-'\u2019])/).map(function (part) {
+          /* Tested for BEING a separator rather than for being short: the
+             length guard that was here skipped the "o" of o'brien, which then
+             kept its lower case forever. */
+          if (/^[-'\u2019]$/.test(part)) return part;
+          return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+        }).join('');
+      })
+      .join(' ');
+  }
+
   /* ------------------------------------------------------------------ */
   /* The widget                                                          */
   /* ------------------------------------------------------------------ */
 
-  var cfg = { endpoint: '', tool: 'web', trackingCode: null };
+  var cfg = {
+    endpoint: '', tool: 'web', trackingCode: null,
+    /* Opt-in. Absent means this widget never looks at the host page's fields
+       at all, which is the default on purpose — see readPage(). */
+    scanPage: false,
+    extra: { state: '', firstName: '', lastName: '', email: '' }
+  };
   var state = {
     engaged: false, lastInputAt: 0, resultsAt: 0,
-    offered: false, open: false, messages: 0, captured: false, dismissedUntil: 0, origin: null
+    offered: false, open: false, messages: 0, captured: false, dismissedUntil: 0, origin: null,
+    /* What the host page has told us about the visitor. Only ever used to
+       prefill a form they are already being shown; never sent on its own. */
+    context: {},
+    /* The opening. `greeted` stops it being said twice if the panel is closed
+       and reopened; `named` is what they said to call them; `askedEmail`
+       stops the email request repeating after every answer. */
+    greeted: false, named: '', askedEmail: false, answers: 0
   };
   var sessionId = null;
   var el = {};
@@ -222,6 +436,14 @@
     if (s) {
       cfg.endpoint = s.getAttribute('data-endpoint') || '';
       cfg.tool = s.getAttribute('data-tool') || 'web';
+      /* data-context turns the scan on; the four optional selectors name
+         fields the scan cannot find on its own — a state dropdown with no
+         autocomplete attribute, typically. */
+      cfg.scanPage = s.hasAttribute('data-context');
+      cfg.extra.state = s.getAttribute('data-state') || '';
+      cfg.extra.firstName = s.getAttribute('data-first') || '';
+      cfg.extra.lastName = s.getAttribute('data-last') || '';
+      cfg.extra.email = s.getAttribute('data-email') || '';
     }
     try {
       var m = /[?&]qb=([^&#]+)/.exec(root.location ? root.location.search : '');
@@ -398,6 +620,19 @@
     });
 
     document.body.appendChild(el.panel);
+
+    /*
+     * The opening, drawn locally and sent nowhere.
+     *
+     * Said once per visitor rather than once per open: somebody who closes
+     * the panel and comes back has already been asked their name, and asking
+     * again reads as a system with no memory of a conversation it is holding.
+     */
+    if (!state.greeted) {
+      state.greeted = true;
+      bubble('qbc-them', GREETING);
+    }
+
     el.input.focus();
   }
 
@@ -424,7 +659,33 @@
     el.input.value = '';
     bubble('qbc-me', text);
     state.messages++;
-    ask({ message: text });
+
+    /*
+     * An answer to the greeting, if that is what it is.
+     *
+     * Only ever considered before they have said anything else — once a
+     * conversation is under way, a one-word message is far more likely to be
+     * a topic than a name, and "Thanks, Surrender!" is not recoverable.
+     *
+     * NOTE that this NEVER withholds an answer. If the reply is a question,
+     * it goes straight through. session.ts puts it plainly: an assistant that
+     * holds back insurance information until it has your details is doing
+     * something we would not want described back to us.
+     */
+    var name = (!state.named && state.messages === 1) ? readName(text) : null;
+    if (name) {
+      state.named = name;
+      bubble('qbc-them', thanks(name));
+      /* Sent with no message: a name is not a question, and answering one
+         would mean putting "Dana" to a model. */
+      ask({ firstName: name });
+      return;
+    }
+
+    /* Typing "agent" does what pressing the button does. The message still
+       goes to the server and is still answered — asking for a person is not
+       a reason to stop talking to them mid-sentence. */
+    ask(wantsAgent(text) ? { message: text, handoffRequested: true } : { message: text });
   }
 
   function ask(extra) {
@@ -438,7 +699,7 @@
     };
     for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) body[k] = extra[k];
 
-    root.fetch(cfg.endpoint, {
+    return root.fetch(cfg.endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body)
@@ -448,6 +709,9 @@
         sessionId = res.sessionId;
         set('sessionStorage', K_SESSION, sessionId);
       }
+      /* The server's copy wins: it survives a reload, and this widget's does
+         not. */
+      if (res.firstName && !state.named) state.named = res.firstName;
       if (res.reply) render(res);
       if (res.identityError) {
         var e = document.createElement('div');
@@ -455,14 +719,51 @@
         e.textContent = res.identityError;
         el.log.appendChild(e);
       }
-      if (res.askIdentity) identity(res.askIdentity);
+      /*
+       * What came of a callback request. Rendered as an ordinary bubble
+       * rather than a banner, because it is the answer to the thing they just
+       * asked for and it carries a time they may want to scroll back to.
+       */
+      if (res.callbackTaken && res.callbackTaken.message) {
+        bubble('qbc-them', res.callbackTaken.message);
+      }
+      /*
+       * The callback form supersedes the identity prompt — it asks for
+       * everything that one does and two more besides, so showing both would
+       * ask the same person for their email twice in the same panel.
+       */
+      if (res.askCallback) callback(res.askCallback);
+      else if (res.askIdentity) identity(res.askIdentity);
+
+      /*
+       * The email ask, once, after a real answer.
+       *
+       * After rather than before, and once rather than on every turn. It is
+       * also skipped entirely when the server is already showing a form of
+       * its own — being asked for an email in a sentence and in a box at the
+       * same time reads as a system arguing with itself.
+       */
+      if (res.reply) state.answers++;
+      if (state.answers >= ASK_EMAIL_AFTER && !state.askedEmail
+          && !res.askCallback && !res.askIdentity && !res.callbackTaken) {
+        state.askedEmail = true;
+        bubble('qbc-them', EMAIL_ASK);
+      }
+      return res;
     }).catch(function () {
-      thinking.textContent =
-        'I could not reach the assistant just then. Try again, or ask for an agent and '
-        + 'somebody will pick this up.';
-    }).then(function () {
+      if (thinking.parentNode) {
+        thinking.textContent =
+          'I could not reach the assistant just then. Try again, or ask for an agent and '
+          + 'somebody will pick this up.';
+      }
+      /* Returned rather than rethrown, so a caller chaining on this (the
+         callback form) gets a plain "nothing came back" instead of an
+         unhandled rejection, and can say so where the person is looking. */
+      return null;
+    }).then(function (res) {
       el.send.disabled = false;
       el.log.scrollTop = el.log.scrollHeight;
+      return res;
     });
   }
 
@@ -500,6 +801,175 @@
       });
       el.log.appendChild(b);
     }
+  }
+
+  /**
+   * What the visitor has already typed into this page.
+   *
+   * Read at the moment the callback form is drawn, not watched — no
+   * listeners, nothing stale, and whatever is on screen when they ask is what
+   * they get back. Used for one thing only: not asking somebody twice for
+   * something already in front of them.
+   *
+   * OFF unless the page says `data-context` on the script tag. A chat widget
+   * that reads the fields of whatever page it is dropped into, without being
+   * asked, is doing something nobody would want described back to them — and
+   * this one is embedded on pages it did not write. The opt-in is the page
+   * saying "these are mine and they are about this visitor".
+   *
+   * Sections are respected. The MYGA page marks its buyer fields
+   * `section-buyer` and a second person's `section-joint`; the person asking
+   * to be rung is the buyer, so a field belonging to any other section is
+   * skipped rather than guessed at. That is the QBP-27 rule read from the
+   * other end.
+   */
+  function readPage() {
+    var found = { state: '', firstName: '', lastName: '', email: '' };
+    if (!cfg.scanPage || !root.document) return found;
+
+    var TOKENS = {
+      firstName: 'given-name', lastName: 'family-name',
+      email: 'email', state: 'address-level1'
+    };
+
+    for (var key in TOKENS) {
+      if (!Object.prototype.hasOwnProperty.call(TOKENS, key)) continue;
+
+      /* A selector the page named explicitly wins: it is there precisely
+         because the scan below would not have found the field. */
+      var sel = cfg.extra[key];
+      if (sel) {
+        /* Tried in the order the PAGE listed them, not document order. On the
+           MYGA page "#cf-state,#rateState" means "what they told the lead
+           form, and failing that what they picked to see rates" — handing
+           that whole string to querySelector would silently reverse it, since
+           the rate picker sits higher up the document. */
+        var parts = sel.split(',');
+        for (var j = 0; j < parts.length && !found[key]; j++) {
+          var one = parts[j].trim();
+          if (!one) continue;
+          try {
+            var named = root.document.querySelector(one);
+            if (named && named.value) found[key] = String(named.value).trim();
+          } catch (e) { /* a bad selector is the page's problem, not a crash */ }
+        }
+      }
+      if (found[key]) continue;
+
+      var nodes = root.document.querySelectorAll('[autocomplete~="' + TOKENS[key] + '"]');
+      for (var i = 0; i < nodes.length; i++) {
+        var ac = String(nodes[i].getAttribute('autocomplete') || '');
+        var section = /(^|\s)(section-[^\s]+)/.exec(ac);
+        if (section && section[2] !== 'section-buyer') continue;
+        if (nodes[i].value) { found[key] = String(nodes[i].value).trim(); break; }
+      }
+    }
+
+    if (found.state) found.state = found.state.toUpperCase().slice(0, 2);
+    return found;
+  }
+
+  /**
+   * The callback form, shown when they have asked for a human.
+   *
+   * Unlike the identity prompt, this one is a promise rather than an offer,
+   * and the difference shows in what it insists on: a number to ring and a
+   * state to be licensed in. The server refuses without either, so asking for
+   * them here is not politeness — it is the difference between a callback
+   * that reaches somebody who can write the business and one that sits with
+   * an agent who cannot.
+   *
+   * The form STAYS PUT on a rejection. Re-drawing it empty because a phone
+   * number was two digits short is how somebody who was willing to give you
+   * their details stops being willing.
+   *
+   * On autofill: the fields carry plain person tokens with no section prefix,
+   * the same as the identity prompt, and that is deliberate after QBP-27. The
+   * calculator's own fields declare `section-buyer`, so the browser treats
+   * these as a separate group and fills them from the visitor's own profile —
+   * which is right, because the person asking to be rung is the person at the
+   * keyboard, and not necessarily the person the quote was run for.
+   */
+  function callback(prompt) {
+    var box = document.createElement('div');
+    box.className = 'qbc-ident qbc-cb';
+
+    var opts = '<option value="">State you live in…</option>';
+    for (var i = 0; i < STATES.length; i++) {
+      opts += '<option value="' + STATES[i] + '">' + STATES[i] + '</option>';
+    }
+
+    box.innerHTML = '<b></b><p></p>'
+      + '<div class="qbc-half">'
+      + '<input type="text" placeholder="First name" autocomplete="given-name">'
+      + '<input type="text" placeholder="Last name" autocomplete="family-name">'
+      + '</div>'
+      + '<input type="email" placeholder="Email" autocomplete="email">'
+      + '<input type="tel" placeholder="Phone" autocomplete="tel">'
+      + '<select autocomplete="address-level1">' + opts + '</select>'
+      + '<div class="qbc-err" hidden></div>'
+      + '<div class="qbc-row"><button type="button" class="qbc-yes"></button>'
+      + '<button type="button"></button></div>';
+
+    box.querySelector('b').textContent = prompt.title || '';
+    box.querySelector('p').textContent = prompt.body || '';
+
+    var ins = box.querySelectorAll('input');
+    var sel = box.querySelector('select');
+    var err = box.querySelector('.qbc-err');
+    var btns = box.querySelectorAll('button');
+    btns[0].textContent = prompt.submit || 'Request a callback';
+    btns[1].textContent = prompt.dismiss || 'No thanks';
+
+    /* Whatever the page already knows. A state dropdown the visitor has
+       already filled in once on the calculator is the field most likely to be
+       abandoned, and asking twice for something on screen is its own answer
+       about how much attention was paid. */
+    var page = readPage();
+    /* An explicit context() call beats the scan: a page that bothered to tell
+       us knows something the fields do not. */
+    var known = {
+      state: state.context.state || page.state,
+      firstName: state.context.firstName || page.firstName,
+      lastName: state.context.lastName || page.lastName,
+      email: state.context.email || page.email
+    };
+    if (known.state && STATES.indexOf(known.state) >= 0) sel.value = known.state;
+    if (known.firstName && !ins[0].value) ins[0].value = known.firstName;
+    if (known.lastName && !ins[1].value) ins[1].value = known.lastName;
+    if (known.email && !ins[2].value) ins[2].value = known.email;
+
+    btns[0].addEventListener('click', function () {
+      err.hidden = true;
+      box.setAttribute('aria-busy', 'true');
+      ask({
+        callback: {
+          firstName: ins[0].value, lastName: ins[1].value, email: ins[2].value,
+          phone: ins[3].value, state: sel.value
+        }
+      }).then(function (res) {
+        box.removeAttribute('aria-busy');
+        if (res && res.callbackTaken) {
+          /* Done. The confirmation is already a bubble in the log, so the
+             form goes rather than sitting there inviting a second one. */
+          if (box.parentNode) box.parentNode.removeChild(box);
+          return;
+        }
+        err.textContent = (res && res.callbackError)
+          ? res.callbackError
+          : 'That did not go through. Try once more, or call the number at the top of this page.';
+        err.hidden = false;
+        el.log.scrollTop = el.log.scrollHeight;
+      });
+    });
+
+    btns[1].addEventListener('click', function () {
+      if (box.parentNode) box.parentNode.removeChild(box);
+    });
+
+    el.log.appendChild(box);
+    el.log.scrollTop = el.log.scrollHeight;
+    ins[0].focus();
   }
 
   /**
@@ -544,6 +1014,13 @@
     boot: boot,
     /* Pure, and the only part with rules worth testing. */
     decideOffer: decideOffer,
+    wantsAgent: wantsAgent,
+    readName: readName,
+    GREETING: GREETING,
+    EMAIL_ASK: EMAIL_ASK,
+    ASK_EMAIL_AFTER: ASK_EMAIL_AFTER,
+    STATES: STATES,
+    readPage: readPage,
     invitation: invitation,
     DISCLOSURE: DISCLOSURE,
     STALL_MS: STALL_MS,
@@ -552,6 +1029,22 @@
     MAX_CHARS: MAX_CHARS,
     /* A calculator can drive it directly rather than waiting to be noticed. */
     open: function () { open('api'); },
+    /**
+     * What the page already knows about the visitor — state, and a name or
+     * email if the calculator has them.
+     *
+     * Used for one thing: prefilling the callback form so nobody is asked
+     * twice for something already on their screen. It is NOT sent to the
+     * server on its own, because a page can call this with anything and a
+     * lead built from an unprompted claim is a lead nobody typed.
+     */
+    context: function (c) {
+      if (!c) return;
+      if (c.state) state.context.state = String(c.state).trim().toUpperCase().slice(0, 2);
+      if (c.firstName) state.context.firstName = String(c.firstName);
+      if (c.lastName) state.context.lastName = String(c.lastName);
+      if (c.email) state.context.email = String(c.email);
+    },
     results: function () { state.resultsAt = Date.now(); },
     captured: function () { state.captured = true; }
   };

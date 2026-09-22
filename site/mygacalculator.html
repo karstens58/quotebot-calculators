@@ -289,6 +289,107 @@ footer { background: var(--primary-dark); padding: 40px 32px 32px; }
   .footer-links { align-items: flex-start; text-align: left; }
   .footer-link-row { justify-content: flex-start; }
 }
+
+/* ── APPLY REVIEW MODAL ─────────────────────────────────────────────────────
+ * What somebody confirms before an application is started for them.
+ *
+ * Pressing Apply used to record that they were interested and stop. An agent
+ * then rang them to ask for the address and who was going to own it — which
+ * is exactly what they had been sitting in front of a form ready to type.
+ * This asks while they are still there.
+ *
+ * A MODAL rather than a page. They are mid-calculation with their own numbers
+ * on screen, and those numbers are why they pressed the button; navigating
+ * away loses the context that made it worth pressing. It closes without
+ * losing anything typed into it.
+ * ------------------------------------------------------------------------ */
+.qbm-veil { position: fixed; inset: 0; background: rgba(12,22,36,.55);
+  display: none; align-items: flex-start; justify-content: center;
+  z-index: 9000; padding: 24px 14px; overflow-y: auto;
+  -webkit-overflow-scrolling: touch; }
+.qbm-veil.open { display: flex; }
+
+.qbm { background: #fff; border-radius: 16px; width: 100%; max-width: 660px;
+  box-shadow: 0 24px 70px rgba(12,22,36,.34); overflow: hidden;
+  font-family: 'Plus Jakarta Sans', sans-serif; margin: auto; }
+
+.qbm-head { padding: 20px 24px 16px; border-bottom: 1px solid #e6ebf2;
+  display: flex; gap: 14px; align-items: flex-start; }
+.qbm-head h2 { margin: 0 0 3px; font-size: 19px; font-weight: 800; color: #0f2540; }
+.qbm-head p { margin: 0; font-size: 13px; color: #5b6b80; line-height: 1.5; }
+.qbm-x { margin-left: auto; background: none; border: 0; font-size: 22px;
+  line-height: 1; color: #8a9ab5; cursor: pointer; padding: 0 2px; }
+.qbm-x:hover { color: #0f2540; }
+
+.qbm-body { padding: 4px 24px 20px; }
+
+.qbm-sec { padding: 18px 0 4px; border-top: 1px solid #eef1f6; }
+.qbm-sec:first-child { border-top: 0; }
+.qbm-sec > h3 { margin: 0 0 2px; font-size: 11px; font-weight: 800;
+  letter-spacing: .07em; text-transform: uppercase; color: #8a9ab5; }
+.qbm-sec > .qbm-why { margin: 0 0 12px; font-size: 12.5px; color: #5b6b80;
+  line-height: 1.5; }
+
+.qbm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.qbm-grid .wide { grid-column: 1 / -1; }
+@media (max-width: 560px) { .qbm-grid { grid-template-columns: 1fr; } }
+
+.qbm-f > label { display: block; font-size: 11px; font-weight: 700;
+  color: #5b6b80; margin-bottom: 4px; }
+.qbm-f input, .qbm-f select { width: 100%; box-sizing: border-box;
+  padding: 9px 10px; border: 1.5px solid #d8e2f0; border-radius: 9px;
+  font-family: inherit; font-size: 13.5px; color: #0f2540; background: #fff; }
+.qbm-f input:focus, .qbm-f select:focus { outline: none; border-color: #2f6fed; }
+.qbm-f input.bad, .qbm-f select.bad { border-color: #b91c1c; background: #fef4f4; }
+
+/* The contract, restated. Read-only on purpose: it is what they chose on the
+   page behind this, and an editable copy would be a second place to change
+   it that the calculator would then disagree with. */
+.qbm-chosen { background: #f2fbf5; border: 1px solid #bfe6cd; border-radius: 12px;
+  padding: 13px 15px; }
+.qbm-chosen .qbm-row { display: flex; justify-content: space-between; gap: 12px;
+  font-size: 13px; padding: 3px 0; }
+.qbm-chosen .k { color: #3f5a49; }
+.qbm-chosen .v { font-weight: 800; color: #14532d; text-align: right; }
+
+.qbm-choice { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.qbm-choice label { display: inline-flex; gap: 7px; align-items: center;
+  font-size: 13.5px; color: #0f2540; cursor: pointer; }
+
+.qbm-ben { border: 1px solid #e6ebf2; border-radius: 11px; padding: 11px 12px;
+  margin-bottom: 9px; }
+.qbm-ben .qbm-bh { display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; }
+.qbm-ben .qbm-bh .n { font-size: 11px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; color: #8a9ab5; }
+.qbm-ben .qbm-bh .sp { flex: 1 1 auto; }
+
+button.qbm-mini { background: #fff; border: 1px solid #d8e2f0; border-radius: 999px;
+  padding: 4px 11px; font-family: inherit; font-size: 11.5px; font-weight: 700;
+  color: #2f6fed; cursor: pointer; }
+button.qbm-mini:hover { border-color: #2f6fed; }
+button.qbm-mini.danger { color: #b91c1c; }
+
+.qbm-total { font-size: 12.5px; color: #5b6b80; margin: 2px 0 0;
+  font-variant-numeric: tabular-nums; }
+.qbm-total b { color: #0f2540; }
+.qbm-total.over b, .qbm-total.under b { color: #b45309; }
+
+.qbm-err { margin: 14px 0 0; padding: 11px 13px; border-radius: 10px;
+  background: #fef4f4; border-left: 3px solid #b91c1c; color: #7f1d1d;
+  font-size: 13px; line-height: 1.5; }
+
+.qbm-foot { padding: 16px 24px 22px; border-top: 1px solid #e6ebf2;
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.qbm-foot .note { font-size: 11.5px; color: #8a9ab5; line-height: 1.45;
+  flex: 1 1 200px; }
+button.qbm-go { background: #16a34a; color: #fff; border: 0; border-radius: 10px;
+  padding: 12px 22px; font-family: inherit; font-size: 14px; font-weight: 800;
+  cursor: pointer; box-shadow: 0 6px 20px rgba(22,163,74,.3); }
+button.qbm-go:disabled { opacity: .5; cursor: default; box-shadow: none; }
+button.qbm-back { background: none; border: 0; color: #5b6b80;
+  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+
 </style>
   <script src="/js/quotebot-capture.js"
           data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
@@ -296,7 +397,7 @@ footer { background: var(--primary-dark); padding: 40px 32px 32px; }
   <!-- The assistant. Never opens itself on a timer; see the file header. -->
   <script src="/js/quotebot-chat.js"
           data-endpoint="https://im62dp4hwe34ez7lmhvtfk75xa0zkkxv.lambda-url.us-east-2.on.aws/"
-          data-tool="myga"></script>
+          data-tool="myga" data-state="#cf-state,#rateState" data-context></script>
 <style>
   /* Rate-availability states. Added when rates moved server-side. */
   .term-empty { font-size: 13px; color: #6b7a8d; padding: 14px 0; }
@@ -421,19 +522,19 @@ footer { background: var(--primary-dark); padding: 40px 32px 32px; }
       <div class="grid-2" style="margin-bottom:10px;">
         <div class="field">
           <label>First Name <span class="req-star">*</span></label>
-          <input type="text" id="cf-fname" placeholder="Jane" autocomplete="given-name">
+          <input type="text" id="cf-fname" placeholder="Jane" autocomplete="section-buyer given-name">
           <span class="field-error" id="err-fname"></span>
         </div>
         <div class="field">
           <label>Last Name <span class="req-star">*</span></label>
-          <input type="text" id="cf-lname" placeholder="Doe" autocomplete="family-name">
+          <input type="text" id="cf-lname" placeholder="Doe" autocomplete="section-buyer family-name">
           <span class="field-error" id="err-lname"></span>
         </div>
       </div>
       <div class="grid-2">
         <div class="field">
           <label>Date of Birth <span class="req-star">*</span></label>
-          <input type="date" id="cf-dob" autocomplete="bday">
+          <input type="date" id="cf-dob" autocomplete="section-buyer bday">
           <span class="field-error" id="err-dob"></span>
         </div>
         <div class="field">
@@ -458,12 +559,12 @@ footer { background: var(--primary-dark); padding: 40px 32px 32px; }
       <div class="grid-2" style="margin-top:10px;">
         <div class="field">
           <label>Email Address <span class="req-star">*</span></label>
-          <input type="email" id="cf-email" placeholder="jane@example.com" autocomplete="email">
+          <input type="email" id="cf-email" placeholder="jane@example.com" autocomplete="section-buyer email">
           <span class="field-error" id="err-email"></span>
         </div>
         <div class="field">
           <label>Phone Number <span class="req-star">*</span></label>
-          <div class="phone-wrap"><span class="phone-flag">🇺🇸</span><input type="tel" id="cf-phone" placeholder="(555) 000-0000" autocomplete="tel"></div>
+          <div class="phone-wrap"><span class="phone-flag">🇺🇸</span><input type="tel" id="cf-phone" placeholder="(555) 000-0000" autocomplete="section-buyer tel"></div>
           <span class="field-error" id="err-phone"></span>
         </div>
       </div>
@@ -482,11 +583,11 @@ footer { background: var(--primary-dark); padding: 40px 32px 32px; }
         <div class="grid-2">
           <div class="field">
             <label>First Name</label>
-            <input type="text" id="cf-joint-fname" placeholder="John" autocomplete="given-name">
+            <input type="text" id="cf-joint-fname" placeholder="John" autocomplete="section-joint given-name">
           </div>
           <div class="field">
             <label>Last Name</label>
-            <input type="text" id="cf-joint-lname" placeholder="Doe" autocomplete="family-name">
+            <input type="text" id="cf-joint-lname" placeholder="Doe" autocomplete="section-joint family-name">
           </div>
         </div>
         <div class="field" style="margin-top:10px;">
@@ -504,16 +605,16 @@ footer { background: var(--primary-dark); padding: 40px 32px 32px; }
         <div class="grid-2" style="margin-top:10px;">
           <div class="field">
             <label>Date of Birth</label>
-            <input type="date" id="cf-joint-dob" autocomplete="bday">
+            <input type="date" id="cf-joint-dob" autocomplete="section-joint bday">
           </div>
           <div class="field">
             <label>Phone Number</label>
-            <div class="phone-wrap"><span class="phone-flag">🇺🇸</span><input type="tel" id="cf-joint-phone" placeholder="(555) 000-0000" autocomplete="tel"></div>
+            <div class="phone-wrap"><span class="phone-flag">🇺🇸</span><input type="tel" id="cf-joint-phone" placeholder="(555) 000-0000" autocomplete="section-joint tel"></div>
           </div>
         </div>
         <div class="field" style="margin-top:10px;">
           <label>Email Address</label>
-          <input type="email" id="cf-joint-email" placeholder="john@example.com" autocomplete="email">
+          <input type="email" id="cf-joint-email" placeholder="john@example.com" autocomplete="section-joint email">
         </div>
       </div>
     </div>
@@ -870,6 +971,24 @@ function validateContact() {
 
 /* ── CALCULATION ──────────────────────────────────────────────────────────── */
 /* ---- Quote Bot lead capture ------------------------------------------ */
+/**
+ * Is there really a second owner on this contract?
+ *
+ * Both names, and not the same person as the buyer. A joint owner has
+ * ownership rights, so inventing one from an autofilled box is worse than
+ * missing one — and "the same name as the buyer" is what autofill produces,
+ * which makes it the case to exclude rather than an edge case.
+ */
+function qbHasJointOwner(){
+  var g = function (id) {
+    var e = document.getElementById(id);
+    return e ? String(e.value).trim().toLowerCase() : '';
+  };
+  var jf = g('cf-joint-fname'), jl = g('cf-joint-lname');
+  if (!jf || !jl) return false;
+  return !(jf === g('cf-fname') && jl === g('cf-lname'));
+}
+
 function qbCaptureLead(){
   if (!window.QuoteBot) return;
   try {
@@ -884,7 +1003,18 @@ function qbCaptureLead(){
       inputs: {
         state: V('cf-state'), dateOfBirth: V('cf-dob'),
         initialDeposit: N('premium'),
-        jointOwner: !!V('cf-joint-fname'),
+        /*
+         * A WHOLE NAME, and not the buyer's own.
+         *
+         * This was `!!V('cf-joint-fname')` — one box holding anything at all.
+         * Every joint field shared an autocomplete token with the buyer's own
+         * (given-name, family-name, bday, tel, email), so a consumer picking
+         * their saved profile filled the joint block with themselves and this
+         * flag went true. The tokens are sectioned now; this is the belt to
+         * that braces, because a browser we have not met yet will fill
+         * something we did not predict.
+         */
+        jointOwner: qbHasJointOwner(),
         jointFirstName: V('cf-joint-fname'), jointLastName: V('cf-joint-lname'),
         jointDateOfBirth: V('cf-joint-dob')
       },
@@ -1308,48 +1438,306 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 
-/* ── APPLY NOW ─────────────────────────────────────────────────────────────
- * Pressing Apply used to open the marketing site in a new tab and record
- * nothing. It is the single most valuable thing a visitor does on this page,
- * so it now tells the console — the lead moves to Application Started and an
- * agent sees exactly what was on screen when they pressed it.
+/* ── APPLY REVIEW ──────────────────────────────────────────────────────────
+ * Pressing Apply opens the review rather than recording intent and stopping.
  *
- * Two rules it has to respect. Calling QuoteBot.apply() without a captured
- * email does nothing on the server, so the contact form must have been filled
- * in and runCalc() must have run — which it has, because Apply is only
- * reachable once results are showing. And the confirmation has to appear even
- * if the network call fails: the visitor pressed a button and is owed an
- * answer, whatever happened behind it.
+ * What the old version did — a status change and a sentence — told an agent
+ * somebody was interested and nothing else, so the agent rang them to ask for
+ * the address and who was going to own it. That is what this collects, while
+ * the person is still sitting in front of the form.
+ *
+ * Three rules it keeps from the version before it. The confirmation appears
+ * whatever happens behind it, because somebody pressed a button and is owed
+ * an answer. A compare row passes its own term, because the term is most of
+ * what an agent needs and the headline may be showing another. And nothing is
+ * sent without a captured email, which is what ties this to a real quote.
  * ---------------------------------------------------------------------- */
+
+/* The term and rate the review was opened for. Held rather than re-read on
+   submit: somebody can change the carrier on the page behind the modal, and
+   what they confirm must be what they were shown when they pressed. */
+var qbmTerm = null;
+var qbmRate = null;
+
+var QBM_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DC','DE','FL','GA','HI',
+  'ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT',
+  'NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD',
+  'TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+
 function qbApplyNow(ev, termOverride) {
   if (ev) ev.preventDefault();
+  qbOpenApply(termOverride);
+  return false;
+}
 
-  var email = (function () {
-    var e = document.getElementById('cf-email');
-    return e ? String(e.value).trim() : '';
-  })();
+function qbOpenApply(termOverride) {
+  qbmTerm = termOverride || selectedTerm || null;
+  qbmRate = (typeof getCarrierRate === 'function' && qbmTerm)
+    ? getCarrierRate(qbmTerm, selectedCarrier) : null;
 
-  /* A compare row passes its own term. Using the global selection there would
-     report whichever term the headline happens to show, which is not the one
-     they pressed — and the term is most of what the agent needs to know. */
-  var term = termOverride || selectedTerm || null;
-  var rate = (typeof getCarrierRate === 'function' && term)
-    ? getCarrierRate(term, selectedCarrier) : null;
+  qbFillStates('qbm-state');
+  qbFillStates('qbm-signstate');
 
-  if (email && window.QuoteBot && typeof window.QuoteBot.apply === 'function') {
+  /* Everything they have already typed, carried over. Asking a second time
+     for a name they gave two minutes ago is how a form gets abandoned. */
+  var copy = [['cf-fname','qbm-fname'], ['cf-lname','qbm-lname'],
+              ['cf-dob','qbm-dob'], ['cf-phone','qbm-phone'],
+              ['cf-email','qbm-email']];
+  copy.forEach(function (pair) {
+    var from = document.getElementById(pair[0]);
+    var to = document.getElementById(pair[1]);
+    if (from && to && !to.value) to.value = from.value || '';
+  });
+
+  /* The state they gave the calculator is the state they are signing in —
+     that is the question the rate lookup asked. The home state starts there
+     too and can be changed, because most people live where they sign. */
+  var quoted = (document.getElementById('rateState') || {}).value
+    || (document.getElementById('cf-state') || {}).value || '';
+  var sign = document.getElementById('qbm-signstate');
+  var home = document.getElementById('qbm-state');
+  if (sign && !sign.value) sign.value = quoted;
+  if (home && !home.value) home.value = quoted;
+
+  /* A joint person on the calculator is a joint owner here. Already typed,
+     so it becomes the "somebody else owns it" answer rather than a second
+     empty form. */
+  var jf = (document.getElementById('cf-joint-fname') || {}).value || '';
+  var jl = (document.getElementById('cf-joint-lname') || {}).value || '';
+  if (jf && jl && !document.getElementById('qbm-own-fname').value) {
+    document.getElementById('qbm-own-fname').value = jf;
+    document.getElementById('qbm-own-lname').value = jl;
+    var rel = (document.getElementById('cf-joint-relationship') || {}).value || '';
+    document.getElementById('qbm-own-rel').value = rel;
+  }
+
+  qbRenderChosen();
+  if (!document.querySelectorAll('#qbm-bens .qbm-ben').length) qbAddBeneficiary();
+  qbBenTotal();
+
+  document.getElementById('qbm-error').hidden = true;
+  document.getElementById('qbm-veil').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function qbCloseApply() {
+  /* Closed, not cleared. Somebody who shuts this to check a number on the
+     page behind it must not come back to an empty form. */
+  document.getElementById('qbm-veil').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function qbFillStates(id) {
+  var el = document.getElementById(id);
+  if (!el || el.options.length) return;
+  var blank = document.createElement('option');
+  blank.value = ''; blank.textContent = 'Select…';
+  el.appendChild(blank);
+  QBM_STATES.forEach(function (code) {
+    var o = document.createElement('option');
+    o.value = code; o.textContent = code;
+    el.appendChild(o);
+  });
+}
+
+function qbRenderChosen() {
+  var rows = [];
+  if (selectedCarrier) rows.push(['Carrier', selectedCarrier]);
+  if (qbmTerm) rows.push(['Term', qbmTerm + ' years']);
+  if (qbmRate) rows.push(['Guaranteed rate', qbmRate.toFixed(2) + '%']);
+  var prem = (typeof numVal === 'function') ? numVal('premium') : null;
+  /* Formatted here rather than through the page's `money` helper, which is
+     declared inside describeBand and is not reachable from this script. A
+     modal that borrows a helper it cannot see is a modal that opens once and
+     then throws for good. */
+  if (prem) rows.push(['Amount', '$' + Number(prem).toLocaleString('en-US')]);
+  document.getElementById('qbm-chosen').innerHTML = rows.map(function (r) {
+    return '<div class="qbm-row"><span class="k">' + r[0]
+      + '</span><span class="v">' + r[1] + '</span></div>';
+  }).join('') || '<div class="qbm-row"><span class="k">The contract shown above</span></div>';
+}
+
+function qbOwnerChanged() {
+  var other = document.querySelector('input[name="qbm-own"]:checked').value === 'other';
+  document.getElementById('qbm-owner-fields').hidden = !other;
+}
+
+function qbAddBeneficiary() {
+  var wrap = document.getElementById('qbm-bens');
+  var n = wrap.querySelectorAll('.qbm-ben').length + 1;
+  var row = document.createElement('div');
+  row.className = 'qbm-ben';
+  row.innerHTML =
+    '<div class="qbm-bh"><span class="n">Beneficiary ' + n + '</span>'
+    + '<span class="sp"></span>'
+    + '<button class="qbm-mini danger" type="button" onclick="qbRemoveBeneficiary(this)">Remove</button></div>'
+    + '<div class="qbm-grid">'
+    + '<div class="qbm-f"><label>First name</label><input type="text" data-b="firstName"'
+    + ' autocomplete="section-ben' + n + ' given-name"></div>'
+    + '<div class="qbm-f"><label>Last name</label><input type="text" data-b="lastName"'
+    + ' autocomplete="section-ben' + n + ' family-name"></div>'
+    + '<div class="qbm-f"><label>Relationship to you</label>'
+    + '<input type="text" data-b="relationshipToInsured" autocomplete="off"'
+    + ' placeholder="Spouse, child, trust…"></div>'
+    + '<div class="qbm-f"><label>Share of the contract</label>'
+    + '<input type="text" inputmode="decimal" data-b="sharePercent" placeholder="100"></div>'
+    + '<div class="qbm-f"><label>Primary or contingent</label>'
+    + '<select data-b="tier"><option value="PRIMARY">Primary</option>'
+    + '<option value="CONTINGENT">Contingent</option></select></div>'
+    + '</div>';
+  wrap.appendChild(row);
+  /* The first one is almost always the whole thing, so it is filled in
+     rather than left for somebody to work out that 100 is the answer. */
+  if (n === 1) row.querySelector('[data-b="sharePercent"]').value = '100';
+  row.querySelectorAll('[data-b="sharePercent"], [data-b="tier"]').forEach(function (el) {
+    el.addEventListener('input', qbBenTotal);
+    el.addEventListener('change', qbBenTotal);
+  });
+  qbBenTotal();
+}
+
+function qbRemoveBeneficiary(btn) {
+  var row = btn.closest('.qbm-ben');
+  if (row) row.remove();
+  /* Renumbered, because "Beneficiary 1, Beneficiary 3" reads as one that
+     failed to save. */
+  document.querySelectorAll('#qbm-bens .qbm-ben .n').forEach(function (el, i) {
+    el.textContent = 'Beneficiary ' + (i + 1);
+  });
+  qbBenTotal();
+}
+
+function qbReadBeneficiaries() {
+  return Array.prototype.map.call(
+    document.querySelectorAll('#qbm-bens .qbm-ben'), function (row) {
+      var out = {};
+      row.querySelectorAll('[data-b]').forEach(function (el) {
+        out[el.getAttribute('data-b')] = el.value;
+      });
+      out.sharePercent = Number(String(out.sharePercent || '').replace(/[^0-9.]/g, ''));
+      return out;
+    });
+}
+
+/* The running total, said out loud while they type.
+ *
+ * Each TIER is a complete instruction on its own — primary and contingent are
+ * not two halves of one split — which is the server's rule and the rule an
+ * agent's screen applies, so it is the one shown here. */
+function qbBenTotal() {
+  var rows = qbReadBeneficiaries();
+  var el = document.getElementById('qbm-bentotal');
+  if (!el) return;
+  var sum = function (tier) {
+    return rows.filter(function (b) { return (b.tier || 'PRIMARY') === tier; })
+      .reduce(function (n, b) { return n + (b.sharePercent || 0); }, 0);
+  };
+  var primary = Math.round(sum('PRIMARY') * 100) / 100;
+  var contingent = Math.round(sum('CONTINGENT') * 100) / 100;
+  var bits = ['Primary shares total <b>' + primary + '%</b>'];
+  if (contingent) bits.push('contingent <b>' + contingent + '%</b>');
+  el.innerHTML = bits.join(', ') + (primary === 100 ? '' : ' — each tier has to come to 100.');
+  el.className = 'qbm-total' + (primary > 100 ? ' over' : (primary < 100 ? ' under' : ''));
+}
+
+var qbmSending = false;
+
+function qbSubmitApply() {
+  if (qbmSending) return;
+  var err = document.getElementById('qbm-error');
+  var val = function (id) { return (document.getElementById(id).value || '').trim(); };
+
+  var email = val('qbm-email');
+  if (!email) { return qbApplyError('We need an email address to send your confirmation to.'); }
+
+  var ownerOther = document.querySelector('input[name="qbm-own"]:checked').value === 'other';
+  var details = {
+    address: {
+      line1: val('qbm-line1'), line2: val('qbm-line2'), city: val('qbm-city'),
+      state: val('qbm-state'), postalCode: val('qbm-zip')
+    },
+    signedState: val('qbm-signstate'),
+    ownerIsAnnuitant: !ownerOther,
+    owner: ownerOther ? {
+      firstName: val('qbm-own-fname'), lastName: val('qbm-own-lname'),
+      relationshipToInsured: val('qbm-own-rel')
+    } : null,
+    beneficiaries: qbReadBeneficiaries()
+  };
+
+  err.hidden = true;
+  qbmSending = true;
+  var go = document.getElementById('qbm-go');
+  go.disabled = true;
+  go.textContent = 'Sending…';
+
+  var done = function (result) {
+    qbmSending = false;
+    go.disabled = false;
+    go.textContent = 'Confirm and start';
+    /* A REFUSAL STAYS IN THE MODAL with the server's own sentence. It is a
+       thing this person can fix, and closing over it would lose everything
+       they typed to fix it with. Anything else — a queued send, no capture
+       script at all — still gets the confirmation: they pressed a button. */
+    if (result && result.error) return qbApplyError(result.error);
+    qbCloseApply();
+    /* A QUEUED SEND STILL GETS THE CONFIRMATION. The network blipped, it will
+       go, and the person did their part. Only a server that answered and told
+       us it recorded nothing gets the other message -- saying "we have it"
+       then would be the bug this replaces. */
+    if (result && result.recorded === false && !result.queued) {
+      return qbShowApplyNotice(result.message);
+    }
+    qbShowApplyConfirmation(qbmTerm, qbmRate);
+  };
+
+  if (window.QuoteBot && typeof window.QuoteBot.apply === 'function') {
     window.QuoteBot.apply({
       email: email,
       selection: {
         carrierName: selectedCarrier || null,
-        termYears: term || null,
-        rate: rate || null,
-        premium: (typeof numVal === 'function' ? numVal('premium') : null) || null
-      }
-    });
+        termYears: qbmTerm || null,
+        rate: qbmRate || null,
+        premium: (typeof numVal === 'function' ? numVal('premium') : null) || null,
+        productLine: 'ANNUITY_FIXED'
+      },
+      details: details
+    }).then(done, function () { done(null); });
+  } else {
+    done(null);
   }
+}
 
-  qbShowApplyConfirmation(term, rate);
-  return false;
+function qbApplyError(message) {
+  var err = document.getElementById('qbm-error');
+  err.textContent = message;
+  err.hidden = false;
+  err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/*
+ * What to say when the server took it and recorded nothing.
+ *
+ * Not an error in the modal: an unmatched session or a quote gone stale is
+ * not something the person at the screen can fix by retyping, so trapping
+ * them in a form would be cruel and useless. And not the confirmation
+ * either, which is what used to happen and is a lie -- it tells somebody
+ * their application has started when no agent has anything to work from.
+ *
+ * So: the modal closes, their work is not thrown away, and the box says the
+ * true thing. The server writes the sentence, because only the server knows
+ * which of its three misses this was, and it deliberately says the same
+ * thing for all three.
+ */
+function qbShowApplyNotice(message) {
+  var box = document.getElementById('qb-applied');
+  if (!box) return;
+  document.getElementById('qb-applied-title').textContent =
+    'Thanks — we have your details.';
+  document.getElementById('qb-applied-what').textContent = message
+    || 'We could not match this to a recent quote of yours. Somebody will be in touch.';
+  box.hidden = false;
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function qbShowApplyConfirmation(term, rate) {
@@ -1357,7 +1745,7 @@ function qbShowApplyConfirmation(term, rate) {
   if (!box) return;
 
   var name = (function () {
-    var e = document.getElementById('cf-fname');
+    var e = document.getElementById('qbm-fname') || document.getElementById('cf-fname');
     return e ? String(e.value).trim() : '';
   })();
   var bits = [];
@@ -1375,6 +1763,125 @@ function qbShowApplyConfirmation(term, rate) {
   box.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
+/* Escape closes it, like every other dialog anybody has used. */
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape'
+    && document.getElementById('qbm-veil').classList.contains('open')) {
+    qbCloseApply();
+  }
+});
+
 </script>
+
+<!-- ── APPLY REVIEW ────────────────────────────────────────────────────────
+     Built empty and filled by qbOpenApply(), so nothing here is a second copy
+     of what the calculator already knows. -->
+<div class="qbm-veil" id="qbm-veil" role="dialog" aria-modal="true"
+     aria-labelledby="qbm-title">
+  <div class="qbm" role="document">
+    <div class="qbm-head">
+      <div>
+        <h2 id="qbm-title">Let's check this before we start</h2>
+        <p>Three things to confirm and we can get your application moving. It
+           takes about a minute, and nothing is submitted to a carrier yet.</p>
+      </div>
+      <button class="qbm-x" type="button" aria-label="Close"
+              onclick="qbCloseApply()">&times;</button>
+    </div>
+
+    <div class="qbm-body">
+
+      <div class="qbm-sec">
+        <h3>The contract you chose</h3>
+        <div class="qbm-chosen" id="qbm-chosen"></div>
+      </div>
+
+      <div class="qbm-sec">
+        <h3>You</h3>
+        <p class="qbm-why">Change anything that is not right — this is what
+          goes on the application.</p>
+        <div class="qbm-grid">
+          <div class="qbm-f"><label for="qbm-fname">First name</label>
+            <input type="text" id="qbm-fname" autocomplete="section-buyer given-name"></div>
+          <div class="qbm-f"><label for="qbm-lname">Last name</label>
+            <input type="text" id="qbm-lname" autocomplete="section-buyer family-name"></div>
+          <div class="qbm-f"><label for="qbm-dob">Date of birth</label>
+            <input type="date" id="qbm-dob" autocomplete="section-buyer bday"></div>
+          <div class="qbm-f"><label for="qbm-phone">Phone</label>
+            <input type="tel" id="qbm-phone" autocomplete="section-buyer tel"></div>
+          <div class="qbm-f wide"><label for="qbm-email">Email</label>
+            <input type="email" id="qbm-email" autocomplete="section-buyer email"></div>
+        </div>
+      </div>
+
+      <div class="qbm-sec">
+        <h3>Where you live</h3>
+        <p class="qbm-why">A carrier issues the contract to an address, so we
+          cannot start without one.</p>
+        <div class="qbm-grid">
+          <div class="qbm-f wide"><label for="qbm-line1">Street address</label>
+            <input type="text" id="qbm-line1" autocomplete="section-buyer address-line1"></div>
+          <div class="qbm-f wide"><label for="qbm-line2">Apartment, suite (optional)</label>
+            <input type="text" id="qbm-line2" autocomplete="section-buyer address-line2"></div>
+          <div class="qbm-f"><label for="qbm-city">City</label>
+            <input type="text" id="qbm-city" autocomplete="section-buyer address-level2"></div>
+          <div class="qbm-f"><label for="qbm-state">State</label>
+            <select id="qbm-state" autocomplete="section-buyer address-level1"></select></div>
+          <div class="qbm-f"><label for="qbm-zip">ZIP</label>
+            <input type="text" id="qbm-zip" inputmode="numeric"
+                   autocomplete="postal-code"></div>
+          <div class="qbm-f"><label for="qbm-signstate">State you will sign in</label>
+            <select id="qbm-signstate"></select></div>
+        </div>
+      </div>
+
+      <div class="qbm-sec">
+        <h3>Who owns it</h3>
+        <!-- Asked because on an annuity the owner and the measuring life need
+             not be the same person, and that split carries the tax and
+             death-benefit consequences. Most people are both, so that is the
+             default and the rest of it stays out of the way. -->
+        <p class="qbm-why">On an annuity the owner and the person it is
+          measured on can be different people, and it changes how it is taxed
+          and what happens on death.</p>
+        <div class="qbm-choice">
+          <label><input type="radio" name="qbm-own" value="me" checked
+                        onchange="qbOwnerChanged()"> I own it, and it is measured on my life</label>
+          <label><input type="radio" name="qbm-own" value="other"
+                        onchange="qbOwnerChanged()"> Somebody else owns it</label>
+        </div>
+        <div class="qbm-grid" id="qbm-owner-fields" hidden>
+          <div class="qbm-f"><label for="qbm-own-fname">Owner's first name</label>
+            <input type="text" id="qbm-own-fname" autocomplete="section-owner given-name"></div>
+          <div class="qbm-f"><label for="qbm-own-lname">Owner's last name</label>
+            <input type="text" id="qbm-own-lname" autocomplete="section-owner family-name"></div>
+          <div class="qbm-f wide"><label for="qbm-own-rel">How they are related to you</label>
+            <input type="text" id="qbm-own-rel" placeholder="Spouse, trust, employer…" autocomplete="off"></div>
+        </div>
+      </div>
+
+      <div class="qbm-sec">
+        <h3>Who receives it</h3>
+        <p class="qbm-why">Your beneficiaries, and what share each one gets.
+          Shares have to add up to 100.</p>
+        <div id="qbm-bens"></div>
+        <button class="qbm-mini" type="button" onclick="qbAddBeneficiary()">
+          + Add a beneficiary</button>
+        <p class="qbm-total" id="qbm-bentotal"></p>
+      </div>
+
+      <div id="qbm-error" class="qbm-err" hidden></div>
+    </div>
+
+    <div class="qbm-foot">
+      <button class="qbm-back" type="button" onclick="qbCloseApply()">Not yet</button>
+      <span class="note">No signature, no payment, and nothing goes to a
+        carrier. One of our advisors will call you to confirm.</span>
+      <button class="qbm-go" type="button" id="qbm-go" onclick="qbSubmitApply()">
+        Confirm and start</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
