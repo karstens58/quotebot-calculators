@@ -643,6 +643,74 @@
   /* The panel                                                           */
   /* ------------------------------------------------------------------ */
 
+  /* ------------------------------------------------------------------ */
+  /* Fitting the panel to what is actually on screen                     */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * Below this the panel is full screen and the keyboard matters. Matches the
+   * breakpoint in css().
+   */
+  var PHONE_MAX = 560;
+
+  /**
+   * Keep the panel inside the VISIBLE viewport, not the layout one.
+   *
+   * On a phone the panel is `position:fixed; inset:0; height:100dvh`, which is
+   * right until the keyboard opens. iOS does not shrink the layout viewport
+   * for the keyboard — it scrolls the document so the focused field is above
+   * it. A fixed element is positioned against the layout viewport, so the
+   * whole panel rides up with that scroll and its top goes off the screen:
+   * the header, the disclosure and the welcome message, gone, with the
+   * message box the only thing left. Which is exactly what somebody opening
+   * the chat for the first time should NOT be looking at.
+   *
+   * `window.visualViewport` is the only thing that describes what is actually
+   * visible. Sizing to `vv.height` and translating by `vv.offsetTop` puts the
+   * panel over the visible strip and nowhere else, so the header stays put
+   * and the transcript keeps whatever room the keyboard leaves it.
+   *
+   * 100dvh in the stylesheet still does the work before the keyboard appears,
+   * and on anything without visualViewport. This adjusts; it does not replace.
+   */
+  function fitPanel(panel) {
+    var node = panel || el.panel;
+    if (!node) return;
+    var vv = window.visualViewport;
+    var phone = (window.innerWidth || 0) <= PHONE_MAX;
+    if (!vv || !phone) {
+      /* Cleared rather than left behind. A panel carrying a phone's height
+         after a rotation to landscape, or on a desktop that was narrow for a
+         moment, is worse than one that never had it — the stylesheet owns
+         those cases and cannot override an inline style. */
+      node.style.height = '';
+      node.style.transform = '';
+      return;
+    }
+    node.style.height = vv.height + 'px';
+    /* offsetTop is how far the visible strip has moved down the layout
+       viewport. Translating by it cancels the scroll iOS just performed. */
+    node.style.transform = 'translateY(' + (vv.offsetTop || 0) + 'px)';
+    if (el.log) el.log.scrollTop = el.log.scrollHeight;
+  }
+
+  /**
+   * Bound while the panel is open and unbound when it closes.
+   *
+   * Both events are needed and they fire at different moments: `resize` when
+   * the keyboard opens or closes, `scroll` when iOS moves the visible strip
+   * around underneath it — dragging the page, or the keyboard's own
+   * predictive bar appearing.
+   */
+  function watchViewport(on) {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    var how = on ? 'addEventListener' : 'removeEventListener';
+    vv[how]('resize', fitPanel);
+    vv[how]('scroll', fitPanel);
+    window[how]('orientationchange', fitPanel);
+  }
+
   /**
    * `origin` is which moment brought them in — the button, or the invitation
    * and what prompted it. Carried on the session's surface so the reporting
@@ -701,11 +769,22 @@
       bubble('qbc-them', GREETING);
     }
 
+    /* Before the focus below, so the first keyboard event is already being
+       listened for rather than arriving at nothing. */
+    watchViewport(true);
+    fitPanel();
+
     el.input.focus();
+    /* iOS settles the viewport a moment after the keyboard animates in, and
+       the numbers during the animation are not the numbers afterwards. One
+       late correction costs nothing and is the difference between a header
+       that is visible and one that is half off the top. */
+    setTimeout(fitPanel, 300);
   }
 
   function close() {
     state.open = false;
+    watchViewport(false);
     if (el.panel && el.panel.parentNode) el.panel.parentNode.removeChild(el.panel);
     el.panel = null;
     el.btn.style.display = '';
@@ -1085,6 +1164,9 @@
     /* Exported so the phone rules can be asserted rather than eyeballed on a
        handset — see tests/quotebot-chat.test.mjs. */
     css: css,
+    PHONE_MAX: PHONE_MAX,
+    fitPanel: fitPanel,
+    watchViewport: watchViewport,
     wantsAgent: wantsAgent,
     readName: readName,
     GREETING: GREETING,
