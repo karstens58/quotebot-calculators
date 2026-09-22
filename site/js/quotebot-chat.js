@@ -194,15 +194,6 @@
       '.qbc-invite button{font:inherit;font-size:13px;border-radius:8px;padding:7px 12px;cursor:pointer;border:1px solid #d6dde5;background:#fff;color:#1d2733}',
       '.qbc-invite button.qbc-yes{background:' + BRAND + ';border-color:' + BRAND + ';color:#fff}',
 
-      /* ?qbcdebug=1 only. Above the panel's z-index on purpose: the case it
-         is there to explain is a panel that is not where it should be, and a
-         readout hidden behind one would explain nothing. */
-      '.qbc-readout{position:fixed;top:0;right:0;z-index:2147483600;margin:0;',
-      'font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;color:#d8ffd8;',
-      'background:rgba(6,20,10,.86);padding:6px 8px;border-radius:0 0 0 8px;',
-      'white-space:pre;pointer-events:auto;max-width:60vw;overflow:hidden}',
-      '.qbc-readout[data-copied]{color:#fff;background:rgba(10,60,24,.94)}',
-
       '.qbc-panel{position:fixed;right:20px;bottom:20px;width:376px;max-width:calc(100vw - 32px);',
       'height:560px;max-height:calc(100vh - 40px);background:#fff;border-radius:16px;z-index:2147483000;',
       'box-shadow:0 18px 48px rgba(16,32,56,.28);display:flex;flex-direction:column;overflow:hidden;',
@@ -557,22 +548,7 @@
     /* Opt-in. Absent means this widget never looks at the host page's fields
        at all, which is the default on purpose — see readPage(). */
     scanPage: false,
-    extra: { state: '', firstName: '', lastName: '', email: '' },
-    /*
-     * Two switches that exist for one reason: nobody can hold a handset and a
-     * debugger at the same time from where this code gets written.
-     *
-     *   ?qbcdebug=1   a readout pinned over the panel carrying the numbers
-     *                 that decide its height, with tap-to-copy so they can be
-     *                 pasted somewhere useful.
-     *   ?qbcfit=off   fitPanel stops setting an inline height, leaving the
-     *                 stylesheet's 100dvh to size the panel on its own.
-     *
-     * Both are off unless the URL asks for them, so a visitor never meets
-     * either. The second is the A/B: same build, same handset, one tap apart,
-     * which settles whether the inline height is helping or fighting.
-     */
-    debug: false, fit: true
+    extra: { state: '', firstName: '', lastName: '', email: '' }
   };
   var state = {
     engaged: false, lastInputAt: 0, resultsAt: 0,
@@ -584,8 +560,6 @@
        and reopened; `named` is what they said to call them; `askedEmail`
        stops the email request repeating after every answer. */
     greeted: false, named: '', askedEmail: false, answers: 0,
-    /* Only ever set under ?qbcdebug=1. */
-    readoutTimer: null,
     /* NONE | QUEUED | CLAIMED | ENDED, as the server last reported it. */
     live: 'NONE',
     pollTimer: null,
@@ -616,11 +590,6 @@
       if (m) cfg.trackingCode = decodeURIComponent(m[1]);
     } catch (e) { /* attribution is a nicety, never a blocker */ }
 
-    try {
-      var q = root.location ? String(root.location.search || '') : '';
-      cfg.debug = /[?&]qbcdebug=1/.test(q);
-      cfg.fit = !/[?&]qbcfit=off/.test(q);
-    } catch (e) { /* the diagnostics are never worth a broken widget */ }
 
     state.dismissedUntil = Number(get('localStorage', K_DISMISSED) || 0);
     state.offered = get('sessionStorage', K_OFFERED) === '1';
@@ -803,7 +772,6 @@
          those cases and cannot override an inline style. */
       node.style.height = '';
       node.style.transform = '';
-      if (cfg.debug) showReadout();
       return;
     }
     /*
@@ -832,114 +800,28 @@
       var tight = vv.height < TIGHT_BELOW;
       node.className = 'qbc-panel' + (tight ? ' qbc-tight' : '');
     }
-    if (cfg.fit) {
-      node.style.height = vv.height + 'px';
-    } else {
-      /* ?qbcfit=off. The stylesheet's 100dvh gets the panel to itself, which
-         is the only way to tell whether this function is the problem. */
-      node.style.height = '';
-    }
+    node.style.height = vv.height + 'px';
     node.style.transform = '';
     /* A reply that arrives while the keyboard is up must not land below the
        fold, and the panel changing height is exactly when that happens. */
     if (el.log) el.log.scrollTop = el.log.scrollHeight;
-    if (cfg.debug) showReadout();
   }
 
-  /* ------------------------------------------------------------------ */
-  /* The readout (?qbcdebug=1)                                           */
-  /* ------------------------------------------------------------------ */
-
-  /**
-   * Every number that goes into the panel's height, on the screen of the
-   * handset that has the problem.
+  /*
+   * WHAT USED TO BE HERE: ?qbcdebug=1, a readout of every number the panel's
+   * height depends on, and ?qbcfit=off, which took fitPanel out of the way so
+   * the stylesheet could be judged alone.
    *
-   * This exists because the failure is geometry on a device, and geometry on a
-   * device cannot be reasoned about from a repository — it has already been
-   * got wrong twice that way. A phone reports; nobody guesses.
+   * They were added because three attempts at the mobile layout had been
+   * reasoned out from a repository rather than read off a handset, and all
+   * three were wrong. The readout settled it in one round - see the numbers
+   * recorded on fitPanel below - and the fix was confirmed on the device on
+   * 22 September, so they came out the same day.
    *
-   * `screen` and `inner` say how big the window thinks it is, `client` what
-   * the layout viewport gives CSS (so what 100dvh resolves to), `vv` what is
-   * actually visible, and `panel` what the element ended up as. Where those
-   * disagree is the bug. `scale` above 1 means the page is zoomed, which
-   * quietly shrinks every visualViewport number and is worth ruling out.
+   * Removed rather than left switched off. A diagnostic nobody is using is a
+   * second code path through the one panel a member of the public sees, and
+   * the next question will want its own numbers rather than these.
    */
-  function readout() {
-    /* `window`, not `root`, and for the same reason fitPanel uses it: the
-       geometry lives on the window object the test harness supplies. */
-    var vv = window.visualViewport;
-    var de = document.documentElement;
-    var lines = [];
-    function add(k, v) { lines.push(k + ': ' + v); }
-    add('screen', (window.screen ? window.screen.width + 'x' + window.screen.height : '?'));
-    add('inner', window.innerWidth + 'x' + window.innerHeight);
-    add('client', de ? de.clientWidth + 'x' + de.clientHeight : '?');
-    if (vv) {
-      add('vv', round(vv.width) + 'x' + round(vv.height));
-      add('vv.offsetTop', round(vv.offsetTop));
-      add('vv.pageTop', round(vv.pageTop));
-      add('scale', vv.scale);
-    } else {
-      add('vv', 'ABSENT');
-    }
-    if (el.panel) {
-      var r = el.panel.getBoundingClientRect();
-      add('panel.top', round(r.top));
-      add('panel.h', round(r.height));
-      add('panel.inline', el.panel.style.height || '(none)');
-      add('panel.css', window.getComputedStyle
-        ? window.getComputedStyle(el.panel).height : '?');
-    } else {
-      add('panel', 'closed');
-    }
-    if (el.log) add('log.h', round(el.log.getBoundingClientRect().height));
-    add('tight', el.panel && typeof el.panel.className === 'string'
-      && el.panel.className.indexOf('qbc-tight') >= 0 ? 'on' : 'off');
-    add('fit', cfg.fit ? 'on' : 'off');
-    return lines.join('\n');
-  }
-
-  function round(n) { return Math.round(Number(n) || 0); }
-
-  /**
-   * Draws the readout as its own fixed element rather than inside the panel,
-   * because a panel that is the wrong size is exactly the case where anything
-   * inside it might not be on the screen either.
-   *
-   * Tapping it copies the text. A screenshot of a phone loses half of these
-   * digits to compression; a paste does not.
-   */
-  function showReadout() {
-    if (!cfg.debug) return;
-    if (!el.readout) {
-      el.readout = document.createElement('pre');
-      el.readout.className = 'qbc-readout';
-      el.readout.addEventListener('click', function () {
-        var text = el.readout.getAttribute('data-raw') || '';
-        try {
-          if (window.navigator && window.navigator.clipboard) {
-            window.navigator.clipboard.writeText(text);
-            el.readout.setAttribute('data-copied', '1');
-            root.setTimeout(function () {
-              if (el.readout) el.readout.removeAttribute('data-copied');
-            }, 1200);
-          }
-        } catch (e) { /* the numbers are still on the screen to be read */ }
-      });
-      document.body.appendChild(el.readout);
-    }
-    var text = readout();
-    el.readout.setAttribute('data-raw', text);
-    el.readout.textContent = text
-      + (el.readout.getAttribute('data-copied') ? '\n[copied]' : '\n[tap to copy]');
-  }
-
-  function hideReadout() {
-    if (el.readout && el.readout.parentNode) {
-      el.readout.parentNode.removeChild(el.readout);
-    }
-    el.readout = null;
-  }
 
   /*
    * WHAT USED TO BE HERE: interactive-widget=resizes-content, set on the host
@@ -1052,14 +934,6 @@
        listened for rather than arriving at nothing. */
     watchViewport(true);
     fitPanel();
-    /* iOS settles the viewport over a second or so and does not always fire
-       an event for every step of it. While the readout is on, poll — it is a
-       diagnostic build and a timer is cheaper than a missed number. */
-    if (cfg.debug) {
-      showReadout();
-      state.readoutTimer = root.setInterval(showReadout, 400);
-    }
-
     /*
      * NOT FOCUSED ON A PHONE, and this is the fix rather than a preference.
      *
@@ -1086,11 +960,6 @@
        conversation: state.live is left alone, and reopening resumes it. */
     stopPolling();
     watchViewport(false);
-    if (state.readoutTimer) {
-      root.clearInterval(state.readoutTimer);
-      state.readoutTimer = null;
-    }
-    hideReadout();
     if (el.panel && el.panel.parentNode) el.panel.parentNode.removeChild(el.panel);
     el.panel = null;
     el.btn.style.display = '';
@@ -1604,10 +1473,6 @@
     showEnd: showEnd,
     state: state,
     isPhone: isPhone,
-    cfg: cfg,
-    readout: readout,
-    showReadout: showReadout,
-    hideReadout: hideReadout,
     fitPanel: fitPanel,
     watchViewport: watchViewport,
     wantsAgent: wantsAgent,
