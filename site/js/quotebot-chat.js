@@ -214,6 +214,14 @@
       '.qbc-disclosure{background:#f4f8fc;color:#41505f;font-size:11.5px;line-height:1.55;padding:9px 14px;border-bottom:1px solid #e8edf2}',
       '.qbc-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}',
       '.qbc-msg{max-width:85%;padding:9px 12px;border-radius:13px;white-space:pre-wrap;word-wrap:break-word}',
+      /* A SYSTEM line is the record, not a remark. It carries the handover
+         disclosure - who you are now speaking to, and that everything before
+         it was software - so it is set apart from both sides of the
+         conversation rather than dressed as either of them. */
+      '.qbc-sys{align-self:stretch;max-width:100%;background:#f4f8fc;border:1px solid #dbe6f1;',
+      'color:#41505f;font-size:12px;line-height:1.5;text-align:center;border-radius:10px}',
+      '.qbc-end{border:1px solid #d6dde5;background:#fff;color:#8f2d24;font:inherit;',
+      'font-size:12px;border-radius:8px;padding:5px 10px;cursor:pointer;margin-right:4px}',
       '.qbc-them{align-self:flex-start;background:#f1f4f8}',
       '.qbc-me{align-self:flex-end;background:' + BRAND + ';color:#fff}',
       '.qbc-meta{font-size:11px;color:#5b6673;margin-top:5px}',
@@ -577,7 +585,13 @@
        stops the email request repeating after every answer. */
     greeted: false, named: '', askedEmail: false, answers: 0,
     /* Only ever set under ?qbcdebug=1. */
-    readoutTimer: null
+    readoutTimer: null,
+    /* NONE | QUEUED | CLAIMED | ENDED, as the server last reported it. */
+    live: 'NONE',
+    pollTimer: null,
+    /* The newest agent or system line already on screen, so a poll asks for
+       what came after it rather than for everything every time. */
+    lastSeenAt: ''
   };
   var sessionId = null;
   var el = {};
@@ -1068,6 +1082,9 @@
 
   function close() {
     state.open = false;
+    /* The panel is shut, so nothing is listening. NOT the same as ending the
+       conversation: state.live is left alone, and reopening resumes it. */
+    stopPolling();
     watchViewport(false);
     if (state.readoutTimer) {
       root.clearInterval(state.readoutTimer);
@@ -1133,6 +1150,23 @@
       surface: cfg.tool + (state.origin && state.origin !== 'button' ? ':' + state.origin : ''),
       trackingCode: cfg.trackingCode
     };
+    /*
+     * Where they live, when the page already knows.
+     *
+     * This is what decides whether a live agent is possible at all - the
+     * licence rule needs a state - and a calculator that asked for one has
+     * the answer already. Sent on every turn rather than once: the server
+     * keeps the first one it gets, so this is a chance to be right rather
+     * than a risk of changing its mind.
+     *
+     * Nothing else from the page scan goes up. A state is what routing needs;
+     * a name and an email are a lead, and those go through the form somebody
+     * filled in on purpose.
+     */
+    if (!body.consumerState) {
+      var known = state.context.state || (cfg.scanPage ? readPage().state : '');
+      if (known && STATES.indexOf(known) >= 0) body.consumerState = known;
+    }
     for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) body[k] = extra[k];
 
     return root.fetch(cfg.endpoint, {
@@ -1148,6 +1182,9 @@
       /* The server's copy wins: it survives a reload, and this widget's does
          not. */
       if (res.firstName && !state.named) state.named = res.firstName;
+      /* Somebody is coming, or already here. Said once and then polled for. */
+      if (res.queued) bubble('qbc-them', res.queued);
+      liveNow(res);
       if (res.reply) render(res);
       if (res.identityError) {
         var e = document.createElement('div');
@@ -1201,6 +1238,113 @@
       el.log.scrollTop = el.log.scrollHeight;
       return res;
     });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* A person on the other end (QBP-37)                                  */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * React to where this conversation sits in the live queue.
+   *
+   * Called from every reply and every poll, because both carry it. The only
+   * state kept here is `state.live` and the timer; everything else is read
+   * off the server each time, so a panel that was closed and reopened picks
+   * up whatever is true now rather than whatever was true when it closed.
+   */
+  function liveNow(res) {
+    var was = state.live;
+    var now = String(res.live || 'NONE');
+    state.live = now;
+
+    if (now === 'QUEUED' || now === 'CLAIMED') {
+      startPolling(res.nextPollMs);
+      /* The End chat control exists only while there is something to end.
+         Closing the panel is NOT ending a chat - people close a panel and
+         come back, and on a phone they close it every time they switch
+         apps - so ending needs a control of its own. */
+      showEnd(true);
+    } else {
+      stopPolling();
+      showEnd(false);
+      /* Said once, on the way out of a live conversation rather than on
+         every poll afterwards. */
+      if (was === 'CLAIMED' && now === 'NONE') {
+        bubble('qbc-them', 'You are back with the automated assistant.');
+      }
+    }
+  }
+
+  /**
+   * "Anything new?"
+   *
+   * The widget has one door - the chat endpoint - and the console writes an
+   * agent's reply into the database, so this is how it arrives. The server
+   * decides the pace and says when to stop; a panel left open on a finished
+   * conversation must not poll for the rest of the afternoon.
+   */
+  function startPolling(everyMs) {
+    var wait = Number(everyMs) || 3000;
+    if (state.pollTimer) return;
+    state.pollTimer = root.setInterval(function () {
+      if (!state.open) { stopPolling(); return; }
+      root.fetch(cfg.endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ sessionId: sessionId, poll: true, since: state.lastSeenAt })
+      }).then(function (r) {
+        /* Throttled. The server said when to come back, so come back then
+           rather than treating it as an outage. */
+        if (r.status === 429) return null;
+        return r.json();
+      }).then(function (res) {
+        if (!res) return;
+        var list = res.messages || [];
+        for (var i = 0; i < list.length; i++) {
+          var m = list[i];
+          if (m.at && m.at > (state.lastSeenAt || '')) state.lastSeenAt = m.at;
+          bubble(m.role === 'SYSTEM' ? 'qbc-sys' : 'qbc-them', m.body);
+        }
+        liveNow(res);
+      }).catch(function () {
+        /* A failed poll is a quiet no. The next one is three seconds away and
+           an error in the transcript would be the panel talking about itself. */
+      });
+    }, wait);
+  }
+
+  function stopPolling() {
+    if (state.pollTimer) { root.clearInterval(state.pollTimer); state.pollTimer = null; }
+  }
+
+  /**
+   * The End chat control.
+   *
+   * Only while a conversation is live, and it is the ONLY thing that ends
+   * one. Closing the panel does not: people close a panel and come back, and
+   * a visitor who switched apps for ten seconds should not find an agent has
+   * been told they left.
+   */
+  function showEnd(on) {
+    if (!el.panel) return;
+    if (!on) {
+      if (el.endBtn && el.endBtn.parentNode) el.endBtn.parentNode.removeChild(el.endBtn);
+      el.endBtn = null;
+      return;
+    }
+    if (el.endBtn) return;
+    el.endBtn = document.createElement('button');
+    el.endBtn.className = 'qbc-end';
+    el.endBtn.textContent = 'End chat';
+    el.endBtn.addEventListener('click', function () {
+      el.endBtn.disabled = true;
+      ask({ endChat: true });
+    });
+    var head = el.panel.querySelector('.qbc-head');
+    /* Before the close button, so the two are not confused with each other:
+       one shuts a panel you can reopen, the other finishes a conversation
+       with a person in it. */
+    head.insertBefore(el.endBtn, head.querySelector('button'));
   }
 
   function render(res) {
@@ -1454,6 +1598,11 @@
        handset — see tests/quotebot-chat.test.mjs. */
     css: css,
     PHONE_MAX: PHONE_MAX,
+    liveNow: liveNow,
+    startPolling: startPolling,
+    stopPolling: stopPolling,
+    showEnd: showEnd,
+    state: state,
     isPhone: isPhone,
     cfg: cfg,
     readout: readout,
