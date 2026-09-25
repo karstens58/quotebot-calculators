@@ -28,6 +28,8 @@ const source = [
   cut('const fmtMo =', 'const ratingRank', { keepEnd: false }),
   cut('const esc = s =>', "replace(/'/g, '&#39;');"),
   cut('function cheapestQuote(rows){', '\n}'),
+  /* renderBest calls this for each card, so the harness needs it too. */
+  cut('function healthBadge(q){', '\n}'),
   cut('function renderBest(){', "\n  row.innerHTML = cards.join('');\n}"),
 ].join('\n');
 
@@ -266,4 +268,88 @@ test('the cheapest card always says Most Affordable, tag or no tag', () => {
   assert.deepEqual(badges(html),
     ['Most Affordable', 'Fastest decision', 'Best service']);
   assert.ok(!html.includes('Cheapest by miles'));
+});
+
+/* ---------------------------------------------------------------------- *
+ * The Health Analyzer's verdict, on the cards and in the list.
+ *
+ * Without this the analyzer looked like it did nothing: with Compulife's
+ * filter on, the products somebody would not be offered are dropped before
+ * we see them, so the list quietly got shorter and no row said why.
+ * ---------------------------------------------------------------------- */
+
+const badgeSource = [
+  cut('const esc = s =>', "replace(/'/g, '&#39;');"),
+  cut('function healthBadge(q){', '\n}'),
+  '\nreturn healthBadge;',
+].join('\n');
+const healthBadge = new Function(badgeSource)();
+
+test('NOTHING SHOWS WHEN THE ANALYZER DID NOT RUN', () => {
+  /* An ordinary quote carries no verdict, and a blank badge would read as a
+     doubt nobody expressed. Null is not "dk". */
+  assert.equal(healthBadge({}), '');
+  assert.equal(healthBadge({ healthVerdict: null }), '');
+  assert.equal(healthBadge({ healthVerdict: undefined }), '');
+});
+
+test('a verdict nobody recognises shows nothing rather than a guess', () => {
+  for (const v of ['maybe', 'yes', 'Y', '', 'GO']) {
+    assert.equal(healthBadge({ healthVerdict: v }), '',
+      `"${v}" was rendered as a verdict`);
+  }
+});
+
+test('the three verdicts each get their own mark and words', () => {
+  const go = healthBadge({ healthVerdict: 'go' });
+  assert.match(go, /pr-health go/);
+  assert.match(go, /Available/);
+  assert.ok(go.includes('✓'), 'the go badge has no tick');
+
+  const dk = healthBadge({ healthVerdict: 'dk' });
+  assert.match(dk, /pr-health dk/);
+  assert.match(dk, /Need more answers/);
+  assert.ok(dk.includes('?'), 'the doubtful badge has no question mark');
+
+  const no = healthBadge({ healthVerdict: 'no' });
+  assert.match(no, /pr-health no/);
+  assert.ok(no.includes('✗'));
+});
+
+test('a go says Available, never Not offered', () => {
+  /* The discriminating pair: the three branches are easy to cross-wire, and
+     telling somebody a product is unavailable when it is available is the
+     worse direction. */
+  assert.ok(!healthBadge({ healthVerdict: 'go' }).includes('Not offered'));
+  assert.ok(!healthBadge({ healthVerdict: 'no' }).includes('Available>'));
+});
+
+test('COMPULIFE’S REASONS CANNOT INJECT MARKUP', () => {
+  const nasty = '<img src=x onerror="alert(1)">';
+  const html = healthBadge({ healthVerdict: 'dk', healthReasons: [nasty] });
+  assert.ok(!html.includes('<img src=x'), 'a reason injected raw markup');
+  assert.ok(html.includes('&lt;img src=x'), 'the reason was not escaped');
+});
+
+test('reasons become the tooltip, and no reasons means no tooltip', () => {
+  const withWhy = healthBadge({ healthVerdict: 'dk',
+    healthReasons: ['Blood pressure not answered', 'Build outside limits'] });
+  assert.match(withWhy, /title="[^"]*Blood pressure not answered[^"]*Build outside limits/);
+  assert.ok(!healthBadge({ healthVerdict: 'go' }).includes('title='),
+    'a badge with nothing to explain still carried an empty tooltip');
+});
+
+test('A CARD CARRIES THE SAME VERDICT AS ITS ROW', () => {
+  /* Each card IS one of these rows, so a card saying nothing while the row
+     below says "need more answers" is the page disagreeing with itself. */
+  const rows = QUOTES.map((q) => ({ ...q, healthVerdict: 'dk',
+    healthReasons: ['Blood pressure not answered'] }));
+  const html = run(rows, []);
+  const badges = (html.match(/class="pr-health dk"/g) || []).length;
+  assert.equal(badges, 3, `expected a badge on all three cards, found ${badges}`);
+});
+
+test('and shows none when the analyzer did not run', () => {
+  assert.ok(!run(QUOTES, []).includes('pr-health'),
+    'an ordinary quote put a health badge on the cards');
 });

@@ -182,6 +182,15 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .qualify-btn { margin-left: auto; padding: 12px 24px; border-radius: 10px; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; transition: background var(--transition), box-shadow var(--transition); }
 .qualify-btn:hover { background: var(--primary-dark); box-shadow: 0 4px 18px rgba(26,61,107,0.3); }
 
+/* Health Analyzer verdicts. Compulife's own three colours. */
+.pr-health { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 100px; }
+.pr-health > span { font-size: 13px; line-height: 1; }
+.pr-health.go { background: #ccffcc; color: #14532d; }
+.pr-health.dk { background: #ffffbb; color: #713f12; cursor: help; }
+.pr-health.no { background: #ffdddd; color: #7f1d1d; cursor: help; }
+.best-health { display: flex; justify-content: center; margin: 0 16px 12px; }
+
 /* ---- Health Analyzer wizard ------------------------------------------ */
 .ha-mask { position: fixed; inset: 0; background: rgba(16,30,50,0.55); display: flex;
   align-items: center; justify-content: center; padding: 20px; z-index: 900; }
@@ -256,7 +265,7 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .tool-select select:focus { color: var(--primary); }
 
 .product-list { display: flex; flex-direction: column; gap: 12px; }
-.product-row { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 22px; display: grid; grid-template-columns: 130px 64px 1fr auto auto; align-items: center; gap: 18px; box-shadow: 0 2px 12px rgba(26,61,107,0.05); transition: border-color var(--transition), box-shadow var(--transition); }
+.product-row { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 22px; display: grid; grid-template-columns: 130px 64px 1fr auto auto auto; align-items: center; gap: 18px; box-shadow: 0 2px 12px rgba(26,61,107,0.05); transition: border-color var(--transition), box-shadow var(--transition); }
 .product-row:hover { border-color: var(--accent); box-shadow: var(--shadow); }
 .product-row.hidden { display: none; }
 .pr-price .mo { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--accent); line-height: 1; }
@@ -317,6 +326,9 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   .product-row > div:nth-child(3) { grid-row: 2; grid-column: 1 / -1; }
   .product-row .pr-rating { grid-row: 3; grid-column: 1 / 3; justify-self: start; }
   .product-row .select-btn { grid-row: 3; grid-column: 3; justify-self: end; }
+  /* Its own line on a phone: the rating and the button already fill row 3,
+     and an auto-placed badge pushed the button onto a row of its own. */
+  .product-row .pr-health { grid-row: 4; grid-column: 1 / -1; justify-self: start; }
 }
 @media (max-width: 560px) {
   .page { padding: 24px 14px 48px; }
@@ -1406,6 +1418,30 @@ if (document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', haWire);
 } else { haWire(); }
 
+/*
+ * The Health Analyzer's verdict, as a badge.
+ *
+ * Nothing at all until the analyzer has run: a blank badge on an ordinary
+ * quote would read as a doubt nobody expressed. Compulife's own three
+ * colours, so this page and theirs say the same thing the same way.
+ *
+ * With their filter on, the products somebody would not be offered never
+ * arrive -- which is why the list quietly got shorter and nothing explained
+ * it. 'no' is handled anyway, for the day that changes.
+ */
+function healthBadge(q){
+  const v = q && q.healthVerdict;
+  if (v !== 'go' && v !== 'dk' && v !== 'no') return '';
+  const text = v === 'go' ? 'Available' : v === 'dk' ? 'Need more answers' : 'Not offered';
+  const mark = v === 'go' ? '\u2713' : v === 'dk' ? '?' : '\u2717';
+  /* Their words on why, escaped: they are underwriting it, and this is a
+     page that prints what it is given. */
+  const why = (q.healthReasons || []).join(' \u2022 ');
+  return '<span class="pr-health ' + v + '"'
+    + (why ? ' title="' + esc(why) + '"' : '')
+    + '><span aria-hidden="true">' + mark + '</span> ' + esc(text) + '</span>';
+}
+
 function setQuoteNotice(msg, kind){
   var el = document.getElementById('quoteNotice');
   if (!el){
@@ -1482,7 +1518,11 @@ async function recalc(){
         monthly: q.monthlyPremium,
         annual: q.annualPremium,
         coverage: q.faceAmount != null ? q.faceAmount : inp.coverage,
-        logo: logoFor(q.carrierName, q.companyCode, q.logoUrl)
+        logo: logoFor(q.carrierName, q.companyCode, q.logoUrl),
+        /* The Health Analyzer's verdict for THIS product, when it ran.
+           Null on an ordinary quote, which is not the same as 'dk'. */
+        healthVerdict: q.healthVerdict || null,
+        healthReasons: Array.isArray(q.healthReasons) ? q.healthReasons : []
       };
     }
 
@@ -1589,6 +1629,7 @@ function renderBest(){
           </div>
           <div class="best-rating">Rating: <b>${esc(cfg.rating)}</b></div>
         </div>
+        ${cfg.health ? '<div class="best-health">' + cfg.health + '</div>' : ''}
         <button class="select-btn">Select</button>
       </div>
     </div>`;
@@ -1599,7 +1640,11 @@ function renderBest(){
      showed a premium derived by scaling somebody else's rate. */
   const fromRow = (r, extra) => cardHTML(Object.assign({
     monthly: r.monthly, annual: r.annual, logo: r.logo, name: r.name,
-    prod: r.prodResolved, coverage: r.coverage, rating: r.rating
+    prod: r.prodResolved, coverage: r.coverage, rating: r.rating,
+    /* The same verdict the row below carries. A card is one of these rows,
+       so a card saying nothing while its row says "need more answers" would
+       be the page disagreeing with itself. */
+    health: healthBadge(r)
   }, extra));
 
   const cards = [ fromRow(cheapest, {
@@ -1710,6 +1755,7 @@ function renderList(){
         <div class="pr-prod">${q.prodResolved} • $${q.coverage.toLocaleString()}</div>
       </div>
       <div class="pr-rating ${q.rating==='Unknown'?'unknown':''}">Rating: <b>${q.rating}</b></div>
+      ${healthBadge(q)}
       <button class="select-btn sm">Select</button>
     </div>`).join('');
 

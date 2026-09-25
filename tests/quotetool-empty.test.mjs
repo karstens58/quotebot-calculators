@@ -236,3 +236,41 @@ test('an HTTP error is an outage, not an empty result', async () => {
   assert.match(s.notice.innerHTML, /could not reach the quote service/);
   assert.doesNotMatch(s.notice.innerHTML, /No carrier returned an offer/);
 });
+
+test('THE VERDICT SURVIVES THE TRIP FROM THE ENGINE TO A ROW', () => {
+  /* toRow is the only path from the engine's answer to anything on screen,
+     and it is not reachable from the card tests -- a mapper that dropped
+     healthVerdict passed every one of them while the badge never appeared. */
+  const s = sandbox({ responses: [{
+    ok: true, premiumsAreEstimates: false,
+    quotes: [{ carrierName: 'Banner Life', companyCode: 'BANN',
+      productName: 'OPTerm 20', monthlyPremium: 44.1, annualPremium: 521,
+      faceAmount: 500000, amBestRating: 'A+',
+      healthVerdict: 'dk', healthReasons: ['Blood pressure not answered'] }],
+    featured: [],
+  }] });
+  return s.recalc().then(() => {
+    const [row] = s.read().QUOTES;
+    assert.equal(row.healthVerdict, 'dk');
+    assert.deepEqual(row.healthReasons, ['Blood pressure not answered']);
+  });
+});
+
+test('a row with no verdict carries null and an empty reason list', () => {
+  const s = sandbox({ responses: [withQuotes] });
+  return s.recalc().then(() => {
+    const [row] = s.read().QUOTES;
+    assert.equal(row.healthVerdict, null,
+      'an ordinary quote came back with a verdict it was never given');
+    assert.deepEqual(row.healthReasons, []);
+  });
+});
+
+test('reasons that arrive as something other than a list do not become one', () => {
+  const s = sandbox({ responses: [{ ...withQuotes,
+    quotes: [{ ...withQuotes.quotes[0], healthVerdict: 'go', healthReasons: 'oops' }] }] });
+  return s.recalc().then(() => {
+    assert.deepEqual(s.read().QUOTES[0].healthReasons, [],
+      'a string was passed through where the page expects a list');
+  });
+});
