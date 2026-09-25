@@ -523,7 +523,32 @@ const ratingRank = r => ({ 'A+':4, 'A':3, 'A-':2, 'B++':1, 'Unknown':0 }[r] ?? 0
 
 /* ---------- STATE ---------- */
 let QUOTES = [];        // computed rows
+/* The middle and right cards: carriers chosen in the admin console, with the
+   reasons written there. Returned by the engine alongside the quotes, and
+   always drawn FROM them, so a card can never name a carrier that did not
+   quote. Empty is an ordinary state -- renderBest falls back to price and
+   shows no reasons rather than inventing any. */
+let FEATURED = [];
 let visibleCount = 5;   // for Show More
+
+/* Admin-entered text reaches the page through innerHTML, so it is escaped
+   here. Not because the admin is hostile, but because a carrier named
+   "Smith & Sons <Life>" should render as itself rather than as broken markup. */
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+/* The cheapest quote, found by price rather than assumed to be first -- being
+   the cheapest is the entire claim the left-hand card makes. Mirrors
+   cheapestOf() in the engine's shared/featured.ts. */
+function cheapestQuote(rows){
+  let best = null;
+  for (const r of rows){
+    if (typeof r.monthly !== 'number' || !isFinite(r.monthly)) continue;
+    if (best === null || r.monthly < best.monthly) best = r;
+  }
+  return best;
+}
 
 /* ---- Quote engine -------------------------------------------------------
  * Pricing is server-side now. CARRIERS below is kept only to supply logos;
@@ -571,7 +596,7 @@ async function recalc(){
   var endpoint = window.QB_QUOTE_ENDPOINT || '';
   if (!/^https?:\/\//i.test(endpoint)){
     setQuoteNotice('Quote service is not configured on this page, so no premiums can be shown.', 'error');
-    QUOTES = []; renderBest(); renderList();
+    QUOTES = []; FEATURED = []; renderBest(); renderList();
     return;
   }
 
@@ -600,7 +625,10 @@ async function recalc(){
 
     PREMIUMS_ARE_ESTIMATES = json.premiumsAreEstimates !== false;
 
-    QUOTES = (json.quotes || []).map(function(q){
+    /* One mapper for both lists. The featured picks ARE quote rows -- the
+       engine selects from the same array it returns -- so shaping them
+       differently is how a card ends up disagreeing with the row below it. */
+    function toRow(q){
       return {
         id: String(q.companyCode || q.carrierName || '').toLowerCase(),
         name: q.carrierName,
@@ -611,6 +639,17 @@ async function recalc(){
         coverage: q.faceAmount != null ? q.faceAmount : inp.coverage,
         logo: logoFor(q.carrierName, q.companyCode, q.logoUrl)
       };
+    }
+
+    QUOTES = (json.quotes || []).map(toRow);
+    FEATURED = (json.featured || []).map(function(f){
+      return Object.assign(toRow(f), {
+        /* The admin's own words, already filtered of blanks server-side.
+           `curated` false means nobody chose this carrier -- it is here on
+           price alone, and it gets no reasons and no claim of endorsement. */
+        bullets: Array.isArray(f.bullets) ? f.bullets : [],
+        curated: f.curated === true
+      });
     });
 
     if (!QUOTES.length){
@@ -622,6 +661,7 @@ async function recalc(){
     }
   } catch (err){
     QUOTES = [];
+    FEATURED = [];
     setQuoteNotice('We could not reach the quote service just now. Rather than show an estimate that might be wrong, we would rather have someone call you with real numbers.', 'error');
   }
 
@@ -644,21 +684,13 @@ function renderQuoteFor(inp){
 }
 
 function renderBest(){
-  const sorted = [...QUOTES].sort((a,b) => a.monthly - b.monthly);
-  const term = parseInt(document.getElementById('duration').value);
+  const row = document.getElementById('bestRow');
 
-  if (!sorted.length){ document.getElementById('bestRow').innerHTML = ''; return; }
-
-  /* Three cards, all drawn from quotes the engine actually returned.
-   *
-   * The previous build showed a third "Assurity Life" card whose premium was
-   * derived by scaling the cheapest carrier's rate — a named carrier with an
-   * invented price. That is gone. Nothing appears under a carrier's name here
-   * unless that carrier quoted it. */
-  const cheapest = sorted[0];
-  const bestRated = [...sorted].sort((a,b) => ratingRank(b.rating) - ratingRank(a.rating))
-                               .find(q => q !== cheapest) || sorted[1] || cheapest;
-  const runnerUp = sorted.find(q => q !== cheapest && q !== bestRated) || bestRated;
+  /* By price, not by position -- being the cheapest is the whole claim the
+     left-hand card makes, so it is not left resting on the engine's ordering
+     staying the way it is today. */
+  const cheapest = cheapestQuote(QUOTES);
+  if (!cheapest){ row.innerHTML = ''; return; }
 
   const cardHTML = (cfg) => `
     <div class="best-card ${cfg.cardClass}">
@@ -674,35 +706,81 @@ function renderBest(){
       <div class="best-bottom">
         <div class="best-carrier">
           <div>
-            <div class="best-carrier-name">${cfg.name}</div>
-            <div class="best-carrier-prod">${cfg.prod} • $${cfg.coverage.toLocaleString()}</div>
+            <div class="best-carrier-name">${esc(cfg.name)}</div>
+            <div class="best-carrier-prod">${esc(cfg.prod)} &bull; $${cfg.coverage.toLocaleString()}</div>
           </div>
-          <div class="best-rating">Rating: <b>${cfg.rating}</b></div>
+          <div class="best-rating">Rating: <b>${esc(cfg.rating)}</b></div>
         </div>
         <button class="select-btn">Select</button>
       </div>
     </div>`;
 
-  const cheapestCard = cardHTML({
-    cardClass:'', badgeClass:'affordable', badgeText:'Most Affordable',
-    monthly: cheapest.monthly, annual: cheapest.annual, logo: cheapest.logo,
-    name: cheapest.name, prod: cheapest.prodResolved, coverage: cheapest.coverage, rating: cheapest.rating,
-    mid:`<div class="trophy">🏆 Lowest Price</div><p>The most affordable rate available for your profile.</p>`
-  });
-  const recommendedCard = cardHTML({
-    cardClass:'recommended', badgeClass:'recommended', badgeText:'Highest Rated',
-    monthly: bestRated.monthly, annual: bestRated.annual, logo: bestRated.logo,
-    name: bestRated.name, prod: bestRated.prodResolved, coverage: bestRated.coverage, rating: bestRated.rating,
-    mid:`<div class="trophy">\u{1F3C6} Strongest Carrier Rating</div><ul><li>A.M. Best rating ${bestRated.rating}</li><li>Established, financially strong insurer</li></ul>`
-  });
-  const runnerUpCard = cardHTML({
-    cardClass:'agentless', badgeClass:'agentless', badgeText:'Also Consider',
-    monthly: runnerUp.monthly, annual: runnerUp.annual, logo: runnerUp.logo,
-    name: runnerUp.name, prod: runnerUp.prodResolved, coverage: runnerUp.coverage, rating: runnerUp.rating,
-    mid:`<div class="trophy">\u{1F3C6} Close Runner-Up</div><ul><li>Competitive on price</li><li>Worth comparing on underwriting</li></ul>`
+  /* Every card is built from a quote row the engine returned. There is no
+     other source, which is what stops a carrier appearing at a price nobody
+     quoted -- the bug in the build before last, where an "Assurity Life" card
+     showed a premium derived by scaling somebody else's rate. */
+  const fromRow = (r, extra) => cardHTML(Object.assign({
+    monthly: r.monthly, annual: r.annual, logo: r.logo, name: r.name,
+    prod: r.prodResolved, coverage: r.coverage, rating: r.rating
+  }, extra));
+
+  const cards = [ fromRow(cheapest, {
+    cardClass: '', badgeClass: 'affordable', badgeText: 'Most Affordable',
+    mid: `<div class="trophy">\u{1F3C6} Lowest Price</div>
+          <p>The most affordable rate available for your profile.</p>`
+  }) ];
+
+  /*
+   * The engine chooses these and has already excluded the cheapest carrier
+   * and de-duplicated by company, so nothing here re-checks either.
+   *
+   * If it returned none -- an older engine, or its carrier table was briefly
+   * unreadable -- fall back to price so the visitor still has three to
+   * compare. Same rule the engine uses, and the same silence underneath:
+   * these are carriers nobody picked, so they get no reasons.
+   */
+  let picks = FEATURED;
+  if (!picks.length){
+    const seen = new Set([cheapest.id]);
+    picks = [];
+    const byPrice = QUOTES
+      .filter(q => typeof q.monthly === 'number' && isFinite(q.monthly))
+      .sort((a, b) => a.monthly - b.monthly);
+    for (const q of byPrice){
+      if (seen.has(q.id)) continue;
+      seen.add(q.id);
+      picks.push(Object.assign({}, q, { bullets: [], curated: false }));
+      if (picks.length === 2) break;
+    }
+  }
+
+  /* Position decides the styling; the engine decides who sits there. */
+  const SLOTS = [
+    { cardClass: 'recommended', badgeClass: 'recommended', badgeText: 'Our Pick' },
+    { cardClass: 'agentless',   badgeClass: 'agentless',   badgeText: 'Also Consider' }
+  ];
+
+  picks.slice(0, SLOTS.length).forEach((f, i) => {
+    const slot = SLOTS[i];
+    const curated = f.curated === true;
+    const bullets = Array.isArray(f.bullets) ? f.bullets : [];
+    /*
+     * A card nobody chose does not get an endorsement badge and does not get
+     * reasons. It is a real carrier at a real price, shown for comparison,
+     * and saying less is the honest option -- borrowing another carrier's
+     * bullets or inventing generic ones would both be lying quietly.
+     */
+    cards.push(fromRow(f, {
+      cardClass: curated ? slot.cardClass : 'agentless',
+      badgeClass: curated ? slot.badgeClass : 'agentless',
+      badgeText: curated ? slot.badgeText : 'Another Option',
+      mid: curated && bullets.length
+        ? `<ul>${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>`
+        : ''
+    }));
   });
 
-  document.getElementById('bestRow').innerHTML = cheapestCard + recommendedCard + runnerUpCard;
+  row.innerHTML = cards.join('');
 }
 
 function renderList(){
