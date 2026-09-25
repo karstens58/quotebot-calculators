@@ -344,19 +344,22 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
         <div class="field">
           <label>Duration of Coverage <span class="req">*</span></label>
-          <select id="productType" style="margin-bottom:8px"><option value="TERM" selected>Term Life</option><option value="GUL">Guaranteed UL (to age 121)</option></select>
-          <select id="duration">
-            <option value="10" selected>10 Year Term</option>
-            <option value="15">15 Year Term</option>
-            <option value="20">20 Year Term</option>
-            <option value="30">30 Year Term</option>
+          <!-- Filled at load from the engine's live category list. The options
+               below are a fallback only, and are what the page used to offer
+               before this became one list. -->
+          <select id="coverageCat">
+            <option value="3" selected>10 Year Level Term Guaranteed</option>
+            <option value="4">15 Year Level Term Guaranteed</option>
+            <option value="5">20 Year Level Term Guaranteed</option>
+            <option value="7">30 Year Level Term Guaranteed</option>
+            <option value="8">To Age 121 Level (No Lapse U/L)</option>
           </select>
         </div>
 
         <div class="field-divider"></div>
 
         <div class="field">
-          <label>Phone <span class="req">*</span></label>
+          <label>Phone</label>
           <div class="phone-wrap">
             <span class="phone-flag">🇺🇸</span>
             <input type="tel" id="phone" placeholder="(555) 123-4567">
@@ -504,9 +507,64 @@ function getInputs(){
     tobacco: document.querySelector('#tobaccoSeg .active').dataset.val,
     health: document.getElementById('health').value,
     coverage: parseInt(document.getElementById('coverage').value.replace(/[^0-9]/g,'')) || 0,
-    term: parseInt(document.getElementById('duration').value),
+    /*
+     * The Compulife category letter IS the coverage -- one value where there
+     * used to be a product and a duration, which could contradict each other
+     * (Guaranteed UL paired with "20 Year Term" meant nothing).
+     */
+    cat: catSel().value,
+    catName: catSel().selectedOptions[0] ? catSel().selectedOptions[0].textContent.trim() : '',
+    /* Years, for the lead record only, and null when the category is not a
+       level term -- a to-age-95 UL has no term length to record. */
+    term: termYearsOf(catSel().selectedOptions[0]
+      ? catSel().selectedOptions[0].textContent : ''),
   };
 }
+
+function catSel(){ return document.getElementById('coverageCat'); }
+
+/* "20 Year Level Term Guaranteed" -> 20. Anything without a leading year
+   count -- to-age, UL, whole life -- returns null rather than a wrong number. */
+function termYearsOf(name){
+  const m = /^\s*(\d+)\s+year\b/i.exec(String(name || ''));
+  return m ? parseInt(m[1], 10) : null;
+}
+
+/*
+ * The live category list, so the tool offers exactly what the engine will
+ * price. Failure is not fatal: the markup ships with the five options the
+ * page used to offer, so a visitor can still get a quote if this call fails.
+ */
+async function loadCoverageCategories(){
+  const endpoint = window.QB_QUOTE_ENDPOINT || '';
+  if (!/^https?:\/\//i.test(endpoint)) return;
+  try {
+    const res = await fetch(endpoint.replace(/\/$/, '') + '/categories');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = (await res.json()).categories;
+    if (!Array.isArray(list) || !list.length) throw new Error('empty list');
+    const sel = catSel();
+    const had = sel.value;
+    sel.innerHTML = '';
+    for (const c of list){
+      if (!c || !c.letter || !c.name) continue;
+      const o = document.createElement('option');
+      /* textContent, not innerHTML: these names come off the wire. */
+      o.value = String(c.letter);
+      o.textContent = String(c.name);
+      sel.appendChild(o);
+    }
+    /* Keep what the visitor had chosen if it survived; otherwise the
+       20-year term, falling back to whatever is first. */
+    const wanted = [had, '5'].find(v => v && sel.querySelector(`option[value="${v}"]`));
+    sel.value = wanted || (sel.options[0] ? sel.options[0].value : '');
+  } catch (err) {
+    /* Silent by design: the fallback options are real and the visitor can
+       still quote. Logged so it is findable. */
+    console.warn('[quotetool] live coverage list unavailable, using fallback', err);
+  }
+}
+loadCoverageCategories();
 function rateFor(carrier, inp){
   const ageF = Math.pow(1.072, inp.age - 48);
   const termF = TERM_FACTOR[inp.term] || 1;
@@ -600,8 +658,6 @@ async function recalc(){
     return;
   }
 
-  var sel = document.getElementById('productType');
-  var product = sel ? sel.value : 'TERM';
   setQuoteNotice('Pricing with carriers\u2026', 'info');
 
   try {
@@ -609,8 +665,10 @@ async function recalc(){
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        product: product,
-        termYears: inp.term,
+        /* The category letter alone. The engine reads `coverage` in
+           preference to product/termYears, and sending all three invited
+           them to disagree. */
+        coverage: inp.cat,
         faceAmount: inp.coverage,
         dateOfBirth: inp.dob,
         gender: inp.gender,
@@ -679,7 +737,8 @@ function renderQuoteFor(inp){
     <span class="quote-for-item"><b>${inp.gender}</b></span>
     <span class="quote-for-item">Tobacco <b>${inp.tobacco}</b></span>
     <span class="quote-for-item"><b>${inp.health}</b></span>
-    <span class="quote-for-item">$<b>${inp.coverage.toLocaleString()}</b> / ${inp.term}yr</span>
+    <span class="quote-for-item">$<b>${inp.coverage.toLocaleString()}</b></span>
+    <span class="quote-for-item"><b>${esc(inp.catName)}</b></span>
     <span class="quote-for-edit" onclick="editInputs()">✎ Edit</span>`;
 }
 
@@ -852,7 +911,7 @@ document.getElementById('coverage').addEventListener('input', e => {
   e.target.value = n ? parseInt(n).toLocaleString() : '';
 });
 // live recalc on any other input once results are shown
-['state','health','duration','coverage'].forEach(id => {
+['state','health','coverageCat','coverage'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
     if (document.getElementById('resultsContent').classList.contains('show')) recalc();
   });
@@ -893,7 +952,8 @@ function qbCaptureLead(){
       inputs: {
         dateOfBirth: inp.dob, issueAge: inp.age, state: inp.state,
         gender: inp.gender, tobacco: inp.tobacco, health: inp.health,
-        faceAmount: inp.coverage, termYears: inp.term
+        faceAmount: inp.coverage, termYears: inp.term,
+        coverage: inp.cat, coverageName: inp.catName
       },
       results: QUOTES.map(function(q){
         return { carrier: q.name, product: q.prodResolved, rating: q.rating,
