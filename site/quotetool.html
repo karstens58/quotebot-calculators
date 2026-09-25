@@ -379,17 +379,17 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         <div class="field-row">
           <div class="field">
             <label>First Name <span class="req">*</span></label>
-            <input type="text" id="firstName" value="Scott" placeholder="First">
+            <input type="text" id="firstName" placeholder="First">
           </div>
           <div class="field">
             <label>Last Name</label>
-            <input type="text" id="lastName" value="Karstens" placeholder="Last">
+            <input type="text" id="lastName" placeholder="Last">
           </div>
         </div>
 
         <div class="field">
           <label>Date of Birth <span class="req">*</span><span class="age-pill" id="agePill">Age 48</span></label>
-          <input type="date" id="dob" value="1978-01-26">
+          <input type="date" id="dob">
         </div>
 
         <div class="field">
@@ -417,10 +417,11 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         <div class="field">
           <label>Health Class <span class="req">*</span></label>
           <select id="health">
+<option value="" selected disabled>Select…</option>
             <option value="Preferred Plus">Preferred Plus</option>
             <option value="Preferred">Preferred</option>
             <option value="Standard Plus">Standard Plus</option>
-            <option value="Standard" selected>Standard</option>
+            <option value="Standard">Standard</option>
           </select>
         </div>
 
@@ -430,7 +431,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <label>Coverage Amount <span class="req">*</span></label>
           <div class="input-wrap">
             <span class="input-prefix">$</span>
-            <input type="text" id="coverage" class="has-prefix" value="500,000" inputmode="numeric">
+            <input type="text" id="coverage" class="has-prefix" inputmode="numeric">
           </div>
         </div>
 
@@ -440,7 +441,8 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
                below are a fallback only, and are what the page used to offer
                before this became one list. -->
           <select id="coverageCat">
-            <option value="3" selected>10 Year Level Term Guaranteed</option>
+<option value="" selected disabled>Select…</option>
+            <option value="3">10 Year Level Term Guaranteed</option>
             <option value="4">15 Year Level Term Guaranteed</option>
             <option value="5">20 Year Level Term Guaranteed</option>
             <option value="7">30 Year Level Term Guaranteed</option>
@@ -562,7 +564,13 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 /* ---------- STATES ---------- */
 const STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","District of Columbia","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"];
 const stateSel = document.getElementById('state');
-STATES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; if (s === "Colorado") o.selected = true; stateSel.appendChild(o); });
+  /* Unchosen on arrival. Without this the list falls to its first entry
+     and the visitor is quoted somewhere they never picked. */
+  { const ph = document.createElement('option');
+    ph.value = ''; ph.textContent = 'Select your state'; ph.selected = true;
+    stateSel.appendChild(ph); }
+
+STATES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; /* No default state: it changes the rates, so it is theirs to pick. */ stateSel.appendChild(o); });
 
 /* ---------- CARRIERS (per1000 = annual rate per $1,000, calibrated to 48 / Male / Non-tobacco / Standard / 10yr) ---------- */
 const CARRIERS = [

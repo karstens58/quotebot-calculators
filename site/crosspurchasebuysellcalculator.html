@@ -448,12 +448,13 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
           <div class="input-section"><span class="badge b1">🏢</span><h3>The Business</h3><span class="line"></span></div>
           <div class="field">
             <label>Business Name <span class="req">*</span></label>
-            <input type="text" id="bizName" value="Karstens &amp; Co." placeholder="Company name">
+            <input type="text" id="bizName" placeholder="Company name">
           </div>
           <div class="field-row">
             <div class="field">
               <label>Structure</label>
               <select id="bizStructure">
+<option value="" selected disabled>Select…</option>
                 <option>LLC</option>
                 <option>S-Corporation</option>
                 <option>C-Corporation</option>
@@ -464,7 +465,8 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
             <div class="field">
               <label>Partners</label>
               <select id="numPartners">
-                <option value="2" selected>2</option>
+<option value="" selected disabled>Select…</option>
+                <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
                 <option value="5">5</option>
@@ -486,21 +488,21 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
           <div class="input-section"><span class="badge b3">📊</span><h3>Financials</h3><span class="line"></span></div>
           <div class="field">
             <label>EBITDA <span class="tip-mark" tabindex="0" data-tip="EBITDA = net profit + interest + taxes + depreciation + amortization. Start with net profit on your latest P&amp;L or tax return, then add those four items back. Your accountant or accounting software (e.g., QuickBooks, Xero) can produce it in a minute.">i</span> <span class="tip">annual</span></label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="ebitda" class="has-prefix" value="750,000" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="ebitda" class="has-prefix" inputmode="numeric"></div>
             <div class="hint">Earnings before interest, taxes, depreciation &amp; amortization.</div>
           </div>
           <div class="field">
             <label>What You Think It's Worth</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="ownerEstimate" class="has-prefix" value="3,000,000" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="ownerEstimate" class="has-prefix" inputmode="numeric"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Total Assets</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="assets" class="has-prefix" value="1,200,000" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="assets" class="has-prefix" inputmode="numeric"></div>
             </div>
             <div class="field">
               <label>Total Liabilities</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="liabilities" class="has-prefix" value="400,000" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="liabilities" class="has-prefix" inputmode="numeric"></div>
             </div>
           </div>
 
@@ -508,17 +510,17 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
           <div class="input-section"><span class="badge b4">⚙️</span><h3>Valuation Assumptions</h3><span class="line"></span></div>
           <div class="field">
             <label>Typical Multiple <span class="tip" id="multTip">suggested 4.0×</span></label>
-            <div class="input-wrap"><input type="number" id="multiple" value="4.0" min="0.5" max="15" step="0.1" class="has-suffix"><span class="input-suffix">×</span></div>
+            <div class="input-wrap"><input type="number" id="multiple" min="0.5" max="15" step="0.1" class="has-suffix"><span class="input-suffix">×</span></div>
             <div class="hint">Auto-suggested from <b>industry + EBITDA</b>. Edit to override.</div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Discount Rate</label>
-              <div class="input-wrap"><input type="number" id="discountRate" value="25" min="8" max="40" step="0.5" class="has-suffix"><span class="input-suffix">%</span></div>
+              <div class="input-wrap"><input type="number" id="discountRate" min="8" max="40" step="0.5" class="has-suffix"><span class="input-suffix">%</span></div>
             </div>
             <div class="field">
               <label>Growth Rate</label>
-              <div class="input-wrap"><input type="number" id="growthRate" value="3" min="0" max="6" step="0.5" class="has-suffix"><span class="input-suffix">%</span></div>
+              <div class="input-wrap"><input type="number" id="growthRate" min="0" max="6" step="0.5" class="has-suffix"><span class="input-suffix">%</span></div>
             </div>
           </div>
           <div class="hint">Long-term growth is capped at 6%. Capitalization rate = discount − growth.</div>
@@ -528,18 +530,18 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
           <div class="field-row">
             <div class="field" id="f-firstName">
               <label>First Name <span class="req">*</span></label>
-              <input type="text" id="firstName" value="Scott" placeholder="First">
+              <input type="text" id="firstName" placeholder="First">
               <span class="field-err">Enter your first name</span>
             </div>
             <div class="field" id="f-lastName">
               <label>Last Name <span class="req">*</span></label>
-              <input type="text" id="lastName" value="Karstens" placeholder="Last">
+              <input type="text" id="lastName" placeholder="Last">
               <span class="field-err">Enter your last name</span>
             </div>
           </div>
           <div class="field" id="f-title">
             <label>Title <span class="req">*</span></label>
-            <input type="text" id="title" value="Managing Partner" placeholder="e.g., Owner, CFO, Managing Partner">
+            <input type="text" id="title" placeholder="e.g., Owner, CFO, Managing Partner">
             <span class="field-err">Enter your title</span>
           </div>
           <div class="field" id="f-email">
@@ -691,14 +693,17 @@ function computeAge(dobStr){
 }
 function ageLabel(dobStr){ const a = computeAge(dobStr); return a > 0 ? String(a) : '—'; }
 
+/* Blank partners. The rows still exist so the table has its shape, but
+   nobody's name, birthday or state is filled in for them -- these were
+   real-looking people, one of them a real one. */
 const DEFAULT_PARTNERS = [
-  { name:'Scott Karstens', pct:50, dob:'1978-01-26', gender:'Male',   uw:'Standard',  email:'', phone:'', state:'CO' },
-  { name:'Jordan Avery',   pct:50, dob:'1981-02-15', gender:'Female', uw:'Standard',  email:'', phone:'', state:'CO' },
-  { name:'Morgan Lee',     pct:0,  dob:'1976-03-01', gender:'Male',   uw:'Preferred', email:'', phone:'', state:'' },
-  { name:'Casey Rivera',   pct:0,  dob:'1984-04-10', gender:'Female', uw:'Standard',  email:'', phone:'', state:'' },
-  { name:'Taylor Brooks',  pct:0,  dob:'1979-08-20', gender:'Male',   uw:'Standard',  email:'', phone:'', state:'' },
-  { name:'Alex Nguyen',    pct:0,  dob:'1982-05-30', gender:'Female', uw:'Preferred', email:'', phone:'', state:'' },
-];
+  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
+  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
+  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
+  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
+  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
+  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
+]
 
 function buildPartners(){
   const n = parseInt($('numPartners').value);
@@ -1428,22 +1433,27 @@ function toggleMethods(){ $('methodDetail').classList.toggle('show'); }
    ============================================================ */
 function populateIndustries(){
   const sel = $('industry');
+  /* Unchosen on arrival. It drives the valuation multiple, so falling to
+     the first entry would price the business as a profession nobody named. */
+  { const ph = document.createElement('option');
+    ph.value = ''; ph.textContent = 'Select an industry'; ph.selected = true;
+    sel.appendChild(ph); }
   INDUSTRIES.forEach(ind => {
     const o = document.createElement('option');
     o.value = ind.id; o.textContent = ind.name;
-    if (ind.id === 'prof') o.selected = true;
+    /* No default industry: it drives the valuation multiple. */
     sel.appendChild(o);
   });
 }
 
 function resetDefaults(){
-  $('firstName').value = 'Scott';
-  $('lastName').value = 'Karstens';
-  $('title').value = 'Managing Partner';
+  $('firstName').value = '';
+  $('lastName').value = '';
+  $('title').value = '';
   $('email').value = '';
   $('phone').value = '';
   ['firstName','lastName','title','email','phone'].forEach(id => $('f-'+id).classList.remove('has-error'));
-  $('bizName').value = 'Karstens & Co.';
+  $('bizName').value = '';
   $('bizStructure').value = 'LLC';
   $('numPartners').value = '2';
   $('industry').value = 'prof';

@@ -299,11 +299,11 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
       <div class="grid-2">
         <div class="field">
           <label>Current Age</label>
-          <input type="number" id="curAge" value="55" min="18" max="85">
+          <input type="number" id="curAge" min="18" max="85">
         </div>
         <div class="field">
           <label>Desired Retirement Age</label>
-          <input type="number" id="retAge" value="65" min="50" max="90">
+          <input type="number" id="retAge" min="50" max="90">
         </div>
       </div>
       <div class="field-note" style="margin-top:8px;">Years between today and retirement let the income base grow before payments begin.</div>
@@ -320,12 +320,12 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
       </div>
       <div class="field" style="margin-bottom:10px;">
         <label>Current Net Worth</label>
-        <div class="input-prefix"><span>$</span><input type="text" inputmode="numeric" id="netWorth" value="1,800,000" oninput="formatThousandsInput(this)"></div>
+        <div class="input-prefix"><span>$</span><input type="text" inputmode="numeric" id="netWorth" oninput="formatThousandsInput(this)"></div>
         <div class="field-note">Everything you own, minus what you owe.</div>
       </div>
       <div class="field">
         <label>Current Liquid Assets</label>
-        <div class="input-prefix"><span>$</span><input type="text" inputmode="numeric" id="liquid" value="1,300,000" oninput="formatThousandsInput(this); updateAlloc();"></div>
+        <div class="input-prefix"><span>$</span><input type="text" inputmode="numeric" id="liquid" oninput="formatThousandsInput(this); updateAlloc();"></div>
         <div class="field-note">Cash and investments you can access without selling property or a business.</div>
       </div>
     </div>
@@ -384,11 +384,11 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
       <div class="grid-2" style="margin-bottom:8px;">
         <div class="field">
           <label style="color:var(--primary);">First Name</label>
-          <input type="text" id="contactFirst" value="Scott" placeholder="Jane" autocomplete="given-name">
+          <input type="text" id="contactFirst" placeholder="Jane" autocomplete="given-name">
         </div>
         <div class="field">
           <label style="color:var(--primary);">Last Name</label>
-          <input type="text" id="contactLast" value="Karstens" placeholder="Smith" autocomplete="family-name">
+          <input type="text" id="contactLast" placeholder="Smith" autocomplete="family-name">
         </div>
       </div>
       <div class="grid-2">
@@ -639,10 +639,11 @@ function formatPhoneInput(el) {
 }
 
 /* ── NON-NEGOTIABLE EXPENSE LIST ──────────────────────────────────────────── */
+/* The categories are prompts; the amounts are the visitor's to fill in. */
 let expenses = [
-  { name: 'Housing (rent / mortgage)', amt: 2200 },
-  { name: 'Utilities',                 amt: 450  },
-  { name: 'Groceries',                 amt: 800  }
+  { name: 'Housing (rent / mortgage)', amt: '' },
+  { name: 'Utilities', amt: '' },
+  { name: 'Groceries', amt: '' }
 ];
 
 function renderExpenses() {
@@ -651,8 +652,8 @@ function renderExpenses() {
     <div class="exp-row">
       <input type="text" value="${e.name.replace(/"/g,'&quot;')}" placeholder="Expense name"
         oninput="expenses[${i}].name=this.value; refreshTotal();">
-      <div class="exp-amt"><span>$</span><input type="text" inputmode="numeric" value="${(e.amt||0).toLocaleString('en-US')}"
-        oninput="formatThousandsInput(this); expenses[${i}].amt=parseFloat(this.value.replace(/[^0-9.]/g,''))||0; refreshTotal();"></div>
+      <div class="exp-amt"><span>$</span><input type="text" inputmode="numeric" value="${e.amt === '' || e.amt == null ? '' : Number(e.amt).toLocaleString('en-US')}"
+        oninput="formatThousandsInput(this); expenses[${i}].amt=this.value.trim()==='' ? '' : (parseFloat(this.value.replace(/[^0-9.]/g,''))||0); refreshTotal();"></div>
       <button class="exp-del" title="Remove" onclick="removeExpense(${i})">✕</button>
     </div>`).join('');
   refreshTotal();

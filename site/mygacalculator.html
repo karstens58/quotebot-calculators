@@ -436,7 +436,7 @@ button.qbm-back { background: none; border: 0; color: #5b6b80;
       </div>
       <div class="field">
         <label>Premium Amount</label>
-        <div class="input-prefix"><span>$</span><input type="text" inputmode="numeric" id="premium" value="100,000" oninput="formatThousandsInput(this); onPremiumChanged()"></div>
+        <div class="input-prefix"><span>$</span><input type="text" inputmode="numeric" id="premium" oninput="formatThousandsInput(this); onPremiumChanged()"></div>
         <div class="field-note">Most carriers require a minimum of $10,000–$25,000.</div>
       </div>
     </div>
@@ -503,7 +503,7 @@ button.qbm-back { background: none; border: 0; color: #5b6b80;
       </div>
       <div class="field" id="manualRateWrap" style="display:none; margin-bottom:12px;">
         <label>Rate to illustrate (%)</label>
-        <input type="number" id="manualRateInput" step="0.01" min="0.01" max="20" value="5.00"
+        <input type="number" id="manualRateInput" step="0.01" min="0.01" max="20"
                oninput="onManualRate(this.value)">
         <div class="field-note">Enter a rate you have been quoted. This is your figure, not a carrier offer.</div>
       </div>

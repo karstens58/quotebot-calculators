@@ -338,15 +338,15 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
       <div class="grid-3">
         <div class="field">
           <label>Current Age</label>
-          <input type="number" id="curAge" value="45" min="18" max="80">
+          <input type="number" id="curAge" min="18" max="80">
         </div>
         <div class="field">
           <label>Retirement Age</label>
-          <input type="number" id="retAge" value="65" min="30" max="90">
+          <input type="number" id="retAge" min="30" max="90">
         </div>
         <div class="field">
           <label>Plan Ending Age</label>
-          <input type="number" id="endAge" value="90" min="50" max="110">
+          <input type="number" id="endAge" min="50" max="110">
         </div>
       </div>
     </div>
@@ -382,14 +382,14 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
             <label>Current Value</label>
             <div style="position:relative;">
               <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">$</span>
-              <input type="text" id="qualValDisplay" value="500,000" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
+              <input type="text" id="qualValDisplay" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
               <input type="hidden" id="qualVal" value="500000">
             </div>
           </div>
           <div class="field">
             <label>Growth % / yr</label>
             <div style="position:relative;">
-              <input type="text" id="qualGrowAccDisplay" value="6.0%" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
+              <input type="text" id="qualGrowAccDisplay" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
               <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">%</span>
               <input type="hidden" id="qualGrowAcc" value="6">
             </div>
@@ -417,14 +417,14 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
             <label>Current Value</label>
             <div style="position:relative;">
               <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">$</span>
-              <input type="text" id="rothValDisplay" value="150,000" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
+              <input type="text" id="rothValDisplay" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
               <input type="hidden" id="rothVal" value="150000">
             </div>
           </div>
           <div class="field">
             <label>Growth % / yr</label>
             <div style="position:relative;">
-              <input type="text" id="rothGrowAccDisplay" value="6.0%" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
+              <input type="text" id="rothGrowAccDisplay" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
               <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">%</span>
               <input type="hidden" id="rothGrowAcc" value="6">
             </div>
@@ -452,14 +452,14 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
             <label>Current Value</label>
             <div style="position:relative;">
               <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">$</span>
-              <input type="text" id="nonqValDisplay" value="200,000" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
+              <input type="text" id="nonqValDisplay" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
               <input type="hidden" id="nonqVal" value="200000">
             </div>
           </div>
           <div class="field">
             <label>Growth % / yr</label>
             <div style="position:relative;">
-              <input type="text" id="nonqGrowAccDisplay" value="4.0%" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
+              <input type="text" id="nonqGrowAccDisplay" inputmode="decimal" style="width:100%;padding:6px 32px 6px 10px;font-size:12px;text-align:right;">
               <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">%</span>
               <input type="hidden" id="nonqGrowAcc" value="4">
             </div>
@@ -468,8 +468,9 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
         <div style="margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-mid);">LTCG Rate</label>
           <select id="ltcgRate" style="font-size:11px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;background:var(--gold-light);color:var(--gold);font-weight:700;cursor:pointer;">
+<option value="" selected disabled>Select…</option>
             <option value="0">0%</option>
-            <option value="0.15" selected>15%</option>
+            <option value="0.15">15%</option>
             <option value="0.20">20%</option>
             <option value="0.238">23.8% (incl. NIIT)</option>
           </select>
@@ -497,7 +498,7 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           <label>Target Retirement Income (Year 1)</label>
           <div style="position:relative;">
             <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-mid);pointer-events:none;">$</span>
-            <input type="text" id="targetIncomeDisplay" value="80,000" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
+            <input type="text" id="targetIncomeDisplay" inputmode="numeric" style="width:100%;padding:6px 10px 6px 22px;font-size:12px;text-align:right;">
             <input type="hidden" id="targetIncome" value="80000">
           </div>
           <span class="field-note">First-year income need, in today's dollars. Grows with inflation each year.</span>
@@ -655,7 +656,7 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
           <div style="position:relative;width:200px;">
             <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:#4338ca;font-weight:600;pointer-events:none;">$</span>
-            <input type="text" id="liPoolDisplay" value="200,000" inputmode="numeric"
+            <input type="text" id="liPoolDisplay" inputmode="numeric"
               style="width:100%;padding:7px 10px 7px 22px;font-size:12px;border:1px solid rgba(79,70,229,0.3);border-radius:8px;background:#fff;color:#1c2a3a;font-family:inherit;text-align:right;">
             <input type="hidden" id="liPool" value="200000">
           </div>

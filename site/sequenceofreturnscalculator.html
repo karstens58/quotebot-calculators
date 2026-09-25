@@ -267,7 +267,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <label>Starting Portfolio Value</label>
           <div class="input-wrap">
             <span class="input-prefix">$</span>
-            <input type="text" id="portfolio" class="has-prefix" value="1,000,000" inputmode="numeric" autocomplete="off">
+            <input type="text" id="portfolio" class="has-prefix" inputmode="numeric" autocomplete="off">
           </div>
         </div>
 
@@ -866,7 +866,7 @@ function renderResults(rows, annualIncome, totalCashNeeded, benefit, negYearCoun
 
 function resetCalc() {
   gateUnlocked = false;
-  document.getElementById('portfolio').value = '1,000,000';
+  document.getElementById('portfolio').value = '';
   document.getElementById('income-pct-slider').value = 4;
   document.getElementById('income-pct-display').textContent = '4%';
   document.getElementById('cv-rate-slider').value = 5.5;

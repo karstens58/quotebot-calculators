@@ -485,17 +485,17 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           <div class="field-row">
             <div class="field">
               <label>First Name <span class="req">*</span></label>
-              <input type="text" id="firstName" value="Scott" placeholder="First">
+              <input type="text" id="firstName" placeholder="First">
             </div>
             <div class="field">
               <label>Last Name</label>
-              <input type="text" id="lastName" value="Karstens" placeholder="Last">
+              <input type="text" id="lastName" placeholder="Last">
             </div>
           </div>
 
           <div class="field">
             <label>Date of Birth <span class="req">*</span><span class="age-pill" id="agePill">Age 48</span></label>
-            <input type="date" id="dob" value="1978-01-26">
+            <input type="date" id="dob">
           </div>
 
           <div class="field">
@@ -514,10 +514,11 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           <div class="field">
             <label>Underwriting Class <span class="req">*</span></label>
             <select id="uwClass">
+<option value="" selected disabled>Select…</option>
               <option value="Preferred Plus">Preferred Plus</option>
               <option value="Preferred">Preferred</option>
               <option value="Standard Plus">Standard Plus</option>
-              <option value="Standard" selected>Standard</option>
+              <option value="Standard">Standard</option>
             </select>
           </div>
 
@@ -525,16 +526,16 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           <div class="input-section"><span class="badge d">D</span><h3>Debt</h3><span class="line"></span></div>
           <div class="field">
             <label>Credit Cards &amp; Personal Loans</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtCards" class="has-prefix" value="12,000" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtCards" class="has-prefix" inputmode="numeric"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Auto Loans</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtAuto" class="has-prefix" value="18,000" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtAuto" class="has-prefix" inputmode="numeric"></div>
             </div>
             <div class="field">
               <label>Other Debts</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtOther" class="has-prefix" value="5,000" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtOther" class="has-prefix" inputmode="numeric"></div>
             </div>
           </div>
 
@@ -542,37 +543,37 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           <div class="input-section"><span class="badge i">I</span><h3>Income Replacement</h3><span class="line"></span></div>
           <div class="field">
             <label>Annual Income to Replace</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="incAnnual" class="has-prefix" value="90,000" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="incAnnual" class="has-prefix" inputmode="numeric"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Years to Replace</label>
-              <div class="input-wrap"><input type="number" id="incYears" value="15" min="1" max="40"><span class="input-suffix">yrs</span></div>
+              <div class="input-wrap"><input type="number" id="incYears" min="1" max="40"><span class="input-suffix">yrs</span></div>
             </div>
             <div class="field">
               <label>Expected Return</label>
-              <div class="input-wrap"><input type="number" id="incReturn" value="5" min="0" max="12" step="0.5"><span class="input-suffix">%</span></div>
+              <div class="input-wrap"><input type="number" id="incReturn" min="0" max="12" step="0.5"><span class="input-suffix">%</span></div>
             </div>
           </div>
           <div class="field">
             <label>Annual Income Growth <span class="tip">raises &amp; inflation</span></label>
-            <div class="input-wrap"><input type="number" id="incGrowth" value="3" min="0" max="8" step="0.5"><span class="input-suffix">%</span></div>
+            <div class="input-wrap"><input type="number" id="incGrowth" min="0" max="8" step="0.5"><span class="input-suffix">%</span></div>
           </div>
 
           <!-- M - MORTGAGE -->
           <div class="input-section"><span class="badge m">M</span><h3>Mortgage Payoff</h3><span class="line"></span></div>
           <div class="field">
             <label>Remaining Mortgage Balance</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="mortBal" class="has-prefix" value="320,000" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="mortBal" class="has-prefix" inputmode="numeric"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Interest Rate</label>
-              <div class="input-wrap"><input type="number" id="mortRate" value="6.5" min="0" max="15" step="0.125"><span class="input-suffix">%</span></div>
+              <div class="input-wrap"><input type="number" id="mortRate" min="0" max="15" step="0.125"><span class="input-suffix">%</span></div>
             </div>
             <div class="field">
               <label>Years Remaining</label>
-              <div class="input-wrap"><input type="number" id="mortYears" value="25" min="1" max="40"><span class="input-suffix">yrs</span></div>
+              <div class="input-wrap"><input type="number" id="mortYears" min="1" max="40"><span class="input-suffix">yrs</span></div>
             </div>
           </div>
 
@@ -581,25 +582,25 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           <div class="field-row">
             <div class="field">
               <label>Children to Fund</label>
-              <div class="input-wrap"><input type="number" id="eduKids" value="2" min="0" max="10"></div>
+              <div class="input-wrap"><input type="number" id="eduKids" min="0" max="10"></div>
             </div>
             <div class="field">
               <label>Years Each</label>
-              <div class="input-wrap"><input type="number" id="eduYears" value="4" min="1" max="8"><span class="input-suffix">yrs</span></div>
+              <div class="input-wrap"><input type="number" id="eduYears" min="1" max="8"><span class="input-suffix">yrs</span></div>
             </div>
           </div>
           <div class="field">
             <label>Cost Per Child / Year</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="eduCost" class="has-prefix" value="30,000" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="eduCost" class="has-prefix" inputmode="numeric"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Emergency Fund <span class="tip sm">3–6 mo</span></label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="emergFund" class="has-prefix" value="25,000" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="emergFund" class="has-prefix" inputmode="numeric"></div>
             </div>
             <div class="field">
               <label>Final Expenses <span class="tip">funeral</span></label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="finalExp" class="has-prefix" value="15,000" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="finalExp" class="has-prefix" inputmode="numeric"></div>
             </div>
           </div>
 
@@ -608,11 +609,11 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           <div class="field-row align-fields">
             <div class="field">
               <label>Existing Life Insurance</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existLife" class="has-prefix" value="100,000" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existLife" class="has-prefix" inputmode="numeric"></div>
             </div>
             <div class="field">
               <label>Liquid Savings</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existSavings" class="has-prefix" value="50,000" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existSavings" class="has-prefix" inputmode="numeric"></div>
             </div>
           </div>
 
@@ -714,7 +715,13 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
 /* ---------- STATES ---------- */
 const STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","District of Columbia","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"];
 const stateSel = document.getElementById('state');
-STATES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; if (s === "Colorado") o.selected = true; stateSel.appendChild(o); });
+  /* Unchosen on arrival. Without this the list falls to its first entry
+     and the visitor is quoted somewhere they never picked. */
+  { const ph = document.createElement('option');
+    ph.value = ''; ph.textContent = 'Select your state'; ph.selected = true;
+    stateSel.appendChild(ph); }
+
+STATES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; /* No default state: it changes the rates, so it is theirs to pick. */ stateSel.appendChild(o); });
 
 /* ---------- FORMAT HELPERS ---------- */
 const fmt$ = n => '$' + Math.round(n).toLocaleString('en-US');
@@ -1319,12 +1326,34 @@ function editInputs(){
 }
 
 // reset
-const DEFAULTS = { firstName:'Scott', lastName:'Karstens', dob:'1978-01-26', gender:'Male', state:'Colorado', uwClass:'Standard',
-  debtCards:'12,000', debtAuto:'18,000', debtOther:'5,000',
-  incAnnual:'90,000', incYears:'15', incReturn:'5', incGrowth:'3',
-  mortBal:'320,000', mortRate:'6.5', mortYears:'25',
-  eduKids:'2', eduYears:'4', eduCost:'30,000', emergFund:'25,000', finalExp:'15,000',
-  existLife:'100,000', existSavings:'50,000' };
+/* Reset means an empty form, not somebody else's file. Kept as a field
+   list so Reset still clears every input rather than the ones a
+   later edit happened to remember. */
+const DEFAULTS = {
+  firstName: '',
+  lastName: '',
+  dob: '',
+  gender: '',
+  state: '',
+  uwClass: '',
+  debtCards: '',
+  debtAuto: '',
+  debtOther: '',
+  incAnnual: '',
+  incYears: '',
+  incReturn: '',
+  incGrowth: '',
+  mortBal: '',
+  mortRate: '',
+  mortYears: '',
+  eduKids: '',
+  eduYears: '',
+  eduCost: '',
+  emergFund: '',
+  finalExp: '',
+  existLife: '',
+  existSavings: '',
+}
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   Object.entries(DEFAULTS).forEach(([id,v])=>{
     const el = document.getElementById(id); if (el) el.value = v;

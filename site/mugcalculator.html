@@ -345,7 +345,7 @@ footer{background:var(--primary-dark);color:rgba(255,255,255,0.55);padding:68px 
             </div>
             <div class="expense-input-row">
               <span class="dollar-prefix">$</span>
-              <input class="expense-num-input" id="mortgage-num" type="text" inputmode="numeric" value="2,025">
+              <input class="expense-num-input" id="mortgage-num" type="text" inputmode="numeric">
               <span style="font-size:13px;color:var(--gray-mid);white-space:nowrap;">/month</span>
             </div>
             <input class="expense-slider" id="mortgage-slider" type="range" min="0" max="8000" step="25" value="2025">
@@ -365,7 +365,7 @@ footer{background:var(--primary-dark);color:rgba(255,255,255,0.55);padding:68px 
             </div>
             <div class="expense-input-row">
               <span class="dollar-prefix">$</span>
-              <input class="expense-num-input" id="utilities-num" type="text" inputmode="numeric" value="420">
+              <input class="expense-num-input" id="utilities-num" type="text" inputmode="numeric">
               <span style="font-size:13px;color:var(--gray-mid);white-space:nowrap;">/month</span>
             </div>
             <input class="expense-slider" id="utilities-slider" type="range" min="0" max="2000" step="10" value="420">
@@ -385,7 +385,7 @@ footer{background:var(--primary-dark);color:rgba(255,255,255,0.55);padding:68px 
             </div>
             <div class="expense-input-row">
               <span class="dollar-prefix">$</span>
-              <input class="expense-num-input" id="groceries-num" type="text" inputmode="numeric" value="475">
+              <input class="expense-num-input" id="groceries-num" type="text" inputmode="numeric">
               <span style="font-size:13px;color:var(--gray-mid);white-space:nowrap;">/month</span>
             </div>
             <input class="expense-slider" id="groceries-slider" type="range" min="0" max="2000" step="10" value="475">
@@ -418,7 +418,7 @@ footer{background:var(--primary-dark);color:rgba(255,255,255,0.55);padding:68px 
             <div class="field-label">Annual Income <span class="tooltip-wrap"><i class="tooltip-icon">i</i><span class="tooltip-box">National avg: $63,000/yr · Used to calculate your estimated premium as a percentage of income.</span></span></div>
             <div class="expense-input-row" style="margin-bottom:10px;">
               <span class="dollar-prefix" style="font-size:24px;">$</span>
-              <input class="expense-num-input" id="income-num" type="text" inputmode="numeric" value="63,000" style="font-size:28px;">
+              <input class="expense-num-input" id="income-num" type="text" inputmode="numeric" style="font-size:28px;">
               <span style="font-size:13px;color:var(--gray-mid);white-space:nowrap;">/year</span>
             </div>
             <input class="age-slider" id="income-slider" type="range" min="20000" max="500000" step="1000" value="63000" style="background:linear-gradient(to right,var(--accent) 8.6%,var(--border) 8.6%);">
@@ -431,8 +431,9 @@ footer{background:var(--primary-dark);color:rgba(255,255,255,0.55);padding:68px 
             <div class="field-label">Occupation Type</div>
             <div class="occ-select-wrap">
               <select class="occ-select" id="occ-select">
+<option value="" selected disabled>Select…</option>
                 <option value="5A">Class 5A — Professional (Physician, Attorney, CPA, Executive)</option>
-                <option value="4A" selected>Class 4A — White Collar (Engineer, Manager, Teacher, Analyst)</option>
+                <option value="4A">Class 4A — White Collar (Engineer, Manager, Teacher, Analyst)</option>
                 <option value="3A">Class 3A — Sales &amp; Service (Real Estate Agent, Financial Advisor)</option>
                 <option value="2A">Class 2A — Skilled Trade (Electrician, Plumber, Mechanic, HVAC)</option>
                 <option value="1A">Class 1A — Manual &amp; Trade (Construction, Warehouse, Driver, Landscaper, Roofing)</option>

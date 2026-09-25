@@ -423,14 +423,15 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
           <div class="input-section"><span class="badge b1">🏢</span><h3>The Business</h3><span class="line"></span></div>
           <div class="field">
             <label>Business Name <span class="req">*</span></label>
-            <input type="text" id="bizName" value="ABC Inc" placeholder="Company name">
+            <input type="text" id="bizName" placeholder="Company name">
           </div>
           <div class="field-row">
             <div class="field">
               <label>Structure</label>
               <select id="bizStructure">
+<option value="" selected disabled>Select…</option>
                 <option>LLC</option>
-                <option selected>S-Corporation</option>
+                <option>S-Corporation</option>
                 <option>C-Corporation</option>
                 <option>Partnership</option>
                 <option>Sole Proprietorship</option>
@@ -449,18 +450,19 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
           <div class="field-row three">
             <div class="field">
               <label>Owners</label>
-              <input type="number" id="numOwners" value="3" min="1" max="99" step="1">
+              <input type="number" id="numOwners" min="1" max="99" step="1">
             </div>
             <div class="field">
               <label>Employees <span class="tip-mark" tabindex="0" data-tip="Total headcount across the company. This sets which row of the key-person factor table applies (1–10, 11–50, 51–100, or 101+). Smaller companies depend more heavily on each key person, so the multipliers are larger.">i</span></label>
-              <input type="number" id="numEmployees" value="50" min="1" max="100000" step="1">
+              <input type="number" id="numEmployees" min="1" max="100000" step="1">
             </div>
             <div class="field">
               <label>Key Emp.</label>
               <select id="numKeyEmployees">
+<option value="" selected disabled>Select…</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
-                <option value="3" selected>3</option>
+                <option value="3">3</option>
                 <option value="4">4</option>
                 <option value="5">5</option>
                 <option value="6">6</option>
@@ -632,14 +634,16 @@ function firstName(p){ return (p.first||'').trim() || fullName(p).split(' ')[0];
    KEY EMPLOYEE INPUT CARDS
    ============================================================ */
 let keData = []; // see DEFAULT_KE shape
+/* Blank cards. The shape stays so the rows render, but nobody is named
+   for the visitor -- these were seeded with a real person's name. */
 const DEFAULT_KE = [
-  { first:'Jane',  last:'Fonda',    title:'Chief Revenue Officer', email:'', phone:'', gender:'Female', age:43, state:'CO', ownership:15, tobacco:'Non-Tobacco', health:'Preferred', salary:140000, bonus:35000, benefits:32000, tied:'No',  loan:0,       loanPct:0,  difficulty:'Very Difficult' },
-  { first:'The',   last:'Joker',    title:'Head of Product',       email:'', phone:'', gender:'Male',   age:37, state:'CO', ownership:0,  tobacco:'Non-Tobacco', health:'Standard',  salary:105000, bonus:25000, benefits:32000, tied:'No',  loan:0,       loanPct:0,  difficulty:'Difficult' },
-  { first:'Jim',   last:'Jones',    title:'Founder & CEO',         email:'', phone:'', gender:'Male',   age:48, state:'CO', ownership:60, tobacco:'Non-Tobacco', health:'Standard',  salary:170000, bonus:30000, benefits:32000, tied:'Yes', loan:800000,  loanPct:50, difficulty:'Impossible' },
-  { first:'Nancy', last:'Schmancy', title:'Lead Engineer',         email:'', phone:'', gender:'Female', age:41, state:'CO', ownership:0,  tobacco:'Non-Tobacco', health:'Preferred Plus', salary:160000, bonus:40000, benefits:50000, tied:'No', loan:0, loanPct:0, difficulty:'Very Difficult' },
-  { first:'Alex',  last:'Rivera',   title:'VP Operations',         email:'', phone:'', gender:'Male',   age:45, state:'CO', ownership:0,  tobacco:'Non-Tobacco', health:'Standard',  salary:130000, bonus:20000, benefits:30000, tied:'No',  loan:0,       loanPct:0,  difficulty:'Difficult' },
-  { first:'Sam',   last:'Brooks',   title:'Sales Director',        email:'', phone:'', gender:'Female', age:39, state:'CO', ownership:0,  tobacco:'Non-Tobacco', health:'Preferred', salary:120000, bonus:45000, benefits:28000, tied:'No',  loan:0,       loanPct:0,  difficulty:'Difficult' },
-];
+  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
+  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
+  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
+  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
+  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
+  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
+]
 
 function readKeInputs(){
   const cards = document.querySelectorAll('#kesWrap .ke-card');
@@ -1260,7 +1264,12 @@ function updateTotals(){
 /* ============================================================
    INIT
    ============================================================ */
-function populateSelect(sel, items, selected){
+function populateSelect(sel, items, selected, placeholder){
+  /* Unchosen on arrival when a placeholder is given, so the list does not
+     fall to its first entry and answer on the visitor's behalf. */
+  if (placeholder){ const ph = document.createElement('option');
+    ph.value = ''; ph.textContent = placeholder; ph.selected = true;
+    sel.appendChild(ph); }
   items.forEach(it => { const o = document.createElement('option'); o.value = it; o.textContent = it; if (it===selected) o.selected = true; sel.appendChild(o); });
 }
 
@@ -1281,8 +1290,8 @@ function resetDefaults(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  populateSelect($('bizState'), STATES, 'CO');
-  populateSelect($('industry'), INDUSTRIES, INDUSTRIES[1]);
+  populateSelect($('bizState'), STATES, null, 'Select a state');
+  populateSelect($('industry'), INDUSTRIES, null, 'Select an industry');
   buildKeCards();
   updateBandTag();
 
