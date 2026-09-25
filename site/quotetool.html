@@ -587,6 +587,16 @@ let QUOTES = [];        // computed rows
    quote. Empty is an ordinary state -- renderBest falls back to price and
    shows no reasons rather than inventing any. */
 let FEATURED = [];
+/* Set per quote: was this result set narrowed by Health Analyzer answers. */
+let FILTERED_BY_HEALTH = false;
+/*
+ * The Health Analyzer answers, once the visitor has given them.
+ *
+ * Null until they open the analyzer, which they do from the results -- they
+ * have already been shown a price by then, so this only ever narrows a list
+ * they have seen. The questionnaire's whole job is to fill this and re-quote.
+ */
+let HEALTH_ANSWERS = null;
 let visibleCount = 5;   // for Show More
 
 /* Admin-entered text reaches the page through innerHTML, so it is escaped
@@ -630,6 +640,57 @@ function logoFor(name, code, url){
   return '<div class="logo">' + safe.split(' ').slice(0,2).join(' ') + '</div>';
 }
 
+/**
+ * Turn the qualify banner into an invitation to talk, for the two cases where
+ * the comparison has nothing to show.
+ *
+ * Reuses the banner rather than adding a second thing to the page: whatever it
+ * was offering, it is not the useful next step once the list is empty.
+ */
+let QUALIFY_ORIGINAL = null;
+
+/* Put the banner back to whatever the page shipped with. Called on every
+   result set that has rows in it: without this, one empty quote leaves the
+   analyzer offer reading "Have someone call me" for the rest of the visit. */
+function resetQualifyBanner(){
+  if (!QUALIFY_ORIGINAL) return;
+  const wrap = document.querySelector('.qualify');
+  if (!wrap) return;
+  const h = wrap.querySelector('.qualify-text h3');
+  const p = wrap.querySelector('.qualify-text p');
+  const btn = wrap.querySelector('.qualify-btn');
+  if (h) h.textContent = QUALIFY_ORIGINAL.h;
+  if (p) p.textContent = QUALIFY_ORIGINAL.p;
+  if (btn) { btn.textContent = QUALIFY_ORIGINAL.btn; delete btn.dataset.mode; }
+}
+
+function showTalkToUs(){
+  const wrap = document.querySelector('.qualify');
+  if (!wrap) return;
+  const h = wrap.querySelector('.qualify-text h3');
+  const p = wrap.querySelector('.qualify-text p');
+  const btn = wrap.querySelector('.qualify-btn');
+  /* Captured on the first swap only -- capturing later would save the
+     already-swapped words and make the reset a no-op. */
+  if (!QUALIFY_ORIGINAL) {
+    QUALIFY_ORIGINAL = {
+      h: h ? h.textContent : '', p: p ? p.textContent : '',
+      btn: btn ? btn.textContent : ''
+    };
+  }
+  if (h) h.textContent = 'Let\u2019s find you a policy the hard way';
+  if (p) {
+    p.textContent = 'Automated comparisons give up early. A licensed agent can '
+      + 'work carriers and products this page does not price, and will tell you '
+      + 'plainly if there is nothing worth doing.';
+  }
+  if (btn) {
+    btn.textContent = 'Have someone call me';
+    btn.dataset.mode = 'contact';
+  }
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function setQuoteNotice(msg, kind){
   var el = document.getElementById('quoteNotice');
   if (!el){
@@ -658,7 +719,11 @@ async function recalc(){
     return;
   }
 
-  setQuoteNotice('Pricing with carriers\u2026', 'info');
+  /* Captured before the request so the empty-result branch can tell "nobody
+     quotes this profile" from "the analyzer removed everything". */
+  const sentHealth = HEALTH_ANSWERS;
+  setQuoteNotice(sentHealth ? 'Checking which of these you qualify for\u2026'
+    : 'Pricing with carriers\u2026', 'info');
 
   try {
     var res = await fetch(endpoint.replace(/\/$/, '') + '/quote', {
@@ -675,13 +740,20 @@ async function recalc(){
         tobacco: inp.tobacco === 'Yes',
         healthClass: inp.health,
         state: inp.state,
-        toolKey: 'quote'
+        toolKey: 'quote',
+        /* Omitted entirely until answered. An absent key is Compulife's own
+           default -- every analyzer group is off unless switched on. */
+        ...(sentHealth ? { health: sentHealth } : {})
       })
     });
     var json = await res.json();
     if (!res.ok || !json.ok) throw new Error(json.error || ('HTTP ' + res.status));
 
     PREMIUMS_ARE_ESTIMATES = json.premiumsAreEstimates !== false;
+    /* Whether THIS quote was filtered by health answers. Two very different
+       empty results hide behind one empty array, and they need different
+       things said to them. */
+    FILTERED_BY_HEALTH = Boolean(sentHealth);
 
     /* One mapper for both lists. The featured picks ARE quote rows -- the
        engine selects from the same array it returns -- so shaping them
@@ -712,17 +784,43 @@ async function recalc(){
       });
     });
 
-    if (!QUOTES.length){
+    if (!QUOTES.length && FILTERED_BY_HEALTH){
+      /*
+       * The worst page this tool can show, and the one that most needs a
+       * person on the other end: somebody has just told us about their blood
+       * pressure, their driving record and their family history, and the
+       * comparison has nothing left to show them.
+       *
+       * What is true and worth saying: this compares a fixed set of carriers
+       * at standard underwriting, and that is a narrow slice of the market.
+       * Table-rated offers, simplified issue and guaranteed issue all sit
+       * outside it. What is NOT said, because it would not be true: that we
+       * can get them covered.
+       */
+      setQuoteNotice(
+        '<b>Nothing on this comparison fits what you told us.</b> That is a '
+        + 'statement about this tool, not about you \u2014 it prices a fixed set of '
+        + 'carriers at standard underwriting, which is a narrow slice of the '
+        + 'market. Rated offers, simplified issue and guaranteed issue are all '
+        + 'outside it, and they are where people in your position are usually '
+        + 'placed. Someone here would rather talk it through than leave you '
+        + 'with an empty page.', 'error');
+      showTalkToUs();
+    } else if (!QUOTES.length){
       setQuoteNotice('No carrier returned an offer for this profile. An agent can look at options a comparison engine will not show.', 'error');
+      showTalkToUs();
     } else if (PREMIUMS_ARE_ESTIMATES){
+      resetQualifyBanner();
       setQuoteNotice('<b>Illustrative estimates.</b> These premiums are modelled, not carrier-filed rates, and are not an offer of insurance. Your actual premium is set by the carrier after underwriting.', 'info');
     } else {
+      resetQualifyBanner();
       setQuoteNotice('', null);
     }
   } catch (err){
     QUOTES = [];
     FEATURED = [];
     setQuoteNotice('We could not reach the quote service just now. Rather than show an estimate that might be wrong, we would rather have someone call you with real numbers.', 'error');
+    showTalkToUs();
   }
 
   renderBest();
