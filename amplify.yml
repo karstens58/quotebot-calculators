@@ -1,0 +1,26 @@
+# Static site: nothing is compiled, only published.
+#
+# baseDirectory is `site`, and that is the whole point of the split. Anything
+# outside it -- tests, notes, this file -- cannot reach the public bucket, so
+# a stray file in the repo can never end up served at tools.quotebot.io.
+#
+# It also removes the failure that took the site down on 24 September: a zip
+# built from the folder rather than its contents put every page one level
+# deep and the site 404'd. Amplify takes the root from here now, so there is
+# no packaging step left to get wrong.
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # The card-selection rules, run against the real shipped page. Cheap,
+        # and it fails the deploy rather than the customer.
+        - node --test tests/*.test.mjs
+    build:
+      commands: []
+  artifacts:
+    baseDirectory: site
+    files:
+      - '**/*'
+  cache:
+    paths: []

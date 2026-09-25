@@ -5,13 +5,13 @@
  * so this cannot drift from what the page actually does. Testing a retyped
  * copy would assert that my copy is right, which is not the question.
  *
- *   node --test quotetool-cards.test.mjs
+ *   node --test tests/quotetool-cards.test.mjs
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 
-const HTML = readFileSync(new URL('./quotetool.html', import.meta.url), 'utf8');
+const HTML = readFileSync(new URL('../site/quotetool.html', import.meta.url), 'utf8');
 
 /* The helpers renderBest leans on, plus renderBest itself, lifted verbatim. */
 function cut(start, endMarker, { keepEnd = true } = {}) {

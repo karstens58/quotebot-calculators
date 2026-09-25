@@ -1,0 +1,10 @@
+# macOS writes these into every folder it opens. One of them shipped to
+# production in the 24 September deploy.
+.DS_Store
+Thumbs.db
+
+# Deploys come from git now. A zip in here is either a stale copy of what is
+# already committed, or something that should have been.
+*.zip
+
+node_modules/
