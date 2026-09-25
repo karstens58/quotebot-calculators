@@ -337,9 +337,10 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <input type="text" id="gate-last" placeholder="Smith" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
           </div>
           <div>
-            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Phone <span style="color:var(--red);">*</span></label>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Phone</label>
             <input type="tel" id="gate-phone" placeholder="(555) 000-0000" oninput="formatPhone(this)" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
           </div>
+            <div data-qb-sms-optin></div>
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Email <span style="color:var(--red);">*</span></label>
             <input type="email" id="gate-email" placeholder="jane@example.com" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
@@ -891,7 +892,7 @@ function resetCalc() {
         <input type="text" id="gate-last" placeholder="Smith" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       </div>
       <div>
-        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Phone <span style="color:var(--red);">*</span></label>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Phone</label>
         <input type="tel" id="gate-phone" placeholder="(555) 000-0000" oninput="formatPhone(this)" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       </div>
       <div>
@@ -1004,7 +1005,8 @@ function submitGate() {
   const err   = document.getElementById('gate-error');
 
   // Validation
-  if (!first || !last || !phone || !email) {
+  /* Phone is optional; the other three are not. */
+  if (!first || !last || !email) {
     err.textContent = 'Please fill in all required fields.';
     err.style.display = 'block';
     return;
@@ -1015,7 +1017,8 @@ function submitGate() {
     err.style.display = 'block';
     return;
   }
-  const phoneOk = phone.replace(/\D/g,'').length >= 10;
+  /* An empty phone passes; a half-typed one does not. */
+  const phoneOk = !phone || phone.replace(/\D/g,'').length >= 10;
   if (!phoneOk) {
     err.textContent = 'Please enter a valid phone number.';
     err.style.display = 'block';

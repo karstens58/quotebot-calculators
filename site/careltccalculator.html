@@ -777,10 +777,11 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
               <span class="field-error" id="err-email"></span>
             </div>
             <div class="field-group">
-              <label class="field-label" for="cf-phone">Phone Number <span class="req-star">*</span></label>
+              <label class="field-label" for="cf-phone">Phone Number</label>
               <input type="tel" id="cf-phone" class="text-input" placeholder="(555) 000-0000" autocomplete="tel">
               <span class="field-error" id="err-phone"></span>
             </div>
+              <div data-qb-sms-optin></div>
             <div class="field-group">
               <label class="field-label" for="cf-dob">Date of Birth <span class="req-star">*</span></label>
               <input type="date" id="cf-dob" class="text-input" autocomplete="bday">
@@ -1314,8 +1315,11 @@ function validateContact() {
   else setErr('err-email', '');
 
   const digits = phone.replace(/\D/g, '');
-  if (!phone) { setErr('err-phone', 'Phone number is required.'); ok = false; }
-  else if (digits.length < 10) { setErr('err-phone', 'Please enter a 10-digit phone number.'); ok = false; }
+  /* Optional. Only the number that unlocks results can trigger a text, and
+     making it compulsory costs quotes from people who will not give one.
+     Still validated when they DO type one -- a half-entered number is a
+     lead nobody can ring. */
+  if (phone && digits.length < 10) { setErr('err-phone', 'Please enter a 10-digit phone number.'); ok = false; }
   else setErr('err-phone', '');
 
   if (!dob) { setErr('err-dob', 'Date of birth is required.'); ok = false; }

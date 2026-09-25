@@ -400,6 +400,7 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           <label style="color:var(--primary);">Phone Number</label>
           <input type="tel" id="contactPhone" placeholder="(555) 000-0000" autocomplete="tel" oninput="formatPhoneInput(this)">
         </div>
+          <div data-qb-sms-optin></div>
       </div>
       <div id="contactError" style="display:none;color:var(--red);font-size:10px;margin-top:8px;font-weight:600;"></div>
     </div>
@@ -719,7 +720,8 @@ function runCalcGated() {
   const phone = document.getElementById('contactPhone').value.trim();
   const errEl = document.getElementById('contactError');
 
-  if (!first || !last || !email || !phone) {
+  /* Phone is optional; the other three are not. */
+  if (!first || !last || !email) {
     errEl.textContent = '⚠ Please complete all fields in Your Information before calculating.';
     errEl.style.display = 'block';
     document.getElementById('contactFirst').closest('.input-section').scrollIntoView({ behavior: 'smooth', block: 'center' });

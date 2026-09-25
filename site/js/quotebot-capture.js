@@ -348,11 +348,29 @@
     var css = document.createElement('style');
     css.id = 'qb-sms-styles';
     css.textContent =
+      /*
+       * text-transform and letter-spacing are reset explicitly. quotetool's
+       * own label styling uppercases its field labels, and the opt-in landed
+       * inside that scope and came out shouting "TEXT ME QUOTES AND OFFERS".
+       * The stored evidence was unaffected -- textContent ignores
+       * text-transform -- but a disclosure that shouts reads as a banner ad,
+       * which is the opposite of what it is for.
+       */
       '.qb-sms{margin:8px 0 0;text-align:left}'
-      + '.qb-sms-label{display:flex;align-items:center;gap:8px;font-size:14px;'
-      + 'line-height:1.3;cursor:pointer;font-weight:500}'
+      + '.qb-sms .qb-sms-label{display:flex;align-items:center;gap:8px;'
+      + 'font-size:14px;line-height:1.3;cursor:pointer;font-weight:500;'
+      /* !important, on the typography resets only.
+         quotetool has `.field label { text-transform: uppercase }`, which is
+         (0,1,1) and beats a single class. This script is injected into pages
+         whose stylesheets it cannot know, so raising specificity is a race
+         it can always lose -- the next page will have `.form .field label`.
+         Layout below stays unforced; only the properties that decide whether
+         the disclosure is legible are held down. */
+      + 'text-transform:none!important;letter-spacing:normal!important}'
       + '.qb-sms-label input{width:16px;height:16px;margin:0;flex:none;cursor:pointer}'
-      + '.qb-sms-fine{margin:4px 0 0 24px;font-size:11px;line-height:1.45;opacity:.7}';
+      + '.qb-sms .qb-sms-fine{margin:4px 0 0 24px;font-size:11px;line-height:1.45;'
+      + 'opacity:.75;text-transform:none!important;letter-spacing:normal!important;'
+      + 'font-weight:400!important}';
     document.head.appendChild(css);
   }
 
@@ -365,8 +383,21 @@
    * our copy of what we believe we showed them.
    */
   function readSmsOptIn() {
-    var box = document.querySelector('[data-qb-sms-box]');
-    if (!box) return null;
+    /*
+     * The box the visitor could actually see.
+     *
+     * A page can mount more than one -- sequenceofreturns has two gates, and
+     * both are the same markup. Taking the first would read an empty box
+     * while the one they ticked sat further down the page, throwing away the
+     * consent they just gave. So: the first TICKED box if there is one, and
+     * otherwise the first box at all, which reports an honest false.
+     */
+    var boxes = document.querySelectorAll('[data-qb-sms-box]');
+    if (!boxes.length) return null;
+    var box = boxes[0];
+    for (var b = 0; b < boxes.length; b++) {
+      if (boxes[b].checked) { box = boxes[b]; break; }
+    }
     /*
      * The two halves, joined by a space.
      *
@@ -376,8 +407,10 @@
      * space is the faithful reading -- and this is the text somebody reads
      * aloud one day to say what the person agreed to.
      */
+    var group = box.closest ? box.closest('[data-qb-sms-text]') : null;
     var parts = [];
-    var nodes = document.querySelectorAll('[data-qb-sms-lead],[data-qb-sms-fine]');
+    var nodes = (group || document)
+      .querySelectorAll('[data-qb-sms-lead],[data-qb-sms-fine]');
     for (var j = 0; j < nodes.length; j++) {
       var t = nodes[j].textContent.replace(/\s+/g, ' ').trim();
       if (t) parts.push(t);

@@ -563,8 +563,9 @@ button.qbm-back { background: none; border: 0; color: #5b6b80;
           <span class="field-error" id="err-email"></span>
         </div>
         <div class="field">
-          <label>Phone Number <span class="req-star">*</span></label>
+          <label>Phone Number</label>
           <div class="phone-wrap"><span class="phone-flag">🇺🇸</span><input type="tel" id="cf-phone" placeholder="(555) 000-0000" autocomplete="section-buyer tel"></div>
+          <div data-qb-sms-optin></div>
           <span class="field-error" id="err-phone"></span>
         </div>
       </div>
@@ -962,8 +963,8 @@ function validateContact() {
 
   const phone = document.getElementById('cf-phone').value.trim();
   const phoneDigits = phone.replace(/\D/g, '');
-  if (!phone) { setErr('err-phone', 'Phone number is required.'); ok = false; }
-  else if (phoneDigits.length < 10) { setErr('err-phone', 'Please enter a 10-digit phone number.'); ok = false; }
+  /* Optional -- see careltc. Validated only when one is given. */
+  if (phone && phoneDigits.length < 10) { setErr('err-phone', 'Please enter a 10-digit phone number.'); ok = false; }
   else setErr('err-phone', '');
 
   return ok;
