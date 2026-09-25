@@ -36,6 +36,60 @@
      changes a number and recalculates is never silently dropped. */
   var DEDUPE_MS = 60 * 1000;
 
+  /* ---------- the SMS opt-in ----------------------------------------------
+   *
+   * ONE WORDING, DEFINED ONCE, FOR EVERY CALCULATOR.
+   *
+   * Not because consistency is tidy, but because the record we write stores a
+   * version stamp so that a year from now it can say this person saw these
+   * words. Thirteen calculators with thirteen sentences means a version per
+   * calculator per revision and the stamp means nothing. There are already
+   * ten distinct disclosure texts across these pages, one of which grabs the
+   * wrong paragraph entirely, so this is the current state rather than a
+   * hypothetical.
+   *
+   * It also has to keep passing the server's checks, which refuse an opt-in
+   * whose wording omits "not a condition of purchase" or how to stop. A
+   * refusal is silent by design -- the server logs and records nothing -- so
+   * a hand-edited variant would look like a working form that collects no
+   * consent. tests/sms-disclosure-mirror.test.mjs holds this string to the
+   * backend's copy.
+   *
+   * IT ALWAYS NAMES QUOTE BOT, including on affiliate-branded pages. The TCPA
+   * wants the person to know who is texting them, and the texts come from
+   * Quote Bot; affiliates never text. Co-branding changes the logo on the
+   * page, not who is asking for permission.
+   */
+  var SMS_DISCLOSURE_VERSION = '2026-09-a';
+
+  /*
+   * Short beside the box, the required wording underneath it.
+   *
+   * The label can be four words. The disclosure cannot: express written
+   * consent has to state that agreeing is not a condition of purchase and
+   * how to stop, and a label that omits them is not consent however briefly
+   * it is phrased. So the affirmative act sits beside the box and the fine
+   * print sits under it, both on screen, both captured.
+   *
+   * The label says "offers" rather than "updates" deliberately. It has to be
+   * honest that this is marketing, because the fine print says so and a
+   * label that reads transactional while the small text says marketing is
+   * the kind of mismatch that voids the consent it collects.
+   *
+   * Mind the contraction. "Consent isn't required to buy" reads better and
+   * fails the server's check, which looks for "not required to buy" -- so an
+   * innocent copy edit would leave a form that collects nothing and says
+   * nothing about it.
+   */
+  var SMS_OPTIN_LABEL = 'Text me quotes and offers';
+  var SMS_FINE_PRINT =
+    'I agree to receive automated marketing text messages from Quote Bot about '
+    + 'my insurance quote and related offers. Message frequency varies. Message '
+    + 'and data rates may apply. Reply STOP to opt out or HELP for help. '
+    + 'Consent is not required to make a purchase.';
+  /* What the record stores: everything the visitor had in front of them. */
+  var SMS_DISCLOSURE = SMS_OPTIN_LABEL + ' ' + SMS_FINE_PRINT;
+
   var config = {
     endpoint: (SCRIPT && SCRIPT.getAttribute('data-endpoint')) || '',
     toolKey: (SCRIPT && SCRIPT.getAttribute('data-tool')) || 'unknown',
@@ -218,6 +272,124 @@
       anchor.setAttribute('href', url.pathname + url.search + url.hash);
       return true;
     } catch (e) { return false; }
+  }
+
+  /*
+   * Render the opt-in into any [data-qb-sms-optin] on the page.
+   *
+   * Built here rather than copied into each calculator's markup, so the
+   * wording has one home. A page opts in to having it by placing one empty
+   * element; everything else -- the box, the label, the id, the unticked
+   * state -- comes from this file.
+   *
+   * UNTICKED, AND NOT REQUIRED. A pre-ticked box is not express written
+   * consent, it is the single most common way this is done wrong, and making
+   * it a condition of seeing the quote would void the consent it collects.
+   */
+  function mountSmsOptIn() {
+    var slots = document.querySelectorAll('[data-qb-sms-optin]');
+    if (!slots.length) return 0;
+    injectSmsStyles();
+    var n = 0;
+    for (var i = 0; i < slots.length; i++) {
+      var slot = slots[i];
+      if (slot.getAttribute('data-qb-mounted') === '1') continue;
+
+      var id = 'qb-sms-optin' + (i ? '-' + i : '');
+
+      /* One wrapper marked as the disclosure, holding BOTH the label and the
+         fine print, because that is what the visitor read. Capturing only one
+         half would store either an affirmative act with no disclosure or a
+         disclosure nobody agreed to. */
+      var wrap = document.createElement('div');
+      wrap.className = 'qb-sms';
+      wrap.setAttribute('data-qb-sms-text', '1');
+
+      var label = document.createElement('label');
+      label.className = 'qb-sms-label';
+      label.setAttribute('for', id);
+
+      var box = document.createElement('input');
+      box.type = 'checkbox';
+      box.id = id;
+      box.checked = false;
+      box.setAttribute('data-qb-sms-box', '1');
+
+      var lead = document.createElement('span');
+      lead.setAttribute('data-qb-sms-lead', '1');
+      /* textContent, never innerHTML: this is read back out of the DOM and
+         stored as evidence, and markup in it would be stored too. */
+      lead.textContent = SMS_OPTIN_LABEL;
+
+      label.appendChild(box);
+      label.appendChild(lead);
+
+      var fine = document.createElement('p');
+      fine.className = 'qb-sms-fine';
+      fine.setAttribute('data-qb-sms-fine', '1');
+      fine.textContent = SMS_FINE_PRINT;
+
+      wrap.appendChild(label);
+      wrap.appendChild(fine);
+      slot.appendChild(wrap);
+      slot.setAttribute('data-qb-mounted', '1');
+      n++;
+    }
+    log('mounted ' + n + ' SMS opt-in(s)');
+    return n;
+  }
+
+  /*
+   * Enough styling that it sits under a phone field without each calculator
+   * restyling it, and little enough that it inherits the page's type.
+   */
+  function injectSmsStyles() {
+    if (document.getElementById('qb-sms-styles')) return;
+    var css = document.createElement('style');
+    css.id = 'qb-sms-styles';
+    css.textContent =
+      '.qb-sms{margin:8px 0 0;text-align:left}'
+      + '.qb-sms-label{display:flex;align-items:center;gap:8px;font-size:14px;'
+      + 'line-height:1.3;cursor:pointer;font-weight:500}'
+      + '.qb-sms-label input{width:16px;height:16px;margin:0;flex:none;cursor:pointer}'
+      + '.qb-sms-fine{margin:4px 0 0 24px;font-size:11px;line-height:1.45;opacity:.7}';
+    document.head.appendChild(css);
+  }
+
+  /*
+   * What the visitor actually did, read back off the page.
+   *
+   * The TEXT is read from the DOM rather than from the constant above, on
+   * purpose. The record is supposed to say what was on the screen; if a page
+   * overrode the wording, the evidence should carry the override rather than
+   * our copy of what we believe we showed them.
+   */
+  function readSmsOptIn() {
+    var box = document.querySelector('[data-qb-sms-box]');
+    if (!box) return null;
+    /*
+     * The two halves, joined by a space.
+     *
+     * textContent on the wrapper concatenates them with nothing between,
+     * which stored "...quotes and offersRecurring automated marketing...".
+     * They are separate blocks on screen with a line between them, so a
+     * space is the faithful reading -- and this is the text somebody reads
+     * aloud one day to say what the person agreed to.
+     */
+    var parts = [];
+    var nodes = document.querySelectorAll('[data-qb-sms-lead],[data-qb-sms-fine]');
+    for (var j = 0; j < nodes.length; j++) {
+      var t = nodes[j].textContent.replace(/\s+/g, ' ').trim();
+      if (t) parts.push(t);
+    }
+    return {
+      agreed: box.checked === true,
+      disclosureText: parts.join(' '),
+      disclosureVersion: SMS_DISCLOSURE_VERSION,
+      sourceUrl: window.location.href,
+      userAgent: navigator.userAgent,
+      grantedAt: new Date().toISOString()
+    };
   }
 
   function decorateAll() {
@@ -672,6 +844,14 @@
             landingPage: attr.current.landingPage,
             referrer: attr.current.referrer
           },
+          /*
+           * The separate, explicit opt-in. Null when the page has no box.
+           *
+           * Sent even when unticked: the server refuses it, which is the
+           * correct outcome and is worth being explicit about rather than
+           * silently omitting the field.
+           */
+          smsOptIn: readSmsOptIn(),
           // TCPA evidence. The server adds the hashed IP and its own timestamp;
           // the client cannot be trusted for either.
           consent: {
@@ -727,6 +907,15 @@
 
   /* ---------- boot -------------------------------------------------------- */
 
+  /* Exposed so a tool that renders its form late can mount the box itself,
+     and so the wording can be asserted against the backend's copy. */
+  api.mountSmsOptIn = mountSmsOptIn;
+  /* Exposed so what the payload carries can be read back and checked, rather
+     than a test re-deriving it from the DOM and agreeing with itself. */
+  api.readSmsOptIn = readSmsOptIn;
+  api.SMS_DISCLOSURE = SMS_DISCLOSURE;
+  api.SMS_DISCLOSURE_VERSION = SMS_DISCLOSURE_VERSION;
+
   window.QuoteBot = window.QuoteBot || api;
 
   function boot() {
@@ -734,6 +923,7 @@
     var attr = resolveAttribution();
     if (attr.current.trackingCode) api.trackClick();
     decorateAll();
+    mountSmsOptIn();
     loadBrand();
   }
 
