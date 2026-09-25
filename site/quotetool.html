@@ -706,6 +706,8 @@ async function recalc(){
            `curated` false means nobody chose this carrier -- it is here on
            price alone, and it gets no reasons and no claim of endorsement. */
         bullets: Array.isArray(f.bullets) ? f.bullets : [],
+        /* The pill across the top of the card, in the admin's words. */
+        badge: typeof f.badge === 'string' ? f.badge : '',
         curated: f.curated === true
       });
     });
@@ -753,7 +755,7 @@ function renderBest(){
 
   const cardHTML = (cfg) => `
     <div class="best-card ${cfg.cardClass}">
-      <span class="best-badge ${cfg.badgeClass}">${cfg.badgeText}</span>
+      <span class="best-badge ${cfg.badgeClass}">${esc(cfg.badgeText)}</span>
       <div class="best-top">
         <div class="best-price">
           <div class="mo">${fmtMo(cfg.monthly)} <small>/m</small></div>
@@ -829,10 +831,20 @@ function renderBest(){
      * and saying less is the honest option -- borrowing another carrier's
      * bullets or inventing generic ones would both be lying quietly.
      */
+    /*
+     * The carrier's own tag wins over the slot's wording wherever it lands,
+     * curated or not. It is words typed against this carrier, so it says
+     * something true about them whichever card they end up on.
+     *
+     * The bullets are not treated the same way and that is deliberate: "why
+     * we chose them" under a carrier nobody chose would describe a decision
+     * that never happened. A label is not a rationale.
+     */
+    const tag = String(f.badge || '').trim();
     cards.push(fromRow(f, {
       cardClass: curated ? slot.cardClass : 'agentless',
       badgeClass: curated ? slot.badgeClass : 'agentless',
-      badgeText: curated ? slot.badgeText : 'Another Option',
+      badgeText: tag || (curated ? slot.badgeText : 'Another Option'),
       mid: curated && bullets.length
         ? `<ul>${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>`
         : ''

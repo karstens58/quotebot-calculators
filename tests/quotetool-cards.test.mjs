@@ -59,8 +59,8 @@ const QUOTES = [
   q('prot', 'Protective Life', 47.00),
 ];
 
-const feat = (row, bullets, curated = true) =>
-  Object.assign({}, row, { bullets, curated });
+const feat = (row, bullets, curated = true, badge = '') =>
+  Object.assign({}, row, { bullets, curated, badge });
 
 const cardCount = (html) => (html.match(/class="best-card/g) || []).length;
 const badges = (html) =>
@@ -156,4 +156,114 @@ test('ADMIN TEXT CANNOT INJECT MARKUP', () => {
   assert.ok(html.includes('&lt;img src=x'), 'the bullet was not escaped');
   assert.ok(html.includes('Smith &amp; Sons &lt;Life&gt;'),
     'the carrier name was not escaped');
+});
+
+/* ---- the card tag -------------------------------------------------------- */
+
+test('a carrier’s own tag replaces the slot wording', () => {
+  const html = run(QUOTES, [
+    feat(QUOTES[0], ['No medical exam'], true, 'Fastest decision'),
+    feat(QUOTES[2], ['A+ rated'], true, 'Best service'),
+  ]);
+  assert.deepEqual(badges(html), ['Most Affordable', 'Fastest decision', 'Best service']);
+});
+
+test('no tag falls back to the wording for that position', () => {
+  const html = run(QUOTES, [
+    feat(QUOTES[0], ['x'], true, ''),
+    feat(QUOTES[2], ['y'], true, '   '),
+  ]);
+  assert.deepEqual(badges(html), ['Most Affordable', 'Our Pick', 'Also Consider']);
+});
+
+test('one carrier can have a tag while the other falls back', () => {
+  const html = run(QUOTES, [
+    feat(QUOTES[0], ['x'], true, 'Best for non-smokers'),
+    feat(QUOTES[2], ['y'], true, ''),
+  ]);
+  assert.deepEqual(badges(html), ['Most Affordable', 'Best for non-smokers', 'Also Consider']);
+});
+
+test('an unchosen card wears the tag typed against that carrier', () => {
+  const html = run(QUOTES, [
+    feat(QUOTES[0], [], false, 'Fastest decision'),
+    feat(QUOTES[2], [], false, 'Best service'),
+  ]);
+  assert.deepEqual(badges(html), ['Most Affordable', 'Fastest decision', 'Best service']);
+});
+
+test('an unchosen card with no tag still says Another Option', () => {
+  const html = run(QUOTES, [
+    feat(QUOTES[0], [], false, ''),
+    feat(QUOTES[2], [], false, '   '),
+  ]);
+  assert.deepEqual(badges(html), ['Most Affordable', 'Another Option', 'Another Option']);
+});
+
+test('AN UNCHOSEN CARD STILL GIVES NO REASONS', () => {
+  /* The tag travels to a fallback card; the bullets deliberately do not. */
+  const html = run(QUOTES, [
+    feat(QUOTES[0], ['should not show'], false, 'Fastest decision'),
+    feat(QUOTES[2], [], false, ''),
+  ]);
+  assert.ok(html.includes('Fastest decision'));
+  assert.ok(!html.includes('<li>'), 'a card nobody chose listed reasons');
+});
+
+test('A TAG CANNOT INJECT MARKUP', () => {
+  const html = run(QUOTES, [
+    feat(QUOTES[0], ['ok'], true, '<img src=x onerror="alert(1)">'),
+    feat(QUOTES[2], ['ok'], true, 'fine'),
+  ]);
+  assert.ok(!html.includes('<img src=x'), 'a card tag injected raw markup');
+  assert.ok(html.includes('&lt;img src=x'), 'the tag was not escaped');
+});
+
+test('a missing badge field is treated as no tag, not as undefined', () => {
+  /* An older engine returns featured picks with no `badge` key at all. */
+  const noBadge = [
+    Object.assign({}, QUOTES[0], { bullets: ['x'], curated: true }),
+    Object.assign({}, QUOTES[2], { bullets: ['y'], curated: true }),
+  ];
+  const html = run(QUOTES, noBadge);
+  assert.deepEqual(badges(html), ['Most Affordable', 'Our Pick', 'Also Consider']);
+  assert.ok(!html.includes('undefined'));
+});
+
+/* ---- the mapper the harness cannot reach --------------------------------- */
+
+test('THE FEATURED MAPPER CARRIES EVERY FIELD THE CARDS READ', () => {
+  /*
+   * renderBest is tested above by running it. The step BEFORE it -- turning
+   * the engine's response into FEATURED -- lives inside the async fetch and
+   * cannot be run here, so dropping a field from it passed every test while
+   * the cards silently lost it. That is the same shape as the bug that lost
+   * bookProducts in the console, so it is guarded at source instead.
+   */
+  const i = HTML.indexOf('FEATURED = (json.featured || []).map(');
+  assert.notEqual(i, -1, 'the FEATURED mapper is not where this test looks');
+  const block = HTML.slice(i, HTML.indexOf('});', i));
+  for (const field of ['bullets', 'curated', 'badge']) {
+    assert.match(block, new RegExp(`\\b${field}:`),
+      `the mapper drops ${field}, so the cards can never show it`);
+  }
+});
+
+test('the cheapest card always says Most Affordable, tag or no tag', () => {
+  /*
+   * "Most Affordable" is a fact the engine computed, not a claim anybody
+   * wrote, so the left card does not take a carrier's tag even when one
+   * exists. Today a QUOTES row carries no badge at all, so this cannot
+   * happen by accident -- the row here has one anyway, so the rule is pinned
+   * against the day the mapper starts carrying it.
+   */
+  const withBadge = QUOTES.map((q) =>
+    q.id === 'amge' ? { ...q, badge: 'Cheapest by miles' } : q);
+  const html = run(withBadge, [
+    feat(withBadge[0], ['x'], true, 'Fastest decision'),
+    feat(withBadge[2], ['y'], true, 'Best service'),
+  ]);
+  assert.deepEqual(badges(html),
+    ['Most Affordable', 'Fastest decision', 'Best service']);
+  assert.ok(!html.includes('Cheapest by miles'));
 });
