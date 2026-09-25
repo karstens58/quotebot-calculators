@@ -1524,6 +1524,10 @@ async function recalc(){
       setQuoteNotice('', null);
     }
   } catch (err){
+    /* The visitor gets the calm sentence below; whoever is debugging gets the
+       reason. Swallowing this meant a failing quote left nothing at all in the
+       console to look at. */
+    console.error('[quotetool] the quote request failed', err);
     QUOTES = [];
     FEATURED = [];
     setQuoteNotice('We could not reach the quote service just now. Rather than show an estimate that might be wrong, we would rather have someone call you with real numbers.', 'error');
