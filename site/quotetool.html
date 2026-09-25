@@ -153,6 +153,69 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .qualify-btn { margin-left: auto; padding: 12px 24px; border-radius: 10px; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; transition: background var(--transition), box-shadow var(--transition); }
 .qualify-btn:hover { background: var(--primary-dark); box-shadow: 0 4px 18px rgba(26,61,107,0.3); }
 
+/* ---- Health Analyzer wizard ------------------------------------------ */
+.ha-mask { position: fixed; inset: 0; background: rgba(16,30,50,0.55); display: flex;
+  align-items: center; justify-content: center; padding: 20px; z-index: 900; }
+.ha-mask[hidden] { display: none; }
+.ha-card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  width: min(720px, 100%); max-height: min(88vh, 900px); display: flex; flex-direction: column; }
+.ha-head { padding: 20px 24px 14px; border-bottom: 1px solid var(--border); }
+.ha-head-top { display: flex; align-items: baseline; gap: 12px; }
+.ha-head h3 { font-size: 17px; font-weight: 700; color: var(--primary); }
+.ha-count { font-size: 12px; color: var(--gray-mid); font-weight: 600; margin-left: auto;
+  font-variant-numeric: tabular-nums; }
+.ha-x { background: none; border: none; font-size: 22px; line-height: 1; color: var(--gray-mid);
+  cursor: pointer; padding: 0 2px; }
+.ha-bar { height: 4px; border-radius: 2px; background: var(--gray-light); margin-top: 12px; overflow: hidden; }
+.ha-bar span { display: block; height: 100%; background: var(--accent); transition: width var(--transition); }
+.ha-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.ha-steptitle { font-size: 15.5px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+.ha-blurb { font-size: 13px; color: var(--gray-dark); line-height: 1.6; margin-bottom: 16px; }
+.ha-q { margin-bottom: 16px; }
+.ha-q > label, .ha-qlabel { display: block; font-size: 13.5px; font-weight: 600; color: var(--text);
+  margin-bottom: 6px; line-height: 1.45; }
+.ha-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ha-body select, .ha-body input[type=number] { padding: 9px 11px; border: 1px solid var(--border);
+  border-radius: 9px; font-size: 14px; background: var(--white); color: var(--text);
+  /* The page sets select { width: 100% } for its own sidebar, which here
+     stretches every dropdown across the card and pushes the unit label
+     ('feet', 'lbs') onto a line of its own. */
+  width: auto; min-width: 118px; max-width: 100%; flex: 0 0 auto; }
+.ha-row > span { font-size: 13.5px; color: var(--gray-dark); }
+.ha-yn { display: inline-flex; gap: 6px; }
+.ha-yn label { display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px;
+  padding: 7px 13px; border: 1px solid var(--border); border-radius: 9px; cursor: pointer; }
+.ha-yn input { accent-color: var(--accent); }
+.ha-sub { margin: 10px 0 0 0; padding: 12px 14px; background: var(--off-white);
+  border-radius: var(--radius); border: 1px solid var(--gray-light); }
+.ha-sub[hidden] { display: none; }
+.ha-checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 6px 14px; }
+.ha-checks label { display: flex; align-items: flex-start; gap: 7px; font-size: 13px;
+  color: var(--gray-dark); line-height: 1.4; cursor: pointer; }
+.ha-checks input { margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; }
+.ha-member { margin-top: 14px; padding: 14px; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--white); }
+.ha-member h4 { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+.ha-foot { padding: 14px 24px 18px; border-top: 1px solid var(--border); display: flex;
+  align-items: center; gap: 10px; flex-wrap: wrap; }
+.ha-skip { background: none; border: none; color: var(--gray-mid); font-size: 13px;
+  text-decoration: underline; cursor: pointer; padding: 6px 0; }
+.ha-back { margin-left: auto; padding: 10px 18px; border-radius: 9px; background: var(--white);
+  border: 1px solid var(--border); color: var(--gray-dark); font-size: 14px; font-weight: 600; cursor: pointer; }
+.ha-next { padding: 10px 22px; border-radius: 9px; background: var(--primary); color: #fff;
+  border: none; font-size: 14px; font-weight: 700; cursor: pointer; }
+.ha-next:hover { background: var(--primary-dark); }
+.ha-err { margin: 0 24px 12px; padding: 9px 12px; border-radius: 9px; background: #fee2e2;
+  border: 1px solid #fca5a5; color: #991b1b; font-size: 12.5px; line-height: 1.5; }
+.ha-err[hidden] { display: none; }
+@media (max-width: 560px) {
+  .ha-card { max-height: 94vh; }
+  .ha-head, .ha-body, .ha-foot { padding-left: 16px; padding-right: 16px; }
+  .ha-back { margin-left: 0; }
+  .ha-foot { justify-content: space-between; }
+}
+
+
 /* PRODUCTS LIST */
 .products-head { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 16px; }
 .products-tools { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -691,6 +754,621 @@ function showTalkToUs(){
   wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
+
+/* ======================================================================
+ * Health Analyzer questionnaire
+ *
+ * Fills HEALTH_ANSWERS and re-quotes. Every label and every band below is
+ * taken from Compulife's own sample form, not from their prose docs -- the
+ * two disagree, and the form is what their parser was built against. The
+ * year bands are theirs and are NOT evenly spaced: band 6 is "7 years or
+ * less", not 6. Getting that wrong prices a different person.
+ *
+ * Seven sections, each skippable. Skipping one is not the same as answering
+ * it "no": a skipped section is absent from the request entirely, which is
+ * Compulife's default, and the verdict for anything it would have decided
+ * comes back as "not enough information" rather than wrong.
+ * ==================================================================== */
+
+/* Their 0-9 scale, verbatim. */
+const HA_YEARS = ['6 months or less', '1 year or less', '2 years or less',
+  '3 years or less', '4 years or less', '5 years or less', '7 years or less',
+  '10 years or less', '15 years or less', 'more than 15 years'];
+
+/* Their substance-abuse scale is wider and differently spaced: 0-11. */
+const HA_TREATMENT_YEARS = ['1 year or less', '1 to 2 years', '2 to 3 years',
+  '3 to 4 years', '4 to 5 years', '5 to 6 years', '6 to 7 years', '7 to 8 years',
+  '8 to 9 years', '9 to 10 years', '10 to 20 years', 'more than 20 years'];
+
+/* Field name first: their parser reads the name, and their own form labels
+   these exactly as below -- which settles the contradiction in their written
+   docs, where Diabetes00 is described as "Kidney Disease". */
+const HA_CONDITIONS = [
+  ['CVD', 'Cardiovascular disease'],
+  ['CAD', 'Coronary artery disease or heart attack'],
+  ['CVI', 'Cardiovascular impairments'],
+  ['CVA', 'Cerebrovascular disease or stroke'],
+  ['Diabetes', 'Diabetes'],
+  ['KidneyDisease', 'Kidney disease'],
+  ['ColonCancer', 'Colon cancer'],
+  ['IntestinalCancer', 'Intestinal cancer'],
+  ['BreastCancer', 'Breast cancer'],
+  ['ProstateCancer', 'Prostate cancer'],
+  ['OvarianCancer', 'Ovarian cancer'],
+  ['OtherInternalCancer', 'Other internal cancer'],
+  ['MalignantMelanoma', 'Malignant melanoma'],
+  ['BasalCellCarcinoma', 'Basal cell carcinoma'],
+];
+
+/* ---- small builders, all returning strings ---------------------------- */
+
+function haOpts(pairs, placeholder){
+  var out = placeholder ? '<option value="">' + esc(placeholder) + '</option>' : '';
+  for (var i = 0; i < pairs.length; i++){
+    out += '<option value="' + esc(String(pairs[i][0])) + '">' + esc(String(pairs[i][1])) + '</option>';
+  }
+  return out;
+}
+function haRange(lo, hi){
+  var p = [];
+  for (var i = lo; i <= hi; i++) p.push([i, i]);
+  return p;
+}
+function haSelect(name, pairs, placeholder){
+  return '<select id="' + name + '">' + haOpts(pairs, placeholder) + '</select>';
+}
+function haYearSelect(name){
+  return haSelect(name, HA_YEARS.map(function(l, i){ return [i, l]; }), 'Select…');
+}
+function haYesNo(name){
+  return '<span class="ha-yn">'
+    + '<label><input type="radio" name="' + name + '" value="Y">Yes</label>'
+    + '<label><input type="radio" name="' + name + '" value="N">No</label></span>';
+}
+function haQ(label, control){
+  return '<div class="ha-q"><span class="ha-qlabel">' + label + '</span>'
+    + '<div class="ha-row">' + control + '</div></div>';
+}
+
+/* ---- the seven sections ----------------------------------------------
+ * Each has html() and collect(v, vc). `v(name)` gives a control's string
+ * value ('' when unanswered) and `vc(name)` whether a checkbox is ticked.
+ * Keeping the collectors off the DOM is what makes them testable against
+ * the real page rather than against a retyped copy.
+ * -------------------------------------------------------------------- */
+
+var HA_TOBACCO = [
+  ['cig', 'cigarettes', 'Cigarettes', 'smoked a cigarette', 'cigarettes'],
+  ['cigar', 'cigars', 'Cigars', 'smoked a cigar', 'cigars'],
+  ['pipe', 'pipe', 'A pipe', 'smoked a pipe', ''],
+  ['chew', 'chewing', 'Chewing tobacco', 'used chewing tobacco', ''],
+  ['nrt', 'nicotineReplacement', 'Nicotine patches or gum', 'used patches or gum', ''],
+];
+
+var HA_DRIVING = [
+  ['dwi', 'dwi', 'Have you ever been convicted of drunk driving (DUI/DWI)?',
+    'How long since the most recent conviction?'],
+  ['reckless', 'reckless', 'Have you ever been convicted of reckless driving?',
+    'How long since the most recent conviction?'],
+  ['susp', 'suspended', 'Has your licence ever been revoked or suspended?',
+    'How long since the most recent one?'],
+  ['acc', 'moreThanOneAccident', 'Have you ever had more than one accident?',
+    'Not counting the last one, how long since the accident before it?'],
+];
+
+var HA_TICKET_BANDS = [
+  ['in the last 6 months', 'ha_mv0'],
+  ['6 to 12 months ago', 'ha_mv1'],
+  ['1 to 2 years ago', 'ha_mv2'],
+  ['2 to 3 years ago', 'ha_mv3'],
+  ['3 to 5 years ago', 'ha_mv4'],
+];
+
+function haFamilyBlockHtml(kind, i, withDeathAge){
+  var p = 'ha_' + kind + i;
+  var h = '<div class="ha-member"><h4>' + (i === 0 ? 'Youngest' : i === 1 ? 'Next youngest' : 'Third')
+    + ' relative</h4>';
+  if (withDeathAge) h += haQ('Age at death', haSelect(p + '_agedied', haRange(0, 99), 'Select…'));
+  h += haQ('Age when they first had any of these illnesses',
+    haSelect(p + '_age', haRange(0, 99), 'Select…'));
+  h += haQ('Was this person a parent?', haYesNo(p + '_parent'));
+  h += '<span class="ha-qlabel">Which of these did they have?</span><div class="ha-checks">';
+  for (var c = 0; c < HA_CONDITIONS.length; c++){
+    h += '<label><input type="checkbox" id="' + p + '_' + HA_CONDITIONS[c][0] + '">'
+      + esc(HA_CONDITIONS[c][1]) + '</label>';
+  }
+  return h + '</div></div>';
+}
+
+function haFamilyMembers(kind, count, v, vc, withDeathAge){
+  var out = [];
+  for (var i = 0; i < count; i++){
+    var p = 'ha_' + kind + i;
+    var conds = {};
+    for (var c = 0; c < HA_CONDITIONS.length; c++){
+      if (vc(p + '_' + HA_CONDITIONS[c][0])) conds[HA_CONDITIONS[c][0]] = true;
+    }
+    /* Compulife ask a died relative for both ages; ours carries one, and for
+       a death the age at death is the one their block is keyed on. */
+    var age = v(withDeathAge ? p + '_agedied' : p + '_age');
+    if (age === '') continue;
+    out.push({ age: Number(age), isParent: v(p + '_parent') === 'Y', conditions: conds });
+  }
+  return out;
+}
+
+var HA_STEPS = [
+  {
+    key: 'build',
+    title: 'Height and weight',
+    blurb: 'Build is the single biggest factor in what a carrier will offer, so this one is worth answering even if you skip the rest.',
+    html: function(){
+      return haQ('Height',
+          haSelect('ha_feet', haRange(4, 7), 'ft') + '<span>feet</span>'
+          + haSelect('ha_inches', haRange(0, 11), 'in') + '<span>inches</span>')
+        + haQ('Weight', haSelect('ha_weight',
+            [[74, 'Under 75 lbs']].concat(haRange(75, 400)).concat([[401, 'Over 400 lbs']]),
+            'Select…') + '<span>lbs</span>');
+    },
+    collect: function(v){
+      var f = v('ha_feet'), i = v('ha_inches'), w = v('ha_weight');
+      if (f === '' || i === '' || w === '') return undefined;
+      return { feet: Number(f), inches: Number(i), weight: Number(w) };
+    },
+  },
+  {
+    key: 'tobacco',
+    title: 'Tobacco and nicotine',
+    blurb: 'Tick anything you have ever used, even once and even long ago. Ticking nothing is an answer too, and a useful one.',
+    html: function(){
+      var h = '';
+      for (var i = 0; i < HA_TOBACCO.length; i++){
+        var t = HA_TOBACCO[i];
+        h += '<div class="ha-q"><label><input type="checkbox" id="ha_tob_' + t[0]
+          + '" data-ha-reveal="ha_tobsub_' + t[0] + '"> ' + esc(t[2]) + '</label>'
+          + '<div class="ha-sub" id="ha_tobsub_' + t[0] + '" hidden>'
+          + haQ('How long since you last ' + esc(t[3]) + '?', haYearSelect('ha_per_' + t[0]))
+          + (t[4] ? haQ('On average, how many ' + esc(t[4]) + ' a day?',
+              haSelect('ha_num_' + t[0], haRange(1, 99), 'Select…')) : '')
+          + '</div></div>';
+      }
+      return h;
+    },
+    collect: function(v, vc){
+      /* An empty object is deliberate: it switches the section on and says
+         "never used any of it", which is a verdict they can act on. Skipping
+         the step returns undefined instead, and those are not the same. */
+      var out = {};
+      for (var i = 0; i < HA_TOBACCO.length; i++){
+        var t = HA_TOBACCO[i];
+        if (!vc('ha_tob_' + t[0])) continue;
+        var per = v('ha_per_' + t[0]);
+        if (per === '') continue;
+        var use = { period: Number(per) };
+        if (t[4] && v('ha_num_' + t[0]) !== '') use.count = Number(v('ha_num_' + t[0]));
+        out[t[1]] = use;
+      }
+      return out;
+    },
+  },
+  {
+    key: 'bloodPressure',
+    title: 'Blood pressure',
+    blurb: 'If you have never been treated for it, answer No and move on.',
+    html: function(){
+      return haQ('Have you ever been treated for, or taken medication for, high blood pressure?',
+          haYesNo('ha_bp_med'))
+        + '<div class="ha-sub" id="ha_bp_sub" hidden>'
+        + haQ('Systolic pressure (the top number)', haSelect('ha_bp_sys',
+            [[-1, 'I don’t know'], [119, 'Less than 120']]
+              .concat(haRange(120, 250)).concat([[251, 'Over 250']]), 'Select…'))
+        + haQ('Diastolic pressure (the bottom number)', haSelect('ha_bp_dia',
+            [[-1, 'I don’t know'], [78, 'Less than 80']]
+              .concat(haRange(79, 180)).concat([[181, 'Over 180']]), 'Select…'))
+        + haQ('When were you last treated for it?', haYearSelect('ha_bp_treated'))
+        + haQ('If you take medication for it now, how long has it been well controlled?',
+            haYearSelect('ha_bp_controlled'))
+        + '</div>';
+    },
+    collect: function(v){
+      var med = v('ha_bp_med');
+      if (med === '') return undefined;
+      var out = { medication: med === 'Y' };
+      /* Their own form asks the numbers only of people who answered Yes, so
+         we do too: a reading volunteered by somebody never treated is not a
+         question their analyzer was built to receive. */
+      if (med !== 'Y') return out;
+      if (v('ha_bp_sys') !== '') out.systolic = Number(v('ha_bp_sys'));
+      if (v('ha_bp_dia') !== '') out.diastolic = Number(v('ha_bp_dia'));
+      if (v('ha_bp_treated') !== '') out.treatedPeriod = Number(v('ha_bp_treated'));
+      if (v('ha_bp_controlled') !== '') out.controlledPeriod = Number(v('ha_bp_controlled'));
+      return out;
+    },
+  },
+  {
+    key: 'cholesterol',
+    title: 'Cholesterol',
+    blurb: 'Same again — if you have never been treated for it, answer No and move on.',
+    html: function(){
+      var ratios = [[-1, 'I don’t know']];
+      for (var r = 25; r <= 100; r++) ratios.push([(r / 10).toFixed(2), (r / 10).toFixed(2)]);
+      return haQ('Have you ever been treated for, or taken medication for, high cholesterol?',
+          haYesNo('ha_ch_med'))
+        + '<div class="ha-sub" id="ha_ch_sub" hidden>'
+        + haQ('Total cholesterol level', haSelect('ha_ch_level',
+            [[-1, 'I don’t know']].concat(haRange(100, 300)), 'Select…'))
+        + haQ('HDL ratio', haSelect('ha_ch_hdl', ratios, 'Select…'))
+        + haQ('When were you last treated for it?', haYearSelect('ha_ch_treated'))
+        + haQ('If you take medication for it now, how long has it been well controlled?',
+            haYearSelect('ha_ch_controlled'))
+        + '</div>';
+    },
+    collect: function(v){
+      var med = v('ha_ch_med');
+      if (med === '') return undefined;
+      var out = { medication: med === 'Y' };
+      if (med !== 'Y') return out;
+      if (v('ha_ch_level') !== '') out.level = Number(v('ha_ch_level'));
+      if (v('ha_ch_hdl') !== '') out.hdlRatio = Number(v('ha_ch_hdl'));
+      if (v('ha_ch_treated') !== '') out.treatedPeriod = Number(v('ha_ch_treated'));
+      if (v('ha_ch_controlled') !== '') out.controlledPeriod = Number(v('ha_ch_controlled'));
+      return out;
+    },
+  },
+  {
+    key: 'driving',
+    title: 'Driving record',
+    blurb: 'Carriers price this more heavily than most people expect.',
+    html: function(){
+      var h = haQ('Have you ever held a driver’s licence?', haYesNo('ha_drv_lic'))
+        + '<div class="ha-sub" id="ha_drv_sub" hidden>';
+      for (var i = 0; i < HA_DRIVING.length; i++){
+        var d = HA_DRIVING[i];
+        h += '<div class="ha-q"><span class="ha-qlabel">' + esc(d[2]) + '</span>'
+          + '<div class="ha-row">' + haYesNo('ha_drv_' + d[0]) + '</div>'
+          + '<div class="ha-sub" id="ha_drvsub_' + d[0] + '" hidden>'
+          + haQ(esc(d[3]), haYearSelect('ha_drvper_' + d[0])) + '</div></div>';
+      }
+      h += '<span class="ha-qlabel">Moving violations (not parking tickets) in each period:</span>';
+      for (var b = 0; b < HA_TICKET_BANDS.length; b++){
+        h += haQ(esc(HA_TICKET_BANDS[b][0]),
+          haSelect(HA_TICKET_BANDS[b][1], [[0, 'None']].concat(haRange(1, 9)), 'Select…'));
+      }
+      return h + '</div>';
+    },
+    collect: function(v){
+      var lic = v('ha_drv_lic');
+      if (lic === '') return undefined;
+      var out = { hasLicence: lic === 'Y' };
+      if (lic !== 'Y') return out;
+      for (var i = 0; i < HA_DRIVING.length; i++){
+        var d = HA_DRIVING[i];
+        if (v('ha_drv_' + d[0]) !== 'Y') continue;
+        var per = v('ha_drvper_' + d[0]);
+        if (per !== '') out[d[1]] = { period: Number(per) };
+      }
+      var mv = [], any = false;
+      for (var b = 0; b < HA_TICKET_BANDS.length; b++){
+        var val = v(HA_TICKET_BANDS[b][1]);
+        if (val !== '') any = true;
+        mv.push(val === '' ? 0 : Number(val));
+      }
+      /* All five or none. A partly-filled row would tell Compulife there were
+         zero tickets in the bands the visitor simply never got to. */
+      if (any) out.movingViolations = mv;
+      return out;
+    },
+  },
+  {
+    key: 'family',
+    title: 'Family history',
+    blurb: 'Parents and siblings only, and only before the age of 70. If you are not sure, say so — that is a real answer here, and better than a guess.',
+    html: function(){
+      var counts = [[-1, 'I don’t know'], [0, 'None']].concat(haRange(1, 3));
+      return haQ('How many parents or siblings <b>died</b> of cardiovascular disease, cancer, diabetes or kidney disease before 70?',
+          haSelect('ha_fam_deaths', counts, 'Select…'))
+        + '<div id="ha_fam_died"></div>'
+        + haQ('How many <b>had</b> one of those before 70 and did not die of it?',
+          haSelect('ha_fam_contracted', counts, 'Select…'))
+        + '<div id="ha_fam_survived"></div>';
+    },
+    collect: function(v, vc){
+      var d = v('ha_fam_deaths'), c = v('ha_fam_contracted');
+      if (d === '' && c === '') return undefined;
+      var out = { deaths: d === '' ? -1 : Number(d), contracted: c === '' ? -1 : Number(c) };
+      var died = haFamilyMembers('famd', Math.max(0, out.deaths), v, vc, true);
+      var surv = haFamilyMembers('fams', Math.max(0, out.contracted), v, vc, false);
+      if (died.length) out.died = died;
+      if (surv.length) out.survived = surv;
+      return out;
+    },
+  },
+  {
+    key: 'substanceAbuse',
+    title: 'Alcohol and drugs',
+    blurb: 'Treatment history only. Carriers ask this, and the answer is usually less damaging than people fear, particularly once some years have passed.',
+    html: function(){
+      var yrs = HA_TREATMENT_YEARS.map(function(l, i){ return [i, l]; });
+      return haQ('Have you ever been treated for alcohol abuse?', haYesNo('ha_alc'))
+        + '<div class="ha-sub" id="ha_alc_sub" hidden>'
+        + haQ('Years since treatment', haSelect('ha_alc_yrs', yrs, 'Select…')) + '</div>'
+        + haQ('Have you ever been treated for drug abuse?', haYesNo('ha_drg'))
+        + '<div class="ha-sub" id="ha_drg_sub" hidden>'
+        + haQ('Years since treatment', haSelect('ha_drg_yrs', yrs, 'Select…')) + '</div>';
+    },
+    collect: function(v){
+      var a = v('ha_alc'), g = v('ha_drg');
+      if (a === '' && g === '') return undefined;
+      var out = {};
+      if (a !== ''){
+        out.alcohol = { treated: a === 'Y' };
+        if (a === 'Y' && v('ha_alc_yrs') !== '') out.alcohol.yearsSince = Number(v('ha_alc_yrs'));
+      }
+      if (g !== ''){
+        out.drugs = { treated: g === 'Y' };
+        if (g === 'Y' && v('ha_drg_yrs') !== '') out.drugs.yearsSince = Number(v('ha_drg_yrs'));
+      }
+      return out;
+    },
+  },
+];
+
+/*
+ * Client-side range checks mirroring the engine's. They exist to name the
+ * wrong answer while the visitor is still looking at it -- the engine
+ * refuses out-of-range values too, and that refusal would arrive here as a
+ * failed quote with nothing pointing at the guilty field.
+ */
+function haCheck(a){
+  var bad = [];
+  var whole = function(n, label, lo, hi, extra){
+    if (n === undefined) return;
+    if (extra && extra.indexOf(n) >= 0) return;
+    if (!Number.isInteger(n) || n < lo || n > hi) bad.push(label);
+  };
+  if (a.build){
+    whole(a.build.feet, 'height in feet', 4, 7);
+    whole(a.build.inches, 'height in inches', 0, 11);
+    whole(a.build.weight, 'weight', 74, 401);
+  }
+  if (a.bloodPressure){
+    whole(a.bloodPressure.systolic, 'systolic pressure', 119, 251, [-1]);
+    whole(a.bloodPressure.diastolic, 'diastolic pressure', 78, 181, [-1]);
+  }
+  if (a.cholesterol){
+    whole(a.cholesterol.level, 'cholesterol level', 100, 300, [-1]);
+    var r = a.cholesterol.hdlRatio;
+    if (r !== undefined && r !== -1 && !(r >= 2.5 && r <= 10)) bad.push('HDL ratio');
+  }
+  if (a.family){
+    var members = (a.family.died || []).concat(a.family.survived || []);
+    for (var i = 0; i < members.length; i++) whole(members[i].age, 'a relative’s age', 0, 99);
+    if ((a.family.died || []).length > 3 || (a.family.survived || []).length > 3){
+      bad.push('more relatives than Compulife accept');
+    }
+  }
+  return bad;
+}
+
+/* Assemble what the engine takes. A section the visitor skipped is absent,
+   not empty -- those mean different things to Compulife. */
+function haAnswers(state){
+  var out = {};
+  for (var i = 0; i < HA_STEPS.length; i++){
+    var k = HA_STEPS[i].key;
+    if (state[k] !== undefined) out[k] = state[k];
+  }
+  return out;
+}
+
+/* ---- the wizard itself ------------------------------------------------ */
+
+var HA_STATE = {};   /* per-section collected answers, by step key */
+var HA_AT = 0;       /* which step is on screen */
+/*
+ * Every control's raw value, by key, kept as the visitor types.
+ *
+ * Each step is re-rendered from scratch when it comes back on screen, so
+ * without this, Back would hand somebody a blank version of the page they
+ * just filled in. Keeping the raw values rather than reversing HA_STATE back
+ * into controls means a half-answered section survives too -- and a
+ * half-answered section is the normal case here.
+ */
+var HA_RAW = {};
+
+function haRecord(e){
+  var el = e.target;
+  if (!el) return;
+  if (el.type === 'radio' && el.name) HA_RAW['r:' + el.name] = el.value;
+  else if (el.type === 'checkbox' && el.id) HA_RAW['c:' + el.id] = el.checked;
+  else if (el.id) HA_RAW['v:' + el.id] = el.value;
+}
+
+function haRestore(){
+  for (var k in HA_RAW){
+    if (!Object.prototype.hasOwnProperty.call(HA_RAW, k)) continue;
+    var kind = k.slice(0, 2), name = k.slice(2);
+    if (kind === 'r:'){
+      var rs = document.querySelectorAll('input[type=radio][name="' + name + '"]');
+      for (var i = 0; i < rs.length; i++) rs[i].checked = (rs[i].value === HA_RAW[k]);
+    } else {
+      var el = document.getElementById(name);
+      if (!el) continue;
+      if (kind === 'c:') el.checked = HA_RAW[k];
+      else el.value = HA_RAW[k];
+    }
+  }
+}
+
+function haVal(name){
+  var el = document.getElementById(name);
+  if (el) return el.value;
+  /* Radios share a name rather than carrying an id. */
+  var rs = document.querySelectorAll('input[type=radio][name="' + name + '"]');
+  for (var i = 0; i < rs.length; i++) if (rs[i].checked) return rs[i].value;
+  return '';
+}
+function haChecked(name){
+  var el = document.getElementById(name);
+  return Boolean(el && el.checked);
+}
+
+/* Show or hide the block a control gates, so nobody is asked how long since
+   they smoked a pipe they never smoked. */
+function haSyncReveals(){
+  for (var i = 0; i < HA_TOBACCO.length; i++){
+    var sub = document.getElementById('ha_tobsub_' + HA_TOBACCO[i][0]);
+    if (sub) sub.hidden = !haChecked('ha_tob_' + HA_TOBACCO[i][0]);
+  }
+  var pairs = [['ha_bp_med', 'ha_bp_sub'], ['ha_ch_med', 'ha_ch_sub'],
+    ['ha_drv_lic', 'ha_drv_sub'], ['ha_alc', 'ha_alc_sub'], ['ha_drg', 'ha_drg_sub']];
+  for (var p = 0; p < pairs.length; p++){
+    var el = document.getElementById(pairs[p][1]);
+    if (el) el.hidden = haVal(pairs[p][0]) !== 'Y';
+  }
+  for (var d = 0; d < HA_DRIVING.length; d++){
+    var ds = document.getElementById('ha_drvsub_' + HA_DRIVING[d][0]);
+    if (ds) ds.hidden = haVal('ha_drv_' + HA_DRIVING[d][0]) !== 'Y';
+  }
+  haSyncFamily();
+}
+
+/* The family blocks are built to match the counts, and only grow: rebuilding
+   them on every change would wipe answers the visitor already gave when they
+   corrected one count. */
+function haSyncFamily(){
+  var specs = [['ha_fam_deaths', 'ha_fam_died', 'famd', true],
+               ['ha_fam_contracted', 'ha_fam_survived', 'fams', false]];
+  for (var s = 0; s < specs.length; s++){
+    var host = document.getElementById(specs[s][1]);
+    if (!host) continue;
+    var raw = haVal(specs[s][0]);
+    var want = raw === '' ? 0 : Math.max(0, Number(raw));
+    var have = host.children.length;
+    for (var i = have; i < want; i++){
+      var wrap = document.createElement('div');
+      wrap.innerHTML = haFamilyBlockHtml(specs[s][2], i, specs[s][3]);
+      host.appendChild(wrap.firstChild);
+    }
+    for (var j = have - 1; j >= want; j--) host.removeChild(host.children[j]);
+  }
+}
+
+function haRender(){
+  var step = HA_STEPS[HA_AT];
+  var body = document.getElementById('haBody');
+  document.getElementById('haCount').textContent =
+    'Step ' + (HA_AT + 1) + ' of ' + HA_STEPS.length;
+  document.getElementById('haBar').style.width =
+    Math.round(((HA_AT + 1) / HA_STEPS.length) * 100) + '%';
+  body.innerHTML = '<h4 class="ha-steptitle">' + esc(step.title) + '</h4>'
+    + '<p class="ha-blurb">' + esc(step.blurb) + '</p>' + step.html();
+  body.scrollTop = 0;
+  /* Twice on purpose: the first pass puts back the counts that decide how
+     many family blocks exist, haSyncReveals then builds them, and the second
+     pass fills the controls inside blocks that did not exist a moment ago. */
+  haRestore();
+  document.getElementById('haBack').style.visibility = HA_AT === 0 ? 'hidden' : 'visible';
+  document.getElementById('haNext').textContent =
+    HA_AT === HA_STEPS.length - 1 ? 'See what I qualify for' : 'Next';
+  haShowErr('');
+  haSyncReveals();
+  haRestore();
+}
+
+function haShowErr(msg){
+  var el = document.getElementById('haErr');
+  if (!el) return;
+  el.hidden = !msg;
+  el.textContent = msg || '';
+}
+
+/* Take what is on screen into HA_STATE. Returns false when an answer is out
+   of range, so Next does not advance past a question that cannot be sent. */
+function haTakeStep(){
+  var step = HA_STEPS[HA_AT];
+  var got = step.collect(haVal, haChecked);
+  if (got === undefined) delete HA_STATE[step.key];
+  else HA_STATE[step.key] = got;
+  var bad = haCheck(haAnswers(HA_STATE));
+  if (bad.length){
+    haShowErr('Please check ' + bad.join(', ') + ' — that is outside the range '
+      + 'the carriers accept, and we would rather ask again than price the wrong person.');
+    return false;
+  }
+  return true;
+}
+
+function haOpen(){
+  HA_AT = 0;
+  document.getElementById('haMask').hidden = false;
+  haRender();
+}
+function haClose(){
+  document.getElementById('haMask').hidden = true;
+}
+
+async function haFinish(){
+  var answers = haAnswers(HA_STATE);
+  HEALTH_ANSWERS = Object.keys(answers).length ? answers : null;
+  haClose();
+  await recalc();
+}
+
+function haWire(){
+  var mask = document.getElementById('haMask');
+  if (!mask) return;
+  var btn = document.querySelector('.qualify-btn');
+  if (btn) btn.addEventListener('click', function(){
+    /* Once the list is empty the banner is an invitation to talk, not the
+       analyzer -- showTalkToUs sets that mode and it wins here. */
+    if (btn.dataset.mode === 'contact'){ haRequestCall(); return; }
+    haOpen();
+  });
+  document.getElementById('haClose').addEventListener('click', haClose);
+  document.getElementById('haBack').addEventListener('click', function(){
+    if (HA_AT > 0){ haTakeStep(); HA_AT--; haRender(); }
+  });
+  document.getElementById('haSkip').addEventListener('click', function(){
+    delete HA_STATE[HA_STEPS[HA_AT].key];
+    if (HA_AT < HA_STEPS.length - 1){ HA_AT++; haRender(); } else haFinish();
+  });
+  document.getElementById('haNext').addEventListener('click', function(){
+    if (!haTakeStep()) return;
+    if (HA_AT < HA_STEPS.length - 1){ HA_AT++; haRender(); } else haFinish();
+  });
+  /* One listener for the whole body: the controls are rebuilt every step. */
+  document.getElementById('haBody').addEventListener('change', function(e){
+    haRecord(e);
+    haSyncReveals();
+  });
+  mask.addEventListener('click', function(e){ if (e.target === mask) haClose(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && !mask.hidden) haClose();
+  });
+}
+
+/*
+ * The empty-result invitation. The page already collects a phone number, so
+ * send them there and focus it rather than inventing a second form -- and
+ * give the number to call as well, because somebody staring at an empty
+ * comparison should not have to wait on us.
+ */
+function haRequestCall(){
+  var phone = document.getElementById('phone');
+  setQuoteNotice('<b>Leave your number above and an agent will call you</b>, or '
+    + 'ring <a href="tel:8888048590">(888) 804-8590</a> now. Either way, say the '
+    + 'comparison came back empty and they will know where to start.', 'info');
+  if (phone){
+    phone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    phone.focus({ preventScroll: true });
+  }
+}
+
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', haWire);
+} else { haWire(); }
+
 function setQuoteNotice(msg, kind){
   var el = document.getElementById('quoteNotice');
   if (!el){
@@ -1090,5 +1768,27 @@ function editInputs(){
   document.querySelector('.inputs-panel').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 </script>
+
+    <!-- Health Analyzer wizard -->
+    <div class="ha-mask" id="haMask" hidden>
+      <div class="ha-card" role="dialog" aria-modal="true" aria-labelledby="haTitle">
+        <div class="ha-head">
+          <div class="ha-head-top">
+            <h3 id="haTitle">Health Analyzer</h3>
+            <span class="ha-count" id="haCount"></span>
+            <button class="ha-x" id="haClose" type="button" aria-label="Close">&times;</button>
+          </div>
+          <div class="ha-bar"><span id="haBar" style="width:0%"></span></div>
+        </div>
+        <div class="ha-body" id="haBody"></div>
+        <div class="ha-err" id="haErr" hidden></div>
+        <div class="ha-foot">
+          <button class="ha-skip" id="haSkip" type="button">Skip this section</button>
+          <button class="ha-back" id="haBack" type="button">Back</button>
+          <button class="ha-next" id="haNext" type="button">Next</button>
+        </div>
+      </div>
+    </div>
+
 </body>
 </html>
