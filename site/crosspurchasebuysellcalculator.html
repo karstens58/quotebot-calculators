@@ -557,7 +557,7 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
             <div data-qb-sms-optin></div>
 
           <button class="cta-btn" id="calcBtn" onclick="calculate()">Build My Buy-Sell Plan →</button>
-          <p class="agree-note">By building my plan you agree to our privacy policy and terms of service. You may receive an call/sms/email from us to follow-up on your quote. We never sell your information.</p>
+          <p class="agree-note" id="qb-consent">By building my plan you agree to our privacy policy and terms of service. You may receive an call/sms/email from us to follow-up on your quote. We never sell your information.</p>
           <p class="privacy-note">Illustrative only. Final rates and valuations require underwriting and a formal business appraisal.</p>
         </div>
       </div>
@@ -962,7 +962,7 @@ function qbCaptureLead(){
         numOwners: N('numOwners'), numEmployees: N('numEmployees')
       },
       results: { totalCoverage: N('tot-cov'), totalPremium: N('tot-prem') },
-      consentText: C('.privacy-note') || C('.disclaimer')
+      consentText: C('#qb-consent')
     });
   } catch (e) { /* capture must never break the calculator */ }
 }

@@ -408,7 +408,40 @@
       + '.qb-sms-label input{width:16px;height:16px;margin:0;flex:none;cursor:pointer}'
       + '.qb-sms .qb-sms-fine{margin:4px 0 0 24px;font-size:11px;line-height:1.45;'
       + 'color:var(--text,#1c2a3a)!important;opacity:.75;text-transform:none!important;letter-spacing:normal!important;'
-      + 'font-weight:400!important}';
+      + 'font-weight:400!important}'
+      /*
+       * The page's OWN consent line, not ours -- and pinned for the same
+       * reason, because the script's whole claim about #qb-consent is that
+       * it is the disclosure being recorded.
+       *
+       * Eight of the twelve failed WCAG AA on it. Seven sat at 2.85:1 on
+       * --gray-mid. fiaincomerider was at 1.00:1 -- .consent-note is
+       * rgba(255,255,255,0.42), white text left over from a dark panel,
+       * rendering on a white one. That line was INVISIBLE while the page
+       * stored it as the disclosure the visitor had read. A disclosure
+       * nobody can see is not a disclosure, and recording one as read is
+       * the manufactured-evidence problem this whole area exists to avoid.
+       *
+       * var(--text) so a page's own palette still decides; every page
+       * defines it as #1c2a3a today. A calculator that puts this line on a
+       * dark ground needs to define --text to match, as it would for any
+       * other body copy.
+       */
+      + '#qb-consent{color:var(--text,#1c2a3a)!important}'
+      /*
+       * And its links, which were worse than the sentence around them.
+       *
+       * --accent (#4a90d9) is about 3.2:1 on white -- under AA -- and ten
+       * pages used it for the Privacy Policy and Terms links. I propagated
+       * it onto two more myself, copying the pattern from
+       * sequenceofreturns without measuring it. On fiaincomerider the
+       * links were white on white at 1.00:1, so the sentence read '...you
+       * also agree to our    &' with two gaps where the links should be.
+       *
+       * --primary-mid (#1e4d85) is ~8:1 and still reads as a link beside
+       * body copy. Every calculator defines it.
+       */
+      + '#qb-consent a{color:var(--primary-mid,#1e4d85)!important}';
     document.head.appendChild(css);
   }
 

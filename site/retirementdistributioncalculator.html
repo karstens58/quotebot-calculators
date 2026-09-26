@@ -610,7 +610,7 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
     </div>
 
     <!-- COMPLIANCE STATEMENT -->
-    <p style="font-size:9px;color:var(--gray-mid);line-height:1.5;margin:8px 2px 6px;font-style:italic;">By viewing your retirement projections using life insurance, you agree to our <a href="https://quotebot.io/Privacy-Policy" target="_blank" style="color:var(--accent);text-decoration:underline;">privacy policy</a> and <a href="https://quotebot.io/Terms-Conditions" target="_blank" style="color:var(--accent);text-decoration:underline;">terms of service</a>. We will never sell your information. You may receive a call, SMS, or email from us to follow up. You may opt out at any time.</p>
+    <p id="qb-consent" style="font-size:11px;color:var(--gray-dark);line-height:1.6;margin:8px 2px 6px;">By viewing your retirement projections using life insurance, you agree to our <a href="https://quotebot.io/Privacy-Policy" target="_blank" style="color:var(--accent);text-decoration:underline;">privacy policy</a> and <a href="https://quotebot.io/Terms-Conditions" target="_blank" style="color:var(--accent);text-decoration:underline;">terms of service</a>. We will never sell your information. You may receive a call, SMS, or email from us to follow up. You may opt out at any time.</p>
 
     <button class="run-btn" onclick="runCalcGated()">
       ▶ &nbsp;Calculate My Retirement Projections
@@ -1521,7 +1521,7 @@ function qbCaptureLead(){
       productLine: 'INDEXED_UL',
       inputs: { accumulationYears: N('accumYrs'), distributionYears: N('distYrs') },
       results: null,
-      consentText: C('.disclaimer')
+      consentText: C('#qb-consent')
     });
   } catch (e) { /* capture must never break the calculator */ }
 }

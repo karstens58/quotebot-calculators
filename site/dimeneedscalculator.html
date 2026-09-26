@@ -631,7 +631,7 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
 
           <button class="cta-btn" id="calcBtn">Calculate My Coverage Need →</button>
           <button class="reset-btn" id="resetBtn">Reset to defaults</button>
-          <p class="privacy-note">By continuing you agree to our <a href="https://quotebot.io/Terms-Conditions" target="_blank">Terms</a> &amp; <a href="https://quotebot.io/Privacy-Policy" target="_blank">Privacy Policy</a>. No spam, ever.</p>
+          <p class="privacy-note" id="qb-consent">By continuing you agree to be contacted by a licensed Quote-Bot specialist by phone, SMS, or email to follow up on this request. You can opt out any time. We never sell your information. You also agree to our <a href="https://quotebot.io/Terms-Conditions" target="_blank">Terms</a> &amp; <a href="https://quotebot.io/Privacy-Policy" target="_blank">Privacy Policy</a>.</p>
         </div>
       </div>
     </div>
@@ -1314,7 +1314,7 @@ function qbCaptureLead(){
       productLine: 'TERM_LIFE',
       inputs: inp,
       results: { totalCoverageNeed: (typeof effectiveCoverage === 'function' ? effectiveCoverage() : null) },
-      consentText: C('.privacy-note')
+      consentText: C('#qb-consent')
     });
   } catch (e) { /* capture must never break the calculator */ }
 }

@@ -479,7 +479,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         </div>
 
         <button class="cta-btn" id="quoteBtn">See My Quote Now! →</button>
-        <p class="privacy-note">By continuing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>. No spam, ever.</p>
+        <p class="privacy-note" id="qb-consent">By continuing you agree to be contacted by a licensed Quote-Bot specialist by phone, SMS, or email to follow up on this request. You can opt out any time. We never sell your information. You also agree to our <a href="https://quotebot.io/Terms-Conditions" target="_blank">Terms</a> &amp; <a href="https://quotebot.io/Privacy-Policy" target="_blank">Privacy Policy</a>.</p>
 
       </div>
     </aside>
@@ -1818,7 +1818,7 @@ function qbCaptureLead(){
     var v = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
     var email = v('email');
     if (!email) return;   // nothing to attach a lead to
-    var note = document.querySelector('.privacy-note');
+    var note = document.querySelector('#qb-consent');
     window.QuoteBot.capture({
       email: email,
       phone: v('phone'),

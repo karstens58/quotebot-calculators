@@ -202,13 +202,27 @@ test('THE CONSENT TEXT IS NOT LEFT TO INHERIT A WASHED-OUT COLOUR', () => {
     .map((m) => m[1]).join('');
   assert.ok(css.includes('.qb-sms'), 'the stylesheet did not reassemble');
 
-  for (const rule of ['.qb-sms .qb-sms-label', '.qb-sms .qb-sms-fine']) {
-    const at = css.indexOf(rule);
+  /*
+   * #qb-consent is the PAGE'S line, not ours, and is pinned for the same
+   * reason: the script's whole claim about it is that it is the disclosure
+   * being recorded. Eight of twelve failed AA on it; fiaincomerider's was
+   * rgba(255,255,255,0.42) on a white panel -- invisible, and stored as read.
+   * Its links were worse: --accent is ~3.2:1, so ten pages rendered "you also
+   * agree to our  &" with gaps where Privacy Policy and Terms should be.
+   */
+  const expected = [
+    ['.qb-sms .qb-sms-label', '--text'],
+    ['.qb-sms .qb-sms-fine', '--text'],
+    ['#qb-consent', '--text'],
+    ['#qb-consent a', '--primary-mid'],
+  ];
+  for (const [rule, token] of expected) {
+    const at = css.indexOf(rule + '{');
     assert.notEqual(at, -1, `${rule} is no longer styled at all`);
     const body = css.slice(at, css.indexOf('}', at));
-    assert.match(body, /color:\s*var\(--text,[^)]*\)\s*!important/,
-      `${rule} does not pin its colour, so it inherits whatever the page `
-      + 'sets — which on at least one calculator fails WCAG AA');
+    assert.match(body, new RegExp(`color:\\s*var\\(${token},[^)]*\\)\\s*!important`),
+      `${rule} does not pin its colour to var(${token}), so it inherits `
+      + 'whatever the page sets — which on at least one calculator fails AA');
   }
 });
 
