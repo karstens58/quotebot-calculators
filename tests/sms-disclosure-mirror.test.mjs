@@ -121,6 +121,97 @@ test('THE BOX IS RENDERED UNTICKED, AND IS NOT REQUIRED', () => {
     'something in the capture script ticks a box by default');
 });
 
+test('A GRID PARENT CANNOT TURN THE OPT-IN INTO A COLUMN', () => {
+  /*
+   * Four of the twelve calculators lay their contact fields out on a
+   * two-column grid. A marker element dropped into one becomes a CELL, so the
+   * opt-in was placed beside the phone field rather than under it -- on
+   * careltc in the right-hand column level with the phone LABEL, fine print
+   * clipped by the column width, reading as a separate offer someone had
+   * bolted on. On sequenceofreturns it rendered ABOVE the phone number it is
+   * asking about.
+   *
+   * It survived review because the markup is right and it looked correct on
+   * the two single-column pages it was first checked against. Only rendering
+   * shows it, and only rendering every page shows all four.
+   *
+   * So mountSmsOptIn spans the slot across every column when its parent is a
+   * grid. This pins that logic: without it the next grid-based calculator
+   * reproduces the bug, and the symptom looks like a design decision rather
+   * than a defect.
+   */
+  const block = capture.slice(capture.indexOf('function mountSmsOptIn'),
+    capture.indexOf('function injectSmsStyles'));
+
+  assert.match(block, /getComputedStyle/,
+    'mountSmsOptIn no longer inspects the parent layout, so a grid parent '
+    + 'will place the opt-in as a cell beside the phone field');
+  assert.match(block, /['"]inline-grid['"]/,
+    'only display:grid is handled; inline-grid places children as cells too');
+  assert.match(block, /gridColumn\s*=\s*['"]1 \/ -1['"]/,
+    'the slot is not spanned across the grid, so it lands in one column');
+
+  /*
+   * The span must be REACHED, not merely present.
+   *
+   * An earlier version of this test checked only that those three strings
+   * appeared somewhere in the function. Replacing the enclosing condition
+   * with `if (false)` disabled the whole thing and the test still passed --
+   * every string it looked for was still there, just unreachable. So this
+   * reads the condition that actually guards the block and requires it to be
+   * derived from the parent element.
+   *
+   * HONEST LIMIT: this pins structure, not behaviour. It catches the branch
+   * being deleted, narrowed or switched off, which is what a careless edit
+   * does. It cannot catch a condition rewritten to something true-but-wrong.
+   * Only running mountSmsOptIn against a real grid does that, and this repo
+   * has no DOM to run it in -- the browser sweep covers it out of band.
+   */
+  const at = block.indexOf('slot.parentNode');
+  assert.notEqual(at, -1, 'mountSmsOptIn no longer looks at the parent node');
+  const cond = block.slice(at).match(/if\s*\(([^)]*(?:\([^)]*\)[^)]*)*)\)/);
+  assert.ok(cond, 'no condition guards the grid handling');
+  assert.match(cond[1], /\bparent\b/,
+    `the grid handling is guarded by \`${cond[1].trim()}\`, which does not `
+    + 'depend on the parent element — so it is switched off, not conditional');
+});
+
+test('THE CONSENT TEXT IS NOT LEFT TO INHERIT A WASHED-OUT COLOUR', () => {
+  /*
+   * myga styles `.field label` with --gray-mid (#8a9ab5), about 2.8:1 on its
+   * background -- under WCAG AA. The opt-in label inherited it and rendered
+   * at 2.85:1. That label is the affirmative act itself; a disclosure nobody
+   * can comfortably read is a compliance problem, not a styling nitpick.
+   *
+   * var(--text) rather than a literal, so a page's own palette still wins and
+   * a dark calculator would not invert into unreadability.
+   *
+   * This rebuilds the CSS from the concatenated fragments and checks each
+   * rule, because the first version of this test searched the whole block for
+   * one pinned colour -- and passed while the LABEL's colour was stripped,
+   * still matching the fine print's. It was blind to the exact bug it names.
+   */
+  const block = capture.slice(capture.indexOf('function injectSmsStyles'),
+    capture.indexOf('document.head.appendChild'))
+    /* Comments first. They contain apostrophes -- "quotetool's own label
+       styling" -- and a naive quote match treats one as a string delimiter
+       and swallows the rest of the block, which is how the first run of this
+       reported that .qb-sms-label was not styled at all. */
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const css = [...block.matchAll(/'((?:[^'\\]|\\.)*)'/g)]
+    .map((m) => m[1]).join('');
+  assert.ok(css.includes('.qb-sms'), 'the stylesheet did not reassemble');
+
+  for (const rule of ['.qb-sms .qb-sms-label', '.qb-sms .qb-sms-fine']) {
+    const at = css.indexOf(rule);
+    assert.notEqual(at, -1, `${rule} is no longer styled at all`);
+    const body = css.slice(at, css.indexOf('}', at));
+    assert.match(body, /color:\s*var\(--text,[^)]*\)\s*!important/,
+      `${rule} does not pin its colour, so it inherits whatever the page `
+      + 'sets — which on at least one calculator fails WCAG AA');
+  }
+});
+
 test('the disclosure is written with textContent, never innerHTML', () => {
   /* It is read back out of the DOM and stored as evidence; markup in it
      would be stored too, and script in it would be worse. */

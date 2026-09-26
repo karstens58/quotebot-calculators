@@ -135,7 +135,7 @@ a { text-decoration: none; color: inherit; }
 .text-input.error:focus { box-shadow: 0 0 0 3px rgba(220,38,38,0.1); }
 .req-star { color: var(--red); font-size: 13px; }
 .field-error { display: block; font-size: 12px; color: var(--red); margin-top: 5px; min-height: 16px; }
-.contact-consent { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: var(--gray-mid); line-height: 1.55; padding: 14px 16px; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); margin-top: 8px; margin-bottom: 4px; }
+.contact-consent { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: var(--gray-dark); line-height: 1.55; padding: 14px 16px; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); margin-top: 8px; margin-bottom: 4px; }
 @media (max-width: 600px) { .contact-grid { grid-template-columns: 1fr; } .contact-grid .field-group { grid-column: auto !important; } }
 
 /* RESULTS */
@@ -790,9 +790,9 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
             </div>
           </div>
 
-          <div class="contact-consent">
+          <div class="contact-consent" id="qb-consent">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-3a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-1.5 0v-2.5A.75.75 0 0 1 8 5Zm0 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" fill="currentColor"/></svg>
-            By submitting, you agree to be contacted by a licensed Quote-Bot specialist. We never sell your information.
+            <span>By submitting, you agree to be contacted by a licensed Quote-Bot specialist by phone, SMS, or email to follow up on this request. You can opt out any time. We never sell your information. You also agree to our <a href="https://quotebot.io/Privacy-Policy" target="_blank" style="color:var(--accent);font-weight:600;">Privacy Policy</a> and <a href="https://quotebot.io/Terms-Conditions" target="_blank" style="color:var(--accent);font-weight:600;">Terms of Service</a>.</span>
           </div>
 
           <div class="step-nav">
@@ -1366,7 +1366,7 @@ function qbCaptureLead(){
       productLine: 'LONG_TERM_CARE',
       inputs: { dateOfBirth: V('cf-dob') },
       results: null,
-      consentText: C('.disclaimer')
+      consentText: C('#qb-consent')
     });
   } catch (e) { /* capture must never break the calculator */ }
 }

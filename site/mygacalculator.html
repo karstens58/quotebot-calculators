@@ -620,6 +620,7 @@ button.qbm-back { background: none; border: 0; color: #5b6b80;
       </div>
     </div>
 
+    <p id="qb-consent" style="font-size:11.5px;color:var(--gray-dark);line-height:1.6;margin:14px 0 10px;text-align:center;">By calculating your growth, you agree to be contacted by a licensed Quote-Bot specialist by phone, SMS, or email to follow up on this request. You can opt out any time. We never sell your information. You also agree to our <a href="https://quotebot.io/Privacy-Policy" target="_blank" style="color:var(--accent);font-weight:600;">Privacy Policy</a> and <a href="https://quotebot.io/Terms-Conditions" target="_blank" style="color:var(--accent);font-weight:600;">Terms of Service</a>.</p>
     <button class="run-btn" onclick="runCalc()">▶ &nbsp;Calculate My Growth</button>
   </div>
 
@@ -1020,7 +1021,7 @@ function qbCaptureLead(){
         jointDateOfBirth: V('cf-joint-dob')
       },
       results: null,
-      consentText: C('.disclaimer')
+      consentText: C('#qb-consent')
     });
   } catch (e) { /* capture must never break the calculator */ }
 }

@@ -332,6 +332,31 @@
       wrap.appendChild(label);
       wrap.appendChild(fine);
       slot.appendChild(wrap);
+
+      /*
+       * A grid parent places this slot as a CELL, not as a line under the
+       * phone field.
+       *
+       * careltc's .contact-grid is two columns, so the marker landed in the
+       * right-hand column level with the phone LABEL -- reading as a separate
+       * offer floating beside the form, with the fine print clipped by the
+       * column width. It looked correct in the markup and correct on the two
+       * single-column pages this was first checked against.
+       *
+       * Spanning every column puts it back on its own row directly beneath
+       * the field. Done here rather than in each page's CSS because the next
+       * calculator built on a grid would otherwise hit this the same way, and
+       * the symptom does not look like a placement bug -- it looks like a
+       * design decision somebody made.
+       */
+      var parent = slot.parentNode;
+      if (parent && parent.nodeType === 1 && window.getComputedStyle) {
+        var pd = window.getComputedStyle(parent).display;
+        if (pd === 'grid' || pd === 'inline-grid') {
+          slot.style.gridColumn = '1 / -1';
+        }
+      }
+
       slot.setAttribute('data-qb-mounted', '1');
       n++;
     }
@@ -356,7 +381,12 @@
        * text-transform -- but a disclosure that shouts reads as a banner ad,
        * which is the opposite of what it is for.
        */
-      '.qb-sms{margin:8px 0 0;text-align:left}'
+      /* More room below than above, deliberately. Proximity is what tells
+         a reader which field this belongs to, and with 8px above and 0
+         below the block sat closer to the NEXT field than to the phone
+         number it is asking about -- on careltc it read as attached to
+         Date of Birth. */
+      '.qb-sms{margin:8px 0 20px;text-align:left}'
       + '.qb-sms .qb-sms-label{display:flex;align-items:center;gap:8px;'
       + 'font-size:14px;line-height:1.3;cursor:pointer;font-weight:500;'
       /* !important, on the typography resets only.
@@ -366,10 +396,18 @@
          it can always lose -- the next page will have `.form .field label`.
          Layout below stays unforced; only the properties that decide whether
          the disclosure is legible are held down. */
-      + 'text-transform:none!important;letter-spacing:normal!important}'
+      + 'text-transform:none!important;letter-spacing:normal!important;'
+      /* Colour is held down for the same reason as the typography above.
+         myga styles `.field label` with --gray-mid (#8a9ab5), about 2.8:1
+         on its background -- below AA -- and the opt-in label inherited it.
+         That label IS the affirmative act, so it has to be readable.
+         var(--text) rather than a literal: it takes the page's own text
+         colour where one is defined, so this still works if a calculator
+         is ever built dark, and falls back only when nothing is set. */
+      + 'color:var(--text,#1c2a3a)!important}'
       + '.qb-sms-label input{width:16px;height:16px;margin:0;flex:none;cursor:pointer}'
       + '.qb-sms .qb-sms-fine{margin:4px 0 0 24px;font-size:11px;line-height:1.45;'
-      + 'opacity:.75;text-transform:none!important;letter-spacing:normal!important;'
+      + 'color:var(--text,#1c2a3a)!important;opacity:.75;text-transform:none!important;letter-spacing:normal!important;'
       + 'font-weight:400!important}';
     document.head.appendChild(css);
   }
