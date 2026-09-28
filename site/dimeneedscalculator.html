@@ -1363,6 +1363,56 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   document.getElementById('agePill').textContent = 'Age ' + computeAge(DEFAULTS.dob);
   liveUpdate();
 });
+
+/* ---------- PREFILL FROM THE QUERY STRING ----------
+   The inline DIME card on /life-insurance/ asks for five numbers and used to
+   throw them away: its button opened this page empty, so the visitor typed
+   all five again.
+
+   Every value is pushed through the field's own 'input' handler rather than
+   assigned, so it gets the same comma formatting as typing and the totals
+   recalculate the way they would for a person.
+
+   Four arrive in the field that means the same thing. Education does not:
+   the card asks for a total and this page asks for cost per child per year,
+   and the number is placed in the latter. Children to Fund and Years Each are
+   deliberately left empty — this page multiplies the three together, so
+   seeding them with invented 1s would turn the visitor's first correction
+   into a figure nobody intended.
+
+   Nothing is submitted; the numbers are filled in and the page recalculates.  */
+(function prefillFromQuery() {
+  var q = new URLSearchParams(location.search);
+  if (![...q.keys()].length) return;
+
+  var MAP = [
+    ['debt', 'debtOther'],      // an unsplit total belongs in the unspecified bucket
+    ['income', 'incAnnual'],
+    ['years', 'incYears'],
+    ['mortgage', 'mortBal'],
+    ['education', 'eduCost'],   // the card's total, into cost per child per year
+  ];
+
+  var filled = 0;
+  MAP.forEach(function (m) {
+    // Whole value or nothing. Stripping the stray characters out of
+    // "12three4" would quietly put 124 into a money field, which is worse
+    // than ignoring it: the visitor sees a number they never typed.
+    var raw = (q.get(m[0]) || '').replace(/[\s,$]/g, '');
+    if (!/^\d+(\.\d+)?$/.test(raw)) return;
+    var el = document.getElementById(m[1]);
+    if (!el) return;
+    el.value = raw;
+    // The page's own listener formats the number and refreshes the totals.
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    filled++;
+  });
+
+  if (filled) { try { liveUpdate(); } catch (e) {} }
+
+  /* Take the answers out of the address bar once they are in the form. */
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+})();
 </script>
 </body>
 </html>
