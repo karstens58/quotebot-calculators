@@ -956,6 +956,18 @@
            * silently omitting the field.
            */
           smsOptIn: readSmsOptIn(),
+          /*
+           * The browser's cookie-consent id, when it has one.
+           *
+           * This is what lets a choice made before we knew who they were be
+           * tied to the contact this lead creates — the backend links every
+           * CookieConsent row for the id. Read through the helper rather than
+           * out of storage here so there is one definition of where it lives,
+           * and undefined when the consent script is not on the page, which
+           * the server treats as "no link to make".
+           */
+          consentId: (typeof window.qbConsentId === 'function'
+            ? window.qbConsentId() : null) || undefined,
           // TCPA evidence. The server adds the hashed IP and its own timestamp;
           // the client cannot be trusted for either.
           consent: {
