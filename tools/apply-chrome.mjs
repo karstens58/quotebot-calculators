@@ -26,7 +26,28 @@ import path from 'node:path';
 
 const ROOT = path.join(import.meta.dirname, '..');
 const SITE = path.join(ROOT, 'site');
-const part = (f) => fs.readFileSync(path.join(ROOT, 'tools', f), 'utf8').trim();
+/**
+ * Where the marketing site lives, in ONE place.
+ *
+ * The partials carry {{SITE}} rather than a host, because the answer changes
+ * on a known date and a host typed into thirteen pages is thirteen places to
+ * miss. This is the calculators' half of QBP-128 — the other half is HOST in
+ * quotebot-web's qb-site-src/calculators.mjs, pointing the other way.
+ *
+ * Today it is the Amplify build, because that is the site these links
+ * describe: quote-bot.com still serves the WordPress site, where
+ * /privacy-request/ does not exist and /cookie-policy/ is Termly's. Pointing
+ * at it would mean two of the six footer links 404 and two more describe
+ * policies we have replaced.
+ *
+ * AT THE DNS CUTOVER: change this to https://quote-bot.com and re-run. That
+ * is the whole change, and it is on the cutover checklist.
+ */
+const SITE_URL = 'https://main.d32nxpxr4k5tgh.amplifyapp.com';
+
+const part = (f) => fs.readFileSync(path.join(ROOT, 'tools', f), 'utf8')
+  .trim()
+  .replaceAll('{{SITE}}', SITE_URL);
 
 const TOPBAR = part('topbar.html');
 const BRAND = part('brand-header.html');
@@ -35,6 +56,7 @@ const FOOTER = part('footer.html');
    sliced from <footer ...> onward never matches and the script rewrites the
    same bytes on every run. Compare against the element, keep the comment. */
 const FOOTER_EL = FOOTER.slice(FOOTER.indexOf('<footer'));
+const BRAND_EL = BRAND.slice(BRAND.indexOf('<div class="brand-header"'));
 const CSS = part('chrome.css');
 const MARK = 'Kept in step by tools/apply-chrome.mjs';
 
@@ -109,19 +131,27 @@ for (const file of fs.readdirSync(SITE).filter((f) => f.endsWith('.html'))) {
       const from = c >= 0 && bh - c < 40 ? c : bh;
       if (end > 0) { html = html.slice(0, from) + html.slice(end); notes.push('brand header removed'); }
     }
-  } else if (!html.includes('class="brand-header"')) {
-    const after = html.indexOf(TOPBAR);
-    if (after >= 0) {
-      const at = after + TOPBAR.length;
-      html = `${html.slice(0, at)}\n\n${BRAND}${html.slice(at)}`;
-      notes.push('brand header added');
-    }
   } else {
-    /* Present but inlining its logo: swap in the file. */
-    html = html.replace(
-      /<img class="brand-logo-img"[^>]*src="data:image\/png;base64,[A-Za-z0-9+/=]+"[^>]*>/,
-      '<img class="brand-logo-img" src="/img/quotebot-logo.png" alt="Quote-Bot" width="670" height="211">');
-    if (html !== before) notes.push('brand logo -> file');
+    const bh = html.indexOf('<div class="brand-header"');
+    if (bh < 0) {
+      const after = html.indexOf(TOPBAR);
+      if (after >= 0) {
+        const at = after + TOPBAR.length;
+        html = `${html.slice(0, at)}\n\n${BRAND}${html.slice(at)}`;
+        notes.push('brand header added');
+      }
+    } else {
+      /* Replace rather than patch, so a header already on the page picks up
+         everything the partial changes — the logo becoming a file, and the
+         host in its link moving at the cutover. Patching only the bits
+         somebody thought to patch is how the eleven new pages ended up
+         correct while the two old ones still named the wrong host. */
+      const end = spanOf(html, bh);
+      if (end > 0 && html.slice(bh, end) !== BRAND_EL) {
+        html = html.slice(0, bh) + BRAND_EL + html.slice(end);
+        notes.push('brand header refreshed');
+      }
+    }
   }
 
   /* ---- footer, last thing in the body ---- */

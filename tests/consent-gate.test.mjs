@@ -74,3 +74,38 @@ test('the consent cookie is scoped to the registrable domain, not the origin', (
   assert.match(js, /SameSite=Lax/,
     'Strict would drop the answer when arriving from a link, which is how people get here');
 });
+
+/* ---- the marketing site's host ------------------------------------------ */
+
+test('every link to the marketing site uses one host, from one place', () => {
+  /**
+   * These pointed at quote-bot.com, which is still the WordPress site: two of
+   * the six footer links 404 there and two more describe policies we have
+   * replaced. The host now lives in SITE_URL in tools/apply-chrome.mjs and the
+   * partials carry a token, so the cutover is one edit rather than thirteen
+   * pages to grep — which is exactly how the brand header came to keep the old
+   * host while every footer had moved on.
+   */
+  const script = fs.readFileSync(path.join(ROOT, 'tools/apply-chrome.mjs'), 'utf8');
+  const site = /const SITE_URL = '([^']+)'/.exec(script)?.[1];
+  assert.ok(site, 'apply-chrome.mjs no longer declares SITE_URL');
+  assert.match(site, /^https:\/\//, 'the marketing site host has to be absolute and https');
+
+  for (const f of pages) {
+    const html = fs.readFileSync(path.join(ROOT, 'site', f), 'utf8');
+    const hosts = new Set([...html.matchAll(/href="(https:\/\/[^/"]+)[^"]*\/(privacy-policy|terms-of-service|cookie-policy|privacy-request)\//g)]
+      .map((m) => m[1]));
+    for (const h of hosts) {
+      assert.equal(h, site,
+        `${f} links to ${h} for a policy page; SITE_URL says ${site}`);
+    }
+  }
+});
+
+test('the partials name no host of their own', () => {
+  for (const f of ['footer.html', 'brand-header.html']) {
+    const src = fs.readFileSync(path.join(ROOT, 'tools', f), 'utf8');
+    assert.doesNotMatch(src, /https:\/\/(quote-bot\.com|[a-z0-9-]+\.amplifyapp\.com)/,
+      `tools/${f} hardcodes a host — it should carry {{SITE}}`);
+  }
+});
