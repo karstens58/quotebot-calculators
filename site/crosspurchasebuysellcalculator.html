@@ -253,6 +253,17 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 /* quote cards (2-up) */
 .best-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 34px; }
 .best-row.single { grid-template-columns: minmax(0, 360px); margin-top: 24px; }
+/* The states with no cards in them -- pricing, unreachable, no offers -- put
+   one message across the row rather than sitting in the left column. */
+.best-row > .cp-quote-note, .best-row > .cp-estimate-note { grid-column: 1 / -1; }
+.cp-quote-note { display: flex; gap: 14px; align-items: center; padding: 16px 20px; border-radius: var(--radius-lg); border: 1.5px solid var(--border); background: var(--off-white); }
+.cp-quote-note .ic { font-size: 21px; }
+.cp-quote-note p { font-size: 13.5px; color: var(--gray-dark); line-height: 1.6; }
+.cp-quote-note a { color: var(--green); font-weight: 700; }
+.cp-quote-note.warn { background: #fef2f2; border-color: rgba(220,38,38,0.32); }
+.cp-quote-note.warn b, .cp-quote-note.warn a { color: #b91c1c; }
+.cp-estimate-note { margin-top: 12px; padding: 10px 14px; border-radius: var(--radius); background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); font-size: 12.5px; line-height: 1.55; color: var(--gold); }
+.prem-partial { font-size: 12px; font-weight: 600; color: var(--gray-mid); }
 .buyer-intro { font-size: 13.5px; color: var(--gray-dark); line-height: 1.6; margin: 10px 0 4px; }
 .buyer-intro b { color: var(--primary); }
 .policy-list { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
@@ -312,21 +323,9 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .cov-status.over b { color: var(--primary); }
 
 /* carrier logos */
-.logo { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.05; }
-.logo-corebridge { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 14px; color: #2b2d6e; }
-.logo-corebridge small { font-weight: 500; font-size: 11px; color: #6b6e9e; }
-.logo-corebridge i { color: #7c3aed; font-style: normal; }
-.logo-banner { font-weight: 800; font-size: 15px; color: #fff; background: #1d6fc4; padding: 4px 10px; border-radius: 4px; transform: skewX(-8deg); letter-spacing: -0.3px; }
-.logo-better { font-weight: 800; font-size: 15px; color: #1a3d6b; }
-.logo-better i { color: var(--gold-bright); font-style: italic; }
-.logo-cinci { font-family: 'Fraunces', serif; font-weight: 700; font-size: 13px; color: #1a3d6b; letter-spacing: 0.5px; }
-.logo-cinci small { font-weight: 600; font-size: 7px; color: var(--gray-mid); letter-spacing: 0.4px; }
-.logo-northam { font-weight: 800; font-size: 11px; color: #1f7a3d; letter-spacing: -0.2px; }
-.logo-northam small { font-weight: 500; font-size: 8px; color: var(--gray-mid); }
-.logo-aaa { font-weight: 800; font-size: 18px; color: #c8102e; font-style: italic; }
-.logo-aaa small { font-weight: 600; font-size: 8px; color: var(--primary); font-style: normal; }
-.logo-sw { font-weight: 700; font-size: 12px; color: #1a1a1a; }
-.logo-sw small { font-weight: 500; font-size: 9px; color: var(--gray-mid); }
+/* Carrier names now arrive with the quote, so this is a real style rather
+   than a wrapper for hand-drawn wordmarks. */
+.logo { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.15; font-weight: 800; font-size: 12.5px; color: var(--primary); }
 .logo-tri { width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 15px solid #1a1a1a; margin: 0 auto 3px; }
 
 /* totals strip */
@@ -438,6 +437,8 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   .footer-links-row { justify-content: flex-start; }
 }
 </style>
+  <!-- The quote engine, same Function URL the other calculators use. -->
+  <script>window.QB_QUOTE_ENDPOINT = "https://dwicf2jtppp3vpigyhrxybiyra0frcao.lambda-url.us-east-2.on.aws/";</script>
   <script src="/js/quotebot-consent.js"
           data-version="2026-09-28"
           data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/consent"></script>
@@ -654,27 +655,8 @@ const TANGIBLE_RATE = 0.09; // fair return on net tangible assets (Rev. Rul. 68-
 /* ============================================================
    RATE ENGINE  (shared Quote-Bot model)
    ============================================================ */
-const CARRIERS = [
-  { id:'amgen',  name:'American General Life Insurance Company', prod:'Select-a-Term - {T} Year',     rating:'A',       per1000:1.557, logo:`<div class="logo logo-corebridge">corebridge<i> :</i><small>financial</small></div>` },
-  { id:'banner', name:'Banner Life Insurance Company',          prod:'OPTerm {T} - {T} Year Term',    rating:'A',       per1000:1.566, logo:`<div class="logo"><div class="logo-banner">BannerLife</div></div>` },
-  { id:'better', name:'BetterLife',                              prod:'Term to 95 - {T} Year Level (Par)', rating:'Unknown', per1000:1.600, logo:`<div class="logo logo-better">Better<i>Life</i></div>` },
-  { id:'cinci',  name:'Cincinnati Life Insurance Company',      prod:'Termsetter {T}',                rating:'A+',      per1000:1.710, logo:`<div class="logo logo-cinci">CINCINNATI<small>LIFE INSURANCE CO.</small></div>` },
-  { id:'northam',name:'North American Co for Life and Health',  prod:'ADDvantage Term {T} Gen 9',     rating:'A+',      per1000:1.730, logo:`<div class="logo logo-northam">NORTH AMERICAN<small>A Sammons Company</small></div>` },
-  { id:'aaa',    name:'AAA Life Insurance Company',             prod:'{T} Year Level Term',           rating:'A',       per1000:2.050, logo:`<div class="logo logo-aaa">AAA<small>Life Insurance Co.</small></div>` },
-  { id:'sw',     name:'Life Insurance Company of the Southwest',prod:'{T}-Year Term',                 rating:'A+',      per1000:2.120, logo:`<div class="logo logo-sw"><div class="logo-tri"></div>National Life<small>Group</small></div>` },
-];
-const TERM_FACTOR   = { 10:1.0, 15:1.28, 20:1.65, 25:2.10, 30:2.55 };
-const HEALTH_FACTOR = { 'Preferred Plus':0.68, 'Preferred':0.80, 'Standard Plus':0.91, 'Standard':1.0, 'Substandard':1.45 };
-const ANNUAL_DIVISOR = 11.832;
-
-function rateFor(carrier, q){
-  const ageF = Math.pow(1.072, q.age - 48);
-  const termF = TERM_FACTOR[q.term] || 1;
-  const healthF = HEALTH_FACTOR[q.health] || 1;
-  const genderF = q.gender === 'Female' ? 0.86 : 1.0;
-  const annual = carrier.per1000 * (q.coverage/1000) * ageF * termF * healthF * genderF;
-  return { annual, monthly: annual / ANNUAL_DIVISOR };
-}
+/* The underwriting classes the quote engine accepts. Sent as healthClass,
+   so these strings must stay the ones Compulife are asked for. */
 
 /* ============================================================
    HELPERS
@@ -759,7 +741,7 @@ function ageLabel(dobStr){ const a = computeAge(dobStr); return a > 0 ? String(a
  */
 const BLANK_PARTNER = {
   name: '', pct: 0, dob: '', gender: 'Male', uw: 'Standard',
-  email: '', phone: '', state: '',
+  tobacco: 'Non-Tobacco', email: '', phone: '', state: '',
 };
 
 function buildPartners(){
@@ -792,6 +774,7 @@ function readPartnerInputs(){
       age:    computeAge(c.querySelector('.p-dob').value),
       gender: c.querySelector('.p-gender').value,
       uw:     c.querySelector('.p-uw').value,
+      tobacco: c.querySelector('.p-tob') ? c.querySelector('.p-tob').value : 'Non-Tobacco',
       email:  c.querySelector('.p-email').value,
       phone:  c.querySelector('.p-phone').value,
       state:  c.querySelector('.p-state').value,
@@ -852,6 +835,17 @@ function renderPartners(){
           <label>Health / UW</label>
           <select class="p-uw">
             ${UW_OPTIONS.map(o=>`<option ${p.uw===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="partner-mini-row">
+        <!-- Asked because the rate cannot be right without it. Tobacco is the
+             single largest factor in a term premium, and a page that does not
+             ask quietly prices every smoker as a non-smoker. -->
+        <div class="field">
+          <label>Tobacco</label>
+          <select class="p-tob">
+            ${['Non-Tobacco','Tobacco'].map(o=>`<option ${p.tobacco===o?'selected':''}>${o}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -1057,7 +1051,11 @@ function calculate(){
   fundingBasis = 'recommended';
   // build the cross-purchase policy matrix (each buyer owns one policy per other partner)
   STATE.policies = buildPolicies();
+  /* Fresh report: nothing carries over from the last one. */
+  QUOTE_BY_KEY = new Map(); ROW_KEY = {}; quoteQueue = []; seqByKey = new Map();
   renderResults();
+  /* After the rows exist, so each staggered reply has somewhere to land. */
+  requestAllPolicyQuotes();
   $('calcGrid').classList.add('results-mode');
   document.body.classList.add('results-active');
   $('emptyState').style.display = 'none';
@@ -1190,25 +1188,321 @@ function methodDetailHTML(){
 }
 
 /* ============================================================
-   POLICIES — recommended card only (cross-purchase)
-   ============================================================ */
-const CINCI = CARRIERS.find(c => c.id === 'cinci');
+   POLICIES — real rates, one request per distinct quote
 
-function policyCards(insured, coverage, term){
-  const cvg = Math.max(1000, Math.round((coverage||0)/1000)*1000);
-  const q = { age: insured.age, term: term, health: insured.uw, gender: insured.gender, coverage: cvg };
-  const QUOTES = CARRIERS.map(c => {
-    const { annual, monthly } = rateFor(c, q);
-    return { ...c, prodResolved: c.prod.replace(/\{T\}/g, term), coverage: cvg, annual, monthly };
+   Same POST /quote contract the quote tool, D.I.M.E. and the key person
+   calculator use. What stood here was a table of per-$1,000 factors with
+   Cincinnati written into the layout: the second card was
+   `QUOTES.find(x => x.id === 'cinci')` whatever the insured's age or
+   health, with a `|| sorted[1]` that quietly put somebody else in the card
+   still labelled as our pick.
+
+   Two cards per policy: the cheapest, and the carrier in FIRST POSITION in
+   the admin console's carrier settings, wearing its own chip.
+
+   WHAT IS DIFFERENT HERE, and it is the whole design of this file:
+
+   n owners means n x (n-1) POLICIES -- six owners is thirty rows. It does
+   not mean thirty quotes. A premium depends on the life being insured, the
+   face amount and the term; it does not depend on which co-owner writes the
+   cheque. So the rows are collapsed onto the distinct REQUESTS behind them,
+   and with the equal ownership most agreements use, six owners is six
+   requests rather than thirty.
+
+   Uneven ownership is the case that costs more: two buyers with different
+   shares need different face amounts on the same life, which is genuinely
+   two different questions. Those are not merged -- a premium is never
+   scaled from another one, which is the bug that put an invented Assurity
+   rate on the quote tool.
+
+   Whatever the count, they go out STAGGERED, one every QUOTE_GAP_MS, so a
+   large report never arrives as a burst.
+   ============================================================ */
+
+/* Carrier chrome arrives with the quote, so a rating or a logo changes in
+   the admin console rather than in this file. */
+function logoFor(name, url){
+  var safe = String(name || '').replace(/[&<>"]/g, '');
+  var short = safe.split(' ').slice(0, 2).join(' ');
+  if (url){
+    return '<img src="' + url + '" alt="' + safe + '" style="max-height:34px;max-width:104px;object-fit:contain" '
+      + 'onerror="this.outerHTML=\'<div class=&quot;logo&quot;>' + short + '</div>\'">';
+  }
+  return '<div class="logo">' + short + '</div>';
+}
+
+/**
+ * Term length -> Compulife category letter, read off their live list.
+ * The letter IS the coverage choice. Level term only: "25 Year Return of
+ * Premium" also begins with a number and is a different product.
+ */
+let TERM_LETTER = {};
+const TERM_CHOICES = [10, 15, 20, 25, 30];
+
+async function loadCoverageCategories(){
+  const endpoint = window.QB_QUOTE_ENDPOINT || '';
+  if (!/^https?:\/\//i.test(endpoint)) return;
+  try {
+    const res = await fetch(endpoint.replace(/\/$/, '') + '/categories');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = (await res.json()).categories;
+    if (!Array.isArray(list) || !list.length) throw new Error('empty list');
+    const map = {};
+    for (const c of list){
+      const m = /^\s*(\d+)\s+year\s+level\s+term/i.exec(String((c && c.name) || ''));
+      if (m && c && c.letter && !(m[1] in map)) map[m[1]] = String(c.letter);
+    }
+    if (Object.keys(map).length) TERM_LETTER = map;
+  } catch (err){
+    console.warn('[buysell] live coverage list unavailable, quoting by term length', err);
+  }
+}
+loadCoverageCategories();
+
+function liveTerms(){
+  if (!Object.keys(TERM_LETTER).length) return TERM_CHOICES;
+  const live = TERM_CHOICES.filter(t => TERM_LETTER[String(t)]);
+  return live.length ? live : TERM_CHOICES;
+}
+
+/* ---- The shared quote store -------------------------------------------- */
+
+/** How long between requests. Staggered, never bursted. */
+const QUOTE_GAP_MS = 1500;
+
+/**
+ * Results keyed by the REQUEST, not by the row.
+ *
+ * Two policies asking the same question of Compulife -- same life, same
+ * face, same term -- are one entry here and one call out. That is what
+ * turns thirty rows into six requests when the owners hold equal shares.
+ */
+let QUOTE_BY_KEY = new Map();
+/** "i-j" -> the request key its card is showing. */
+let ROW_KEY = {};
+/** Keys waiting to go out, and the runner that spaces them. */
+let quoteQueue = [];
+let queueRunning = false;
+/** Per key, so a late reply cannot overwrite a newer one. */
+let seqByKey = new Map();
+/** Per row, so typing in a coverage box does not enqueue every keystroke. */
+let rowTimer = {};
+
+function policyBody(insured, pol){
+  const cvg = Math.max(1000, Math.round((pol.coverage || 0) / 1000) * 1000);
+  /* This page collects a real date of birth per owner, so unlike the key
+     person calculator there is nothing to synthesize. */
+  const dob = String(insured.dob || '').trim();
+  /* No business-level state on this page, and no fallback invented for one:
+     each owner names their own, and without it there is nothing to quote. */
+  const state = String(insured.state || '').trim();
+  if (!dob || !state || cvg < 1000) return null;
+  const term = pol.term || DEFAULT_TERM;
+  const letter = TERM_LETTER[String(term)];
+  const body = {
+    faceAmount: cvg,
+    dateOfBirth: dob,
+    gender: insured.gender === 'Female' ? 'Female' : 'Male',
+    tobacco: insured.tobacco === 'Tobacco',
+    healthClass: insured.uw || 'Standard',
+    state: state,
+    /* Cross-purchase is owner-to-owner: each partner personally owns the
+       policy on the others, so this is NOT a business-owned case the way
+       key person or an entity-purchase agreement is. */
+    businessOwned: false,
+    toolKey: 'buysell'
+  };
+  if (letter) body.coverage = letter;
+  else { body.product = 'TERM'; body.termYears = term; }
+  return body;
+}
+
+/** Ask for one policy's rates — or attach it to a request already in hand. */
+function requestPolicyQuote(i, j){
+  const pol = STATE && STATE.policies ? STATE.policies[policyKey(i, j)] : null;
+  const insured = STATE && STATE.partners ? STATE.partners[j] : null;
+  if (!pol || !insured) return;
+  const rowId = i + '-' + j;
+  const body = policyBody(insured, pol);
+  if (!body){
+    ROW_KEY[rowId] = null;
+    paintPolicy(i, j);
+    return;
+  }
+  const key = JSON.stringify(body);
+  ROW_KEY[rowId] = key;
+
+  const held = QUOTE_BY_KEY.get(key);
+  /* Somebody already asked this exact question. Show their answer, or wait
+     on the request already in flight, and spend nothing. */
+  if (held && held.state !== 'error'){ paintPolicy(i, j); return; }
+
+  QUOTE_BY_KEY.set(key, { state: 'loading' });
+  paintPolicy(i, j);
+  if (!quoteQueue.includes(key)) quoteQueue.push(key);
+  runQuoteQueue();
+}
+
+/** Debounced, for the controls that fire while somebody is still typing. */
+function queuePolicyQuote(i, j){
+  const rowId = i + '-' + j;
+  if (rowTimer[rowId]) clearTimeout(rowTimer[rowId]);
+  rowTimer[rowId] = setTimeout(function(){ requestPolicyQuote(i, j); }, 400);
+}
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+/**
+ * One request at a time, spaced by QUOTE_GAP_MS.
+ *
+ * Sequential rather than parallel on purpose: a thirty-row report with
+ * uneven ownership is a real number of questions, and arriving as a burst
+ * is how a visitor gets rate-limited halfway through their own report.
+ */
+async function runQuoteQueue(){
+  if (queueRunning) return;
+  queueRunning = true;
+  try {
+    while (quoteQueue.length){
+      const key = quoteQueue.shift();
+      const held = QUOTE_BY_KEY.get(key);
+      /* Dropped while it waited — the row that wanted it has moved on. */
+      if (!held || held.state !== 'loading') continue;
+      await sendQuote(key);
+      if (quoteQueue.length) await sleep(QUOTE_GAP_MS);
+    }
+  } finally {
+    queueRunning = false;
+  }
+}
+
+async function sendQuote(key){
+  const endpoint = window.QB_QUOTE_ENDPOINT || '';
+  const seq = (seqByKey.get(key) || 0) + 1;
+  seqByKey.set(key, seq);
+  if (!/^https?:\/\//i.test(endpoint)){
+    QUOTE_BY_KEY.set(key, { state: 'error' });
+    paintKey(key);
+    return;
+  }
+  try {
+    const res = await fetch(endpoint.replace(/\/$/, '') + '/quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: key   // the key IS the request body, which is what makes it a key
+    });
+    const json = await res.json();
+    if (seqByKey.get(key) !== seq) return;
+    if (!res.ok || !json.ok) throw new Error(json.error || ('HTTP ' + res.status));
+
+    const face = JSON.parse(key).faceAmount;
+    const toRow = q => ({
+      id: String(q.companyCode || q.carrierName || '').toLowerCase(),
+      name: q.carrierName,
+      prodResolved: q.productName,
+      rating: q.amBestRating || 'NR',
+      monthly: q.monthlyPremium,
+      annual: q.annualPremium,
+      coverage: q.faceAmount != null ? q.faceAmount : face,
+      logo: logoFor(q.carrierName, q.logoUrl)
+    });
+    const quotes = (json.quotes || []).map(toRow);
+    const featured = (json.featured || []).map(f => Object.assign(toRow(f), {
+      bullets: Array.isArray(f.bullets) ? f.bullets : [],
+      badge: typeof f.badge === 'string' ? f.badge : '',
+      curated: f.curated === true
+    }));
+    QUOTE_BY_KEY.set(key, {
+      state: quotes.length ? 'ok' : 'empty',
+      quotes, featured,
+      estimates: json.premiumsAreEstimates !== false
+    });
+  } catch (err){
+    if (seqByKey.get(key) !== seq) return;
+    console.error('[buysell] the quote request failed', err);
+    /* Left as an error rather than deleted, so the rows showing it say so
+       and a later edit re-asks rather than reading it as answered. */
+    QUOTE_BY_KEY.set(key, { state: 'error' });
+  }
+  paintKey(key);
+}
+
+/** Every row waiting on this request, and then the totals. */
+function paintKey(key){
+  Object.keys(ROW_KEY).forEach(function(rowId){
+    if (ROW_KEY[rowId] !== key) return;
+    const parts = rowId.split('-');
+    const host = document.getElementById('pquote-' + rowId);
+    if (host) host.innerHTML = policyCards(STATE.partners[+parts[1]], +parts[0], +parts[1]);
   });
-  const sorted = [...QUOTES].sort((a,b)=>a.monthly-b.monthly);
-  const cheapest = sorted.find(x => x.id !== 'cinci') || sorted[0];
-  const cinci = QUOTES.find(x => x.id === 'cinci') || sorted[1];
-  const first = esc(insured.name.split(' ')[0]);
+  updateTotals();
+}
+
+function paintPolicy(i, j){
+  const host = document.getElementById('pquote-' + i + '-' + j);
+  if (host) host.innerHTML = policyCards(STATE.partners[j], i, j);
+  updateTotals();
+}
+
+/** Every policy on the report, once it has been drawn. */
+function requestAllPolicyQuotes(){
+  if (!STATE || !STATE.policies) return;
+  Object.values(STATE.policies).forEach(p => requestPolicyQuote(p.buyerIdx, p.insuredIdx));
+}
+
+/* ---- Drawing it -------------------------------------------------------- */
+
+function cheapestOf(rows){
+  let best = null;
+  for (const r of rows || []){
+    if (typeof r.monthly !== 'number' || !isFinite(r.monthly)) continue;
+    if (best === null || r.monthly < best.monthly) best = r;
+  }
+  return best;
+}
+
+/** The row the combined premium totals: the recommendation the reader sees. */
+function billedRow(i, j){
+  const held = QUOTE_BY_KEY.get(ROW_KEY[i + '-' + j]);
+  if (!held || held.state !== 'ok') return null;
+  return (held.featured && held.featured[0]) || cheapestOf(held.quotes);
+}
+
+function quoteNotice(kind, icon, html){
+  return '<div class="cp-quote-note ' + kind + '"><span class="ic">' + icon + '</span><p>' + html + '</p></div>';
+}
+
+const CALL_US = '<a href="tel:8888048590">(888) 804-8590</a>';
+
+function policyCards(insured, i, j){
+  const held = QUOTE_BY_KEY.get(ROW_KEY[i + '-' + j]) || { state: 'idle' };
+  const first = esc(String(insured.name || 'this owner').split(' ')[0]);
+
+  if (held.state === 'idle'){
+    return quoteNotice('wait', '\u{1F4CB}',
+      'Add ' + first + '’s date of birth and state above and we will price this policy.');
+  }
+  if (held.state === 'loading'){
+    return quoteNotice('wait', '\u{23F3}', 'Pricing this policy on ' + first + '…');
+  }
+  if (held.state === 'error'){
+    return quoteNotice('warn', '\u{260E}\u{FE0F}',
+      'We could not reach the quote service just now. Rather than show an estimate '
+      + 'that might be wrong, we would rather have someone call you with real '
+      + 'numbers — ' + CALL_US + '.');
+  }
+  const cheapest = cheapestOf(held.quotes);
+  if (held.state === 'empty' || !cheapest){
+    return quoteNotice('warn', '\u{260E}\u{FE0F}',
+      '<b>No carrier returned an offer on ' + first + '.</b> That is a statement about '
+      + 'this comparison, not about them — it prices a fixed set of carriers at '
+      + 'standard underwriting. A funded buy-sell is worth a conversation anyway: '
+      + CALL_US + '.');
+  }
 
   const cardHTML = (cfg) => `
     <div class="best-card ${cfg.cardClass}">
-      <span class="best-badge ${cfg.badgeClass}">${cfg.badgeText}</span>
+      <span class="best-badge ${cfg.badgeClass}">${esc(cfg.badgeText)}</span>
       <div class="best-top">
         <div class="best-price">
           <div class="mo">${fmtMo(cfg.monthly)} <small>/m</small></div>
@@ -1220,26 +1514,49 @@ function policyCards(insured, coverage, term){
       <div class="best-bottom">
         <div class="best-carrier">
           <div>
-            <div class="best-carrier-name">${cfg.name}</div>
-            <div class="best-carrier-prod">${cfg.prod} • ${fmtUSD(cfg.coverage)}</div>
+            <div class="best-carrier-name">${esc(cfg.name)}</div>
+            <div class="best-carrier-prod">${esc(cfg.prod)} &bull; ${fmtUSD(cfg.coverage)}</div>
           </div>
-          <div class="best-rating">Rating: <b>${cfg.rating}</b></div>
+          <div class="best-rating">Rating: <b>${esc(cfg.rating)}</b></div>
         </div>
-        <a class="select-btn" href="https://app.quotebot.io/public/life-insurance" target="_blank">Apply Now</a>
+        <a class="select-btn" href="https://app.quotebot.io/public/life-insurance" target="_blank" rel="noopener">Apply Now</a>
       </div>
     </div>`;
 
-  return cardHTML({
-    cardClass:'', badgeClass:'affordable', badgeText:'Most Affordable',
-    monthly:cheapest.monthly, annual:cheapest.annual, logo:cheapest.logo,
-    name:cheapest.name, prod:cheapest.prodResolved, coverage:cheapest.coverage, rating:cheapest.rating,
-    mid:`<div class="trophy">🏆 Lowest Price</div><p>The most affordable way to cover ${first}'s buy-out.</p>`
-  }) + cardHTML({
-    cardClass:'recommended', badgeClass:'recommended', badgeText:'Recommended',
-    monthly:cinci.monthly, annual:cinci.annual, logo:cinci.logo,
-    name:cinci.name, prod:cinci.prodResolved, coverage:cinci.coverage, rating:cinci.rating,
-    mid:`<div class="trophy">🏆 Best Overall Value</div><ul><li>Top-rated A+ carrier</li><li>Trusted, established insurer</li></ul>`
+  const fromRow = (r, extra) => cardHTML(Object.assign({
+    monthly: r.monthly, annual: r.annual, logo: r.logo, name: r.name,
+    prod: r.prodResolved, coverage: r.coverage, rating: r.rating
+  }, extra));
+
+  let out = fromRow(cheapest, {
+    cardClass: '', badgeClass: 'affordable', badgeText: 'Most Affordable',
+    mid: `<div class="trophy">\u{1F3C6} Lowest Price</div>
+          <p>The most affordable way to cover ${first}'s buy-out.</p>`
   });
+
+  /* The carrier in first position in carrier settings, with the chip typed
+     against it there. One pick, not two -- this page shows two cards. A
+     carrier nobody curated keeps the slot and loses the endorsement. */
+  const pick = (held.featured && held.featured[0]) || null;
+  if (pick && pick.id !== cheapest.id){
+    const curated = pick.curated === true;
+    const tag = String(pick.badge || '').trim();
+    const bullets = Array.isArray(pick.bullets) ? pick.bullets : [];
+    out += fromRow(pick, {
+      cardClass: curated ? 'recommended' : 'agentless',
+      badgeClass: curated ? 'recommended' : 'agentless',
+      badgeText: tag || (curated ? 'Our Recommendation' : 'Another Option'),
+      mid: curated && bullets.length
+        ? `<ul>${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>`
+        : ''
+    });
+  }
+
+  if (held.estimates){
+    out += '<div class="cp-estimate-note"><b>Illustrative estimates.</b> These premiums '
+      + 'are modelled, not carrier-filed rates, and are not an offer of insurance.</div>';
+  }
+  return out;
 }
 
 function policyStatusHTML(pol, insuredName){
@@ -1281,14 +1598,14 @@ function policyRow(i, j){
       <div class="pbh-ctl">
         <label>Term Duration</label>
         <select id="term-${i}-${j}" onchange="onPolicyTerm(${i},${j},this)">
-          ${[10,15,20,25,30].map(t=>`<option value="${t}" ${ (pol.term||DEFAULT_TERM)===t ?'selected':''}>${t}-Year Term</option>`).join('')}
+          ${liveTerms().map(t=>`<option value="${t}" ${ (pol.term||DEFAULT_TERM)===t ?'selected':''}>${t}-Year Term</option>`).join('')}
         </select>
       </div>
       <button class="reset-cov" id="reset-${i}-${j}" ${changed?'':'disabled'} onclick="resetCoverage(${i},${j})">↺ Reset to need</button>
       <span class="cov-need-tag">Need: <b>${fmtUSD(need)}</b></span>
     </div>
     <div id="pstatus-${i}-${j}">${policyStatusHTML(pol, insured.name)}</div>
-    <div class="best-row" id="pquote-${i}-${j}">${policyCards(insured, pol.coverage, pol.term||DEFAULT_TERM)}</div>
+    <div class="best-row" id="pquote-${i}-${j}">${policyCards(insured, i, j)}</div>
   </div>`;
 }
 
@@ -1324,7 +1641,7 @@ function refreshPolicy(i, j){
   const insured = STATE.partners[j];
   const need = pol.need || 0;
   const changed = Math.abs((pol.coverage||0) - need) >= 1000;
-  $('pquote-'+i+'-'+j).innerHTML = policyCards(insured, pol.coverage, pol.term||DEFAULT_TERM);
+  queuePolicyQuote(i, j);
   $('pstatus-'+i+'-'+j).innerHTML = policyStatusHTML(pol, insured.name);
   const inp = $('cov-'+i+'-'+j); if (inp) inp.classList.toggle('changed', changed);
   const rst = $('reset-'+i+'-'+j); if (rst) rst.disabled = !changed;
@@ -1342,9 +1659,9 @@ function onCoverageBlur(i, j, el){
 }
 function onPolicyTerm(i, j, el){
   const pol = STATE.policies[policyKey(i,j)];
-  pol.term = parseInt(el.value);
-  $('pquote-'+i+'-'+j).innerHTML = policyCards(STATE.partners[j], pol.coverage, pol.term);
-  updateTotals();
+  pol.term = parseInt(el.value, 10);
+  /* Straight to the queue rather than debounced: a select fires once. */
+  requestPolicyQuote(i, j);
 }
 function resetCoverage(i, j){
   const pol = STATE.policies[policyKey(i,j)];
@@ -1357,16 +1674,32 @@ function resetCoverage(i, j){
    RENDER RESULTS
    ============================================================ */
 function computeTotals(){
-  let totalCoverage = 0, totalNeed = 0, totalAnnual = 0, count = 0;
+  let totalCoverage = 0, totalNeed = 0, totalAnnual = 0, count = 0, priced = 0;
   Object.values(STATE.policies).forEach(pol => {
     const need = pol.need || 0, cov = Math.max(0, pol.coverage || 0);
     totalNeed += need; totalCoverage += cov; count++;
-    const insured = STATE.partners[pol.insuredIdx];
-    const cvg = Math.max(1000, Math.round(cov/1000)*1000);
-    const q = { age:insured.age, term:(pol.term||DEFAULT_TERM), health:insured.uw, gender:insured.gender, coverage:cvg };
-    totalAnnual += rateFor(CINCI, q).annual;
+    /* Summed from the row the reader is being shown -- the recommendation
+       card -- rather than recomputed beside it. A total derived separately
+       is a total that can disagree with the cards above it. */
+    const row = billedRow(pol.buyerIdx, pol.insuredIdx);
+    if (row && typeof row.annual === 'number' && isFinite(row.annual)){
+      totalAnnual += row.annual;
+      priced += 1;
+    }
   });
-  return { totalCoverage, totalNeed, totalAnnual, count, shortfall: Math.max(0, totalNeed - totalCoverage) };
+  return { totalCoverage, totalNeed, totalAnnual, count, priced,
+           shortfall: Math.max(0, totalNeed - totalCoverage) };
+}
+
+/* "$4,120/yr" once every policy is priced, "$2,300/yr so far (7 of 12)" while
+   the staggered queue is still working through them, and a dash before any
+   have landed -- never $0, which reads as a figure somebody was shown. */
+function premiumLabel(t){
+  const per = '<span style="font-size:13px;font-weight:600;color:var(--gray-mid);">/yr</span>';
+  if (!t.priced) return '\u2014';
+  const amount = fmtUSD(t.totalAnnual) + per;
+  return t.priced === t.count ? amount
+    : amount + ' <span class="prem-partial">so far (' + t.priced + ' of ' + t.count + ')</span>';
 }
 
 function renderResults(){
@@ -1450,7 +1783,7 @@ function renderResults(){
       <div class="totals-strip">
         <div class="total-box"><div class="l">Total Calculated Need</div><div class="v">${fmtUSD(t.totalNeed)}</div></div>
         <div class="total-box"><div class="l">Total Coverage Applied</div><div class="v accent" id="tot-cov">${fmtUSD(t.totalCoverage)}</div></div>
-        <div class="total-box"><div class="l">Est. Combined Premium</div><div class="v gold" id="tot-prem">${fmtUSD(t.totalAnnual)}<span style="font-size:13px;font-weight:600;color:var(--gray-mid);">/yr</span></div></div>
+        <div class="total-box"><div class="l">Est. Combined Premium</div><div class="v gold" id="tot-prem">${premiumLabel(t)}</div></div>
         <div class="total-box"><div class="l">Policies</div><div class="v">${t.count}</div></div>
       </div>
       <div id="tot-shortfall">${shortfallInsightHTML(t)}</div>
@@ -1481,7 +1814,7 @@ function updateTotals(){
   if (!STATE) return;
   const t = computeTotals();
   const cov = $('tot-cov'); if (cov) cov.textContent = fmtUSD(t.totalCoverage);
-  const prem = $('tot-prem'); if (prem) prem.innerHTML = fmtUSD(t.totalAnnual) + '<span style="font-size:13px;font-weight:600;color:var(--gray-mid);">/yr</span>';
+  const prem = $('tot-prem'); if (prem) prem.innerHTML = premiumLabel(t);
   const sf = $('tot-shortfall'); if (sf) sf.innerHTML = shortfallInsightHTML(t);
 }
 
