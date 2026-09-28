@@ -899,6 +899,10 @@
      * @param {string} [lead.productLine]  a ProductLine enum value
      * @param {object} [lead.inputs]       whatever the tool computed
      * @param {object} [lead.results]      what it showed the user
+     * @param {boolean} [lead.premiumsAreEstimates] whether the premiums it
+     *   showed were modelled rather than carrier-filed. Omit on a tool that
+     *   shows no premiums; the server then falls back to what it knows about
+     *   the tool, which defaults to "estimates".
      * @param {string} [lead.consentText]  the disclosure exactly as rendered
      * @returns {Promise<boolean>} resolves false rather than rejecting
      */
@@ -942,6 +946,19 @@
           productLine: lead.productLine,
           inputs: lead.inputs || null,
           results: lead.results || null,
+          /*
+           * Whether the premiums in `results` were modelled or came from a
+           * carrier's filed rates.
+           *
+           * Reported by the page because only the page knows: the quote
+           * engine answers it per response, so a tool that normally gets
+           * filed rates is honestly marked when a Compulife outage put
+           * fixtures on the screen instead. Null from a tool that shows no
+           * premiums, or one not yet taught to send it, and the server then
+           * decides from the tool key.
+           */
+          premiumsAreEstimates: typeof lead.premiumsAreEstimates === 'boolean'
+            ? lead.premiumsAreEstimates : null,
           attribution: {
             first: attr.first,
             last: attr.last,

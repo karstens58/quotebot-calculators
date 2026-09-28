@@ -108,6 +108,7 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .seg button { padding: 11px; border: none; background: transparent; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--gray-mid); cursor: pointer; transition: all var(--transition); }
 .seg button + button { border-left: 1.5px solid var(--border); }
 .seg button.active { background: var(--primary); color: var(--white); }
+.seg.danger button.active { background: var(--gold-mid); }
 
 .cta-btn { width: 100%; padding: 16px; border-radius: var(--radius-lg); background: var(--green); color: var(--white); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15.5px; font-weight: 700; border: none; cursor: pointer; transition: background var(--transition), box-shadow var(--transition), transform var(--transition); display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 6px; }
 .cta-btn:hover { background: #138a3e; box-shadow: 0 8px 26px rgba(22,163,74,0.32); transform: translateY(-1px); }
@@ -171,6 +172,10 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .info-tip .tip-bubble::after { content: ''; position: absolute; top: 100%; right: 11px; border: 5px solid transparent; border-top-color: var(--primary-dark); }
 .info-tip:hover .tip-bubble, .info-tip:focus .tip-bubble { opacity: 1; visibility: visible; }
 .best-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; }
+/* The states with no cards in them -- pricing, unreachable, no offers -- put
+   one message in this row. Left as a grid child it sits in the first column
+   with two empty thirds beside it, which reads as a failed render. */
+.best-row > .no-need-card { grid-column: 1 / -1; margin-top: 0; }
 .best-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); position: relative; padding-top: 16px; transition: box-shadow var(--transition), transform var(--transition); display: flex; flex-direction: column; }
 .best-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
 .best-card.recommended { border-color: var(--accent); }
@@ -184,6 +189,10 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .best-price .mo small, .best-price .yr small { font-size: 13px; color: var(--gray-mid); font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif; }
 .best-price .yr { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--accent); line-height: 1.1; margin-top: 4px; }
 .best-mid { padding: 18px 24px; text-align: center; border-bottom: 1px solid var(--gray-light); }
+/* A carrier nobody curated gets no reasons, which leaves this empty. Without
+   this it stays as a tall blank panel, and the card reads as broken rather
+   than as deliberately saying less. */
+.best-mid:empty { display: none; }
 .best-mid .trophy { font-size: 16px; font-weight: 700; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
 .best-mid p { font-size: 13.5px; color: var(--gray-dark); line-height: 1.55; }
 .best-mid ul { list-style: none; font-size: 13px; color: var(--gray-dark); display: flex; flex-direction: column; gap: 6px; align-items: center; }
@@ -201,26 +210,19 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .no-need-card .ic { font-size: 24px; }
 .no-need-card p { font-size: 13.5px; color: var(--gray-dark); line-height: 1.6; }
 .no-need-card b { color: var(--green); }
+/* The same card, for the two states that are not good news and the one that
+   is neither. Green would be the page congratulating itself. */
+.no-need-card.wait { background: var(--off-white); border-color: var(--border); }
+.no-need-card.warn { background: #fef2f2; border-color: rgba(220,38,38,0.32); }
+.no-need-card.warn b, .no-need-card.warn a { color: #b91c1c; }
+.no-need-card a { color: var(--green); font-weight: 700; }
+.quote-estimate-note { margin-top: 14px; padding: 11px 14px; border-radius: var(--radius); background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); font-size: 12.5px; line-height: 1.55; color: var(--gold); }
 
 /* CARRIER LOGO (text wordmark treatments) */
-.logo { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.05; }
-.logo-corebridge { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 14px; color: #2b2d6e; }
-.logo-corebridge small { font-weight: 500; font-size: 11px; color: #6b6e9e; }
-.logo-corebridge i { color: #7c3aed; font-style: normal; }
-.logo-banner { font-weight: 800; font-size: 15px; color: #fff; background: #1d6fc4; padding: 4px 10px; border-radius: 4px; transform: skewX(-8deg); letter-spacing: -0.3px; }
-.logo-better { font-weight: 800; font-size: 15px; color: #1a3d6b; }
-.logo-better i { color: var(--gold-bright); font-style: italic; }
-.logo-cinci { font-family: 'Fraunces', serif; font-weight: 700; font-size: 13px; color: #1a3d6b; letter-spacing: 0.5px; }
-.logo-cinci small { font-weight: 600; font-size: 7px; color: var(--gray-mid); letter-spacing: 0.4px; }
-.logo-northam { font-weight: 800; font-size: 11px; color: #1f7a3d; letter-spacing: -0.2px; }
-.logo-northam small { font-weight: 500; font-size: 8px; color: var(--gray-mid); }
-.logo-aaa { font-weight: 800; font-size: 18px; color: #c8102e; font-style: italic; }
-.logo-aaa small { font-weight: 600; font-size: 8px; color: var(--primary); font-style: normal; }
-.logo-sw { font-weight: 700; font-size: 12px; color: #1a1a1a; }
-.logo-sw small { font-weight: 500; font-size: 9px; color: var(--gray-mid); }
-.logo-assurity { font-weight: 800; font-size: 16px; color: #26282a; letter-spacing: -0.3px; }
-.logo-assurity i { color: #f00b51; font-style: normal; }
-.logo-assurity small { display: block; font-weight: 600; font-size: 7px; color: var(--gray-mid); letter-spacing: 0.7px; margin-top: 1px; }
+/* Carrier names now arrive with the quote, so this is a real style rather
+   than a wrapper for seven hand-drawn wordmarks. A logoUrl from the admin
+   console renders as an <img>; this is what it falls back to. */
+.logo { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.15; font-weight: 800; font-size: 12.5px; color: var(--primary); }
 .logo-tri { width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 15px solid #1a1a1a; margin: 0 auto 3px; }
 @media(max-width: 760px){ .best-row { grid-template-columns: 1fr; } }
 
@@ -472,6 +474,10 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   .footer-links-row { justify-content: flex-start; }
 }
 </style>
+  <!-- The quote engine. Same Function URL quotetool.html uses; the page
+       degrades to a "call us" card rather than an invented price if it is
+       unreachable. -->
+  <script>window.QB_QUOTE_ENDPOINT = "https://dwicf2jtppp3vpigyhrxybiyra0frcao.lambda-url.us-east-2.on.aws/";</script>
   <script src="/js/quotebot-consent.js"
           data-version="2026-09-28"
           data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/consent"></script>
@@ -546,11 +552,23 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <select id="state"></select>
           </div>
 
-          <div class="field">
-            <label>Gender <span class="req">*</span></label>
-            <div class="seg" id="genderSeg">
-              <button type="button" class="active" data-val="Male">Male</button>
-              <button type="button" data-val="Female">Female</button>
+          <div class="field-row">
+            <div class="field">
+              <label>Gender <span class="req">*</span></label>
+              <div class="seg" id="genderSeg">
+                <button type="button" class="active" data-val="Male">Male</button>
+                <button type="button" data-val="Female">Female</button>
+              </div>
+            </div>
+            <!-- Asked because the rate cannot be right without it. Tobacco is
+                 the single largest factor in a term premium, and a page that
+                 does not ask quietly prices every smoker as a non-smoker. -->
+            <div class="field">
+              <label>Tobacco <span class="req">*</span></label>
+              <div class="seg danger" id="tobaccoSeg">
+                <button type="button" data-val="Yes">Yes</button>
+                <button type="button" class="active" data-val="No">No</button>
+              </div>
             </div>
           </div>
 
@@ -756,9 +774,14 @@ function getInputs(){
   return {
     firstName: document.getElementById('firstName').value.trim(),
     lastName:  document.getElementById('lastName').value.trim(),
+    /* The raw date as well as the age. Compulife price off the date of
+       birth, and a whole-year age loses whoever is a fortnight from a
+       birthday -- which is a different premium, not a rounding. */
+    dob: dob,
     age: computeAge(dob),
     state: document.getElementById('state').value,
     gender: document.querySelector('#genderSeg .active').dataset.val,
+    tobacco: document.querySelector('#tobaccoSeg .active').dataset.val,
     uwClass: document.getElementById('uwClass').value,
     debt: { cards: parseNum('debtCards'), auto: parseNum('debtAuto'), other: parseNum('debtOther') },
     inc:  { annual: parseNum('incAnnual'), years: Math.max(1, parseNum('incYears')), ret: parseNum('incReturn'), growth: parseNum('incGrowth') },
@@ -994,60 +1017,293 @@ function detailEducation(e, ec){
     </div>`;
 }
 
-/* ---------- QUOTE ENGINE (ported from the Quote-Bot life quote tool) ---------- */
-const CARRIERS = [
-  { id:'amgen',  name:'American General Life Insurance Company', prod:'Select-a-Term - {T} Year',     rating:'A',       per1000:1.557, logo:`<div class="logo logo-corebridge">corebridge<i> :</i><small>financial</small></div>` },
-  { id:'banner', name:'Banner Life Insurance Company',          prod:'OPTerm {T} - {T} Year Term',    rating:'A',       per1000:1.566, logo:`<div class="logo"><div class="logo-banner">BannerLife</div></div>` },
-  { id:'better', name:'BetterLife',                              prod:'Term to 95 - {T} Year Level (Par)', rating:'Unknown', per1000:1.600, logo:`<div class="logo logo-better">Better<i>Life</i></div>` },
-  { id:'cinci',  name:'Cincinnati Life Insurance Company',      prod:'Termsetter {T}',                rating:'A+',      per1000:1.710, logo:`<div class="logo logo-cinci">CINCINNATI<small>LIFE INSURANCE CO.</small></div>` },
-  { id:'northam',name:'North American Co for Life and Health',  prod:'ADDvantage Term {T} Gen 9',     rating:'A+',      per1000:1.730, logo:`<div class="logo logo-northam">NORTH AMERICAN<small>A Sammons Company</small></div>` },
-  { id:'aaa',    name:'AAA Life Insurance Company',             prod:'{T} Year Level Term',           rating:'A',       per1000:2.050, logo:`<div class="logo logo-aaa">AAA<small>Life Insurance Co.</small></div>` },
-  { id:'sw',     name:'Life Insurance Company of the Southwest',prod:'{T}-Year Term',                 rating:'A+',      per1000:2.120, logo:`<div class="logo logo-sw"><div class="logo-tri"></div>National Life<small>Group</small></div>` },
-];
-const TERM_FACTOR   = { 10:1.0, 15:1.28, 20:1.65, 30:2.55 };
-const HEALTH_FACTOR = { 'Preferred Plus':0.68, 'Preferred':0.80, 'Standard Plus':0.91, 'Standard':1.0 };
-const ANNUAL_DIVISOR = 11.832;
-function rateFor(carrier, q){
-  const ageF = Math.pow(1.072, q.age - 48);
-  const termF = TERM_FACTOR[q.term] || 1;
-  const healthF = HEALTH_FACTOR[q.health] || 1;
-  const genderF = q.gender === 'Female' ? 0.86 : 1.0;
-  const annual = carrier.per1000 * (q.coverage/1000) * ageF * termF * healthF * genderF;
-  return { annual, monthly: annual / ANNUAL_DIVISOR };
-}
+/* ---------- QUOTE ENGINE -------------------------------------------------
+ *
+ * Real rates, over the same contract quotetool.html uses: POST /quote with
+ * a Compulife category letter, and cards built out of nothing but what
+ * comes back.
+ *
+ * What stood here was a table of per-$1,000 factors with two carriers
+ * written into the layout. Cincinnati was always "Recommended", and the
+ * "Agent-less" card priced Assurity by scaling whoever happened to be
+ * cheapest on that render -- a premium no carrier had ever quoted, on a
+ * page whose whole job is to tell somebody what their number costs. There
+ * is no longer any way for a card here to name a price the engine did not
+ * return.
+ */
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
 const fmtMo = n => '$' + n.toFixed(2);
 const fmtYr = n => '$' + Math.round(n).toLocaleString('en-US');
 
-let selectedTerm = 20;      // results-page control (the input panel has no term)
-let currentCoverage = 0;    // rounded recommended need, set by render()
-let coverageOverride = null;// user-entered coverage; null = use recommendation
-let currentInp = null;      // last computed inputs, set by render()
+/* Carrier chrome arrives with the quote, so a rating or a logo changes in
+   the admin console rather than in this file. */
+function logoFor(name, url){
+  var safe = String(name || '').replace(/[&<>"]/g, '');
+  var short = safe.split(' ').slice(0, 2).join(' ');
+  if (url){
+    return '<img src="' + url + '" alt="' + safe + '" style="max-height:34px;max-width:104px;object-fit:contain" '
+      + 'onerror="this.outerHTML=\'<div class=&quot;logo&quot;>' + short + '</div>\'">';
+  }
+  return '<div class="logo">' + short + '</div>';
+}
+
+let selectedTerm = 20;       // results-page control (the input panel has no term)
+let currentCoverage = 0;     // rounded recommended need, set by render()
+let coverageOverride = null; // user-entered coverage; null = use recommendation
+let currentInp = null;       // last computed inputs, set by render()
 function effectiveCoverage(){ return coverageOverride != null ? coverageOverride : currentCoverage; }
+
+let QUOTES = [];                   // the engine's rows: the only source of a price
+let FEATURED = [];                 // the admin's picks, cheapest already excluded
+let PREMIUMS_ARE_ESTIMATES = true; // until a response says otherwise
+let QUOTE_STATE = 'idle';          // idle | loading | ok | empty | error
+
+/**
+ * Term length -> Compulife category letter, read off their live list.
+ *
+ * The letter IS the coverage choice: '5' means 20 Year Level Term. It is
+ * fetched rather than written down because the list reports the categories
+ * that currently have products, so it moves as carriers file and withdraw,
+ * and because their published documentation and what this licence actually
+ * returns do not agree. A duration the list does not carry leaves the menu
+ * rather than being offered, sent and refused.
+ *
+ * Only level term is taken. "20 Year Return of Premium" also begins with a
+ * number and is a different product at a very different price.
+ *
+ * Empty is a working state, not a broken one: the quote then goes as
+ * product + termYears, the older contract the engine still reads.
+ */
+let TERM_LETTER = {};
+const TERM_CHOICES = [10, 15, 20, 30];
+
+async function loadCoverageCategories(){
+  const endpoint = window.QB_QUOTE_ENDPOINT || '';
+  if (!/^https?:\/\//i.test(endpoint)) return;
+  try {
+    const res = await fetch(endpoint.replace(/\/$/, '') + '/categories');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = (await res.json()).categories;
+    if (!Array.isArray(list) || !list.length) throw new Error('empty list');
+    const map = {};
+    for (const c of list){
+      const m = /^\s*(\d+)\s+year\s+level\s+term/i.exec(String((c && c.name) || ''));
+      if (m && c && c.letter && !(m[1] in map)) map[m[1]] = String(c.letter);
+    }
+    if (Object.keys(map).length) TERM_LETTER = map;
+    applyTermOptions();
+  } catch (err){
+    /* Silent to the visitor: without a letter the quote still goes, on the
+       older product + termYears contract. Logged so it is findable. */
+    console.warn('[dime] live coverage list unavailable, quoting by term length', err);
+  }
+}
+loadCoverageCategories();
+
+/**
+ * Offer only durations Compulife can currently price.
+ *
+ * Called on load and again after every render, because the select is part
+ * of the results markup and is rebuilt with it. A no-op until the list has
+ * arrived, so the four options the page ships with stand until there is
+ * something better to say.
+ */
+function applyTermOptions(){
+  const sel = document.getElementById('termSelect');
+  if (!sel || !Object.keys(TERM_LETTER).length) return;
+  const live = TERM_CHOICES.filter(t => TERM_LETTER[String(t)]);
+  if (!live.length) return;
+  if (live.indexOf(selectedTerm) === -1) selectedTerm = live.indexOf(20) !== -1 ? 20 : live[0];
+  sel.innerHTML = live.map(t => '<option value="' + t + '">' + t + '-Year Term</option>').join('');
+  sel.value = String(selectedTerm);
+}
+
+/* ---- Asking for the price ---------------------------------------------- */
+
+/* The request last sent, so an edit that changes nothing does not spend a
+   call against the visitor's allowance. */
+let lastQuoteKey = null;
+/* Replies can land out of order. Only the newest request may write. */
+let quoteSeq = 0;
+let quoteTimer = null;
+
+function quoteBody(){
+  const cvg = effectiveCoverage();
+  if (!currentInp || !currentInp.dob || !currentInp.state || !(cvg >= 1000)) return null;
+  const letter = TERM_LETTER[String(selectedTerm)];
+  const body = {
+    faceAmount: cvg,
+    dateOfBirth: currentInp.dob,
+    gender: currentInp.gender,
+    tobacco: currentInp.tobacco === 'Yes',
+    healthClass: currentInp.uwClass || 'Standard',
+    state: currentInp.state,
+    toolKey: 'dime'
+  };
+  /* The letter when the live list gave us one, the older shape when it did
+     not -- never both, which only invites them to disagree. */
+  if (letter) body.coverage = letter;
+  else { body.product = 'TERM'; body.termYears = selectedTerm; }
+  return body;
+}
+
+/**
+ * Every field on this page recalculates the need, and the need is the face
+ * amount, so any keystroke is a new quote. Each quote is a metered call on
+ * one registered address, so they are coalesced: somebody typing "750000"
+ * into the coverage box spends one call, not six.
+ */
+function requestQuotes(){
+  const body = quoteBody();
+  if (!body){
+    QUOTE_STATE = 'idle'; QUOTES = []; FEATURED = []; lastQuoteKey = null;
+    renderQuoteCards();
+    return;
+  }
+  const key = JSON.stringify(body);
+  if (key === lastQuoteKey){ renderQuoteCards(); return; }
+  lastQuoteKey = key;
+  QUOTE_STATE = 'loading';
+  renderQuoteCards();
+  if (quoteTimer) clearTimeout(quoteTimer);
+  const seq = ++quoteSeq;
+  quoteTimer = setTimeout(function(){ sendQuote(body, seq); }, 500);
+}
+
+async function sendQuote(body, seq){
+  const endpoint = window.QB_QUOTE_ENDPOINT || '';
+  if (!/^https?:\/\//i.test(endpoint)){
+    QUOTES = []; FEATURED = []; QUOTE_STATE = 'error'; lastQuoteKey = null;
+    renderQuoteCards();
+    return;
+  }
+  try {
+    const res = await fetch(endpoint.replace(/\/$/, '') + '/quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const json = await res.json();
+    if (seq !== quoteSeq) return;   // a newer request is already in flight
+    if (!res.ok || !json.ok) throw new Error(json.error || ('HTTP ' + res.status));
+
+    PREMIUMS_ARE_ESTIMATES = json.premiumsAreEstimates !== false;
+
+    /* One mapper for both lists. The featured picks ARE quote rows -- the
+       engine selects them from the same array it returns -- so shaping them
+       differently is how a card ends up disagreeing with the row below it. */
+    const toRow = q => ({
+      id: String(q.companyCode || q.carrierName || '').toLowerCase(),
+      name: q.carrierName,
+      prodResolved: q.productName,
+      rating: q.amBestRating || 'NR',
+      monthly: q.monthlyPremium,
+      annual: q.annualPremium,
+      coverage: q.faceAmount != null ? q.faceAmount : body.faceAmount,
+      logo: logoFor(q.carrierName, q.logoUrl)
+    });
+
+    QUOTES = (json.quotes || []).map(toRow);
+    FEATURED = (json.featured || []).map(f => Object.assign(toRow(f), {
+      /* The admin's own words, already filtered of blanks server-side.
+         `curated` false means nobody chose this carrier -- it is here on
+         price alone, and it gets no reasons and no claim of endorsement. */
+      bullets: Array.isArray(f.bullets) ? f.bullets : [],
+      badge: typeof f.badge === 'string' ? f.badge : '',
+      curated: f.curated === true
+    }));
+    QUOTE_STATE = QUOTES.length ? 'ok' : 'empty';
+  } catch (err){
+    if (seq !== quoteSeq) return;
+    /* The visitor gets the calm sentence in the card; whoever is debugging
+       gets the reason. */
+    console.error('[dime] the quote request failed', err);
+    QUOTES = []; FEATURED = []; QUOTE_STATE = 'error';
+    /* Null, so the next edit re-asks rather than reading the failed key as
+       a question already answered. */
+    lastQuoteKey = null;
+  }
+  renderQuoteCards();
+}
+
+/* ---- Drawing it -------------------------------------------------------- */
+
+/* The cheapest row, found by price rather than assumed to be first -- being
+   the cheapest is the entire claim the left-hand card makes. */
+function cheapestQuote(rows){
+  let best = null;
+  for (const r of rows){
+    if (typeof r.monthly !== 'number' || !isFinite(r.monthly)) continue;
+    if (best === null || r.monthly < best.monthly) best = r;
+  }
+  return best;
+}
+
+function quoteNotice(kind, icon, html){
+  return '<div class="no-need-card ' + kind + '"><span class="ic">' + icon + '</span><p>' + html + '</p></div>';
+}
+
+const CALL_US = '<a href="tel:8888048590">(888) 804-8590</a>';
+
+/* The estimates line sits under the cards rather than in them: it is about
+   the whole set, and .best-row is a row of cards. */
+function renderPremiumNote(){
+  const el = document.getElementById('quoteNote');
+  if (!el) return;
+  if (QUOTE_STATE !== 'ok' || !PREMIUMS_ARE_ESTIMATES){ el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="quote-estimate-note"><b>Illustrative estimates.</b> '
+    + 'These premiums are modelled, not carrier-filed rates, and are not an offer of '
+    + 'insurance. Your actual premium is set by the carrier after underwriting.</div>';
+}
 
 function renderQuoteCards(){
   const host = document.getElementById('quoteCards');
-  if (!host || !currentInp) return;
+  if (!host) return;
   const cvg = effectiveCoverage();
-  if (cvg < 1000){
-    host.innerHTML = `<div class="no-need-card"><span class="ic">💬</span><p>Enter a coverage amount above to see sample term-life rates for your profile.</p></div>`;
-    return;
+
+  const done = (html) => { host.innerHTML = html; renderPremiumNote(); };
+
+  if (!currentInp || !(cvg >= 1000)){
+    return done(quoteNotice('', '\u{1F4AC}',
+      'Enter a coverage amount above and we will price it with our carriers.'));
   }
-  const q = { age: currentInp.age, term: selectedTerm, health: currentInp.uwClass, gender: currentInp.gender, coverage: cvg };
-  const QUOTES = CARRIERS.map(c => {
-    const { annual, monthly } = rateFor(c, q);
-    return { ...c, prodResolved: c.prod.replace(/\{T\}/g, selectedTerm), coverage: cvg, annual, monthly };
-  });
-  const sorted = [...QUOTES].sort((a,b)=>a.monthly-b.monthly);
-  const cheapest = sorted.find(x => x.id !== 'cinci') || sorted[0];
-  const cinci = QUOTES.find(x => x.id === 'cinci') || sorted[1];
-  const ASSURITY_PER1000 = 1.62, ASSURITY_RATING = 'A-';
-  const ratio = ASSURITY_PER1000 / cheapest.per1000;
-  const assurity = { monthly: cheapest.monthly * ratio, annual: cheapest.annual * ratio, coverage: cvg };
-  const ASSURITY_LOGO = `<div class="logo logo-assurity">assurity<i>.</i><small>LIFE INSURANCE</small></div>`;
+  if (!currentInp.dob || !currentInp.state){
+    return done(quoteNotice('wait', '\u{1F4CB}',
+      'Add your date of birth and state above and we will price '
+      + fmt$(cvg) + ' of cover with our carriers.'));
+  }
+  if (QUOTE_STATE === 'loading' || QUOTE_STATE === 'idle'){
+    return done(quoteNotice('wait', '\u{23F3}',
+      'Pricing ' + fmt$(cvg) + ' of ' + selectedTerm + '-year term with our carriers…'));
+  }
+  if (QUOTE_STATE === 'error'){
+    return done(quoteNotice('warn', '\u{260E}\u{FE0F}',
+      'We could not reach the quote service just now. Rather than show an estimate '
+      + 'that might be wrong, we would rather have someone call you with real '
+      + 'numbers — ' + CALL_US + '.'));
+  }
+  const cheapest = QUOTE_STATE === 'ok' ? cheapestQuote(QUOTES) : null;
+  if (!cheapest){
+    /*
+     * Worth saying plainly, because the honest version is not "you are
+     * uninsurable": this prices a fixed set of carriers at standard
+     * underwriting, which is a narrow slice of the market. Rated offers,
+     * simplified issue and guaranteed issue all sit outside it.
+     */
+    return done(quoteNotice('warn', '\u{260E}\u{FE0F}',
+      '<b>No carrier on this comparison returned an offer for this profile.</b> '
+      + 'That is a statement about this tool, not about you — it prices a fixed '
+      + 'set of carriers at standard underwriting, and rated offers, simplified issue '
+      + 'and guaranteed issue all sit outside it. Someone here would rather talk it '
+      + 'through than leave you with an empty page: ' + CALL_US + '.'));
+  }
 
   const cardHTML = (cfg) => `
     <div class="best-card ${cfg.cardClass}">
-      <span class="best-badge ${cfg.badgeClass}">${cfg.badgeText}</span>
+      <span class="best-badge ${cfg.badgeClass}">${esc(cfg.badgeText)}</span>
       <div class="best-top">
         <div class="best-price">
           <div class="mo">${fmtMo(cfg.monthly)} <small>/m</small></div>
@@ -1059,28 +1315,87 @@ function renderQuoteCards(){
       <div class="best-bottom">
         <div class="best-carrier">
           <div>
-            <div class="best-carrier-name">${cfg.name}</div>
-            <div class="best-carrier-prod">${cfg.prod} • $${cfg.coverage.toLocaleString()}</div>
+            <div class="best-carrier-name">${esc(cfg.name)}</div>
+            <div class="best-carrier-prod">${esc(cfg.prod)} &bull; $${cfg.coverage.toLocaleString('en-US')}</div>
           </div>
-          <div class="best-rating">Rating: <b>${cfg.rating}</b></div>
+          <div class="best-rating">Rating: <b>${esc(cfg.rating)}</b></div>
         </div>
         <a class="select-btn" href="https://app.quotebot.io/public/life-insurance" target="_blank">Apply Now</a>
       </div>
     </div>`;
 
-  host.innerHTML =
-    cardHTML({ cardClass:'', badgeClass:'affordable', badgeText:'Most Affordable',
-      monthly:cheapest.monthly, annual:cheapest.annual, logo:cheapest.logo,
-      name:cheapest.name, prod:cheapest.prodResolved, coverage:cheapest.coverage, rating:cheapest.rating,
-      mid:`<div class="trophy">🏆 Lowest Price</div><p>The most affordable rate available for your profile.</p>` }) +
-    cardHTML({ cardClass:'recommended', badgeClass:'recommended', badgeText:'Recommended',
-      monthly:cinci.monthly, annual:cinci.annual, logo:cinci.logo,
-      name:cinci.name, prod:cinci.prodResolved, coverage:cinci.coverage, rating:cinci.rating,
-      mid:`<div class="trophy">🏆 Best Overall Value</div><ul><li>Top-rated A+ carrier</li><li>Trusted, established insurer</li></ul>` }) +
-    cardHTML({ cardClass:'agentless', badgeClass:'agentless', badgeText:'Agent-less',
-      monthly:assurity.monthly, annual:assurity.annual, logo:ASSURITY_LOGO,
-      name:'Assurity Life', prod:`Term Life - ${selectedTerm} Year`, coverage:assurity.coverage, rating:ASSURITY_RATING,
-      mid:`<div class="trophy">🏆 Best Experience!</div><ul><li>Fast, all-digital application</li><li>No agent required to buy</li></ul>` });
+  /* Every card is built from a row the engine returned. There is no other
+     source, and that is what stops a carrier appearing at a price nobody
+     quoted. */
+  const fromRow = (r, extra) => cardHTML(Object.assign({
+    monthly: r.monthly, annual: r.annual, logo: r.logo, name: r.name,
+    prod: r.prodResolved, coverage: r.coverage, rating: r.rating
+  }, extra));
+
+  const cards = [ fromRow(cheapest, {
+    cardClass: '', badgeClass: 'affordable', badgeText: 'Most Affordable',
+    mid: `<div class="trophy">\u{1F3C6} Lowest Price</div>
+          <p>The most affordable rate available for your profile.</p>`
+  }) ];
+
+  /*
+   * The engine chooses these and has already excluded the cheapest carrier
+   * and de-duplicated by company, so nothing here re-checks either.
+   *
+   * If it returned none -- an older engine, or its carrier table was
+   * briefly unreadable -- fall back to price so the visitor still has three
+   * to compare. Same rule the engine uses, and the same silence underneath:
+   * these are carriers nobody picked, so they get no reasons.
+   */
+  let picks = FEATURED;
+  if (!picks.length){
+    const seen = new Set([cheapest.id]);
+    picks = [];
+    const byPrice = QUOTES
+      .filter(q => typeof q.monthly === 'number' && isFinite(q.monthly))
+      .sort((a, b) => a.monthly - b.monthly);
+    for (const q of byPrice){
+      if (seen.has(q.id)) continue;
+      seen.add(q.id);
+      picks.push(Object.assign({}, q, { bullets: [], curated: false }));
+      if (picks.length === 2) break;
+    }
+  }
+
+  /* Position decides the styling; the engine decides who sits there. */
+  const SLOTS = [
+    { cardClass: 'recommended', badgeClass: 'recommended', badgeText: 'Our Pick' },
+    { cardClass: 'agentless',   badgeClass: 'agentless',   badgeText: 'Also Consider' }
+  ];
+
+  picks.slice(0, SLOTS.length).forEach((f, i) => {
+    const slot = SLOTS[i];
+    const curated = f.curated === true;
+    const bullets = Array.isArray(f.bullets) ? f.bullets : [];
+    /*
+     * A card nobody chose does not get an endorsement badge and does not
+     * get reasons. It is a real carrier at a real price, shown for
+     * comparison, and saying less is the honest option -- borrowing another
+     * carrier's bullets or inventing generic ones would both be lying
+     * quietly.
+     *
+     * The carrier's own tag wins over the slot's wording either way: it is
+     * words typed against this carrier, so it says something true about
+     * them whichever card they land on. "Why we chose them" under a carrier
+     * nobody chose would describe a decision that never happened.
+     */
+    const tag = String(f.badge || '').trim();
+    cards.push(fromRow(f, {
+      cardClass: curated ? slot.cardClass : 'agentless',
+      badgeClass: curated ? slot.badgeClass : 'agentless',
+      badgeText: tag || (curated ? slot.badgeText : 'Another Option'),
+      mid: curated && bullets.length
+        ? `<ul>${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>`
+        : ''
+    }));
+  });
+
+  done(cards.join(''));
 }
 
 /* ---------- MAIN RENDER ---------- */
@@ -1176,6 +1491,7 @@ function render(){
         </div>
       </div>
       <div class="best-row" id="quoteCards"></div>
+      <div id="quoteNote"></div>
     </div>
 
     <div class="comp-card">
@@ -1222,7 +1538,7 @@ function render(){
   const termSel = document.getElementById('termSelect');
   if (termSel){
     termSel.value = String(selectedTerm);
-    termSel.addEventListener('change', ()=>{ selectedTerm = parseInt(termSel.value); renderQuoteCards(); });
+    termSel.addEventListener('change', ()=>{ selectedTerm = parseInt(termSel.value); requestQuotes(); });
   }
   const covInput = document.getElementById('coverageInput');
   if (covInput){
@@ -1230,10 +1546,13 @@ function render(){
       const n = e.target.value.replace(/[^0-9]/g,'');
       e.target.value = n ? parseInt(n).toLocaleString('en-US') : '';
       coverageOverride = n ? parseInt(n) : 0;
-      renderQuoteCards();
+      requestQuotes();
     });
   }
-  renderQuoteCards();
+  /* The select is part of the markup just written, so the live durations
+     are applied to the new one before anything asks it what it holds. */
+  applyTermOptions();
+  requestQuotes();
   const editBtn = document.getElementById('editInputsBtn');
   if (editBtn) editBtn.addEventListener('click', editInputs);
   document.querySelectorAll('.cat-header').forEach(h=>{
@@ -1272,6 +1591,14 @@ function liveUpdate(){ if (shown) render(); }
 document.getElementById('genderSeg').addEventListener('click', e=>{
   if (e.target.tagName !== 'BUTTON') return;
   document.querySelectorAll('#genderSeg button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  liveUpdate();
+});
+
+// tobacco toggle
+document.getElementById('tobaccoSeg').addEventListener('click', e=>{
+  if (e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#tobaccoSeg button').forEach(b=>b.classList.remove('active'));
   e.target.classList.add('active');
   liveUpdate();
 });
@@ -1321,7 +1648,20 @@ function qbCaptureLead(){
       firstName: inp.firstName, lastName: inp.lastName,
       productLine: 'TERM_LIFE',
       inputs: inp,
-      results: { totalCoverageNeed: (typeof effectiveCoverage === 'function' ? effectiveCoverage() : null) },
+      /* The premiums sent here are the ones that were DISPLAYED, which is
+         what you want on file if a quoted price is ever disputed. Empty on
+         the first submit, because the quote is still in flight then -- and
+         an empty list is the truth about what they had been shown. */
+      premiumsAreEstimates: PREMIUMS_ARE_ESTIMATES,
+      results: {
+        totalCoverageNeed: currentCoverage || null,
+        quotedCoverage: (typeof effectiveCoverage === 'function' ? effectiveCoverage() : null),
+        termYears: selectedTerm,
+        quotes: QUOTES.map(function(q){
+          return { carrier: q.name, product: q.prodResolved, rating: q.rating,
+                   monthlyPremium: q.monthly, annualPremium: q.annual };
+        })
+      },
       consentText: C('#qb-consent')
     });
   } catch (e) { /* capture must never break the calculator */ }
@@ -1368,6 +1708,7 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
     const el = document.getElementById(id); if (el) el.value = v;
   });
   document.querySelectorAll('#genderSeg button').forEach(b=>b.classList.toggle('active', b.dataset.val==='Male'));
+  document.querySelectorAll('#tobaccoSeg button').forEach(b=>b.classList.toggle('active', b.dataset.val==='No'));
   document.getElementById('agePill').textContent = 'Age ' + computeAge(DEFAULTS.dob);
   liveUpdate();
 });
