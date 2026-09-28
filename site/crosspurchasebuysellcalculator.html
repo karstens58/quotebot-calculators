@@ -264,6 +264,10 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .cp-quote-note.warn b, .cp-quote-note.warn a { color: #b91c1c; }
 .cp-estimate-note { margin-top: 12px; padding: 10px 14px; border-radius: var(--radius); background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); font-size: 12.5px; line-height: 1.55; color: var(--gold); }
 .prem-partial { font-size: 12px; font-weight: 600; color: var(--gray-mid); }
+/* The ownership total, when the visitor has just been sent back to it. */
+@keyframes qb-flash { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); } 30% { box-shadow: 0 0 0 5px rgba(220,38,38,0.28); } }
+.ownership-total.flash { animation: qb-flash 1.1s ease-out 2; }
+@media (prefers-reduced-motion: reduce) { .ownership-total.flash { animation: none; outline: 2px solid var(--red); outline-offset: 3px; } }
 .buyer-intro { font-size: 13.5px; color: var(--gray-dark); line-height: 1.6; margin: 10px 0 4px; }
 .buyer-intro b { color: var(--primary); }
 .policy-list { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
@@ -868,7 +872,28 @@ function updateOwnershipTotal(){
   const ok = Math.abs(total - 100) < 0.5;
   box.className = 'ownership-total ' + (ok ? 'ok' : 'bad');
   box.querySelector('span:first-child').textContent = ok ? '✓ Total Ownership' : 'Must total 100% — currently';
-  $('calcBtn').disabled = !ok;
+  /*
+   * The button is NOT disabled here any more, and that is the fix.
+   *
+   * A disabled control cannot be clicked, so it cannot explain itself. This
+   * box says exactly what is wrong, but it sits under the owner cards while
+   * the button is far below it past the financials and the contact block —
+   * so the visitor pressed a dead button and nothing at the place they were
+   * looking said why. calculate() checks the same condition and brings them
+   * here instead.
+   */
+}
+
+/* Send the visitor to the thing that needs fixing, and make it catch the
+   eye when they arrive. Same job the red field borders do for the contact
+   block, for a total that lives too far from the button. */
+function flashOwnership(){
+  const box = $('ownershipTotal');
+  if (!box) return;
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  box.classList.remove('flash');
+  void box.offsetWidth;          // restart the animation if it is still running
+  box.classList.add('flash');
 }
 
 /* ============================================================
@@ -1027,10 +1052,21 @@ function calculate(){
     if (firstErr){ firstErr.scrollIntoView({behavior:'smooth', block:'center'}); firstErr.focus(); }
     return;
   }
-  setTimeout(qbCaptureLead, 0);
   const partners = readPartnerInputs();
+  /*
+   * No owners at all. Cannot happen now — buildPartners floors at two — but
+   * this is the exact shape of the bug that shipped: the cards stopped
+   * rendering, ownership totalled 0%, and the page refused with a message
+   * about a total nobody could see anything to set. A named refusal beats
+   * an empty report if it ever comes back.
+   */
+  if (partners.length < 2){
+    buildPartners();
+    flashOwnership();
+    return;
+  }
   const total = partners.reduce((s,p)=>s+p.pct,0);
-  if (Math.abs(total - 100) >= 0.5) { updateOwnershipTotal(); return; }
+  if (Math.abs(total - 100) >= 0.5){ updateOwnershipTotal(); flashOwnership(); return; }
 
   STATE = {
     contact: {
@@ -1056,6 +1092,15 @@ function calculate(){
   renderResults();
   /* After the rows exist, so each staggered reply has somewhere to land. */
   requestAllPolicyQuotes();
+  /*
+   * Capture AFTER the state it describes exists.
+   *
+   * This used to be the first thing calculate() did, before the ownership
+   * check and before STATE was rebuilt — so a refused submission still
+   * fired it, and it read whatever STATE the previous run had left behind.
+   * Deferred rather than inline so it never delays the render.
+   */
+  setTimeout(qbCaptureLead, 0);
   $('calcGrid').classList.add('results-mode');
   document.body.classList.add('results-active');
   $('emptyState').style.display = 'none';

@@ -290,6 +290,11 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .kp-estimate-note { margin-top: 12px; padding: 10px 14px; border-radius: var(--radius); background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); font-size: 12.5px; line-height: 1.55; color: var(--gold); }
 /* The combined premium while some people are still being priced. */
 .prem-partial { font-size: 12px; font-weight: 600; color: var(--gray-mid); }
+/* Shown when the report is asked for with nobody on it. */
+.kes-refusal { margin-top: 10px; padding: 11px 14px; border-radius: var(--radius); background: #fef2f2; border: 1.5px solid rgba(220,38,38,0.32); font-size: 13px; font-weight: 600; color: #b91c1c; }
+@keyframes qb-flash { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); } 30% { box-shadow: 0 0 0 5px rgba(220,38,38,0.28); } }
+.kes-refusal.flash { animation: qb-flash 1.1s ease-out 2; }
+@media (prefers-reduced-motion: reduce) { .kes-refusal.flash { animation: none; outline: 2px solid var(--red); outline-offset: 3px; } }
 .best-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); position: relative; padding-top: 16px; transition: box-shadow var(--transition), transform var(--transition); display: flex; flex-direction: column; }
 .best-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
 .best-card.recommended { border-color: var(--accent); }
@@ -527,6 +532,13 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <!-- KEY EMPLOYEES -->
           <div class="input-section"><span class="badge b2">🔑</span><h3>The Key People</h3><span class="line"></span></div>
           <div class="kes-wrap" id="kesWrap"></div>
+          <!-- Shown only when there is nobody to value. buildKeCards floors at
+               one, so this should stay hidden forever; it exists because the
+               version that shipped drew no cards at all and the page simply
+               did nothing when you pressed the button. -->
+          <div class="kes-refusal" id="kesRefusal" hidden>
+            Add at least one key person above — there is nobody to value yet.
+          </div>
 
           <!-- CONTACT (required) -->
           <div class="input-section"><span class="badge">👤</span><h3>Your Contact Details</h3><span class="line"></span></div>
@@ -881,6 +893,26 @@ function calculate(){
     return;
   }
   const people = readKeInputs();
+  /*
+   * Nobody to value. Cannot happen now — buildKeCards floors at one — but
+   * this is the shape of the bug that shipped: the cards stopped rendering
+   * and pressing the button did nothing at all, with no red field and no
+   * message, because the contact block validated perfectly well. A named
+   * refusal beats silence if it ever comes back.
+   */
+  if (!people.length){
+    buildKeCards();
+    const note = $('kesRefusal');
+    if (note){
+      note.hidden = false;
+      note.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      note.classList.remove('flash');
+      void note.offsetWidth;
+      note.classList.add('flash');
+    }
+    return;
+  }
+  const note = $('kesRefusal'); if (note) note.hidden = true;
   const numEmp = Math.max(1, Math.round(num($('numEmployees').value)));
   const band = empBand(numEmp);
 
