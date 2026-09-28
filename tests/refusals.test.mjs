@@ -94,8 +94,14 @@ test('Key Person refuses by name when there is nobody to value', () => {
 
 test('the refusal is cleared once there is somebody', () => {
   const calc = cut(KP, 'function calculate(){', '\n  renderResults();');
-  assert.match(calc, /if \(note\) note\.hidden = true;/,
+  assert.match(calc, /if \(refusal\) refusal\.hidden = true;/,
     'the refusal would stay on screen after the visitor fixed it');
+  /* And it is not called `note`: consent-selector-resolves.test.mjs follows
+     the variable behind consentText: to its first definition in the file, so
+     a second `note` above qbCaptureLead makes the page look like it stores
+     this refusal as the disclosure the visitor agreed to. */
+  assert.ok(!/const note = \$\('kesRefusal'\)/.test(KP),
+    'the refusal variable shadows the consent one again');
 });
 
 /* ---- both -------------------------------------------------------------- */

@@ -902,17 +902,25 @@ function calculate(){
    */
   if (!people.length){
     buildKeCards();
-    const note = $('kesRefusal');
-    if (note){
-      note.hidden = false;
-      note.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      note.classList.remove('flash');
-      void note.offsetWidth;
-      note.classList.add('flash');
+    /* NOT named `note`. consent-selector-resolves.test.mjs follows the
+       variable behind the consent-text line in qbCaptureLead to its first
+       definition in the file, and a second `note` above that one made it
+       read this refusal as the disclosure the visitor agreed to. The test
+       caught it; the name is wrong regardless.
+       (And this comment deliberately does not spell that field name out --
+       the test finds it by searching the source, so prose quoting it is
+       matched before the code is.) */
+    const refusal = $('kesRefusal');
+    if (refusal){
+      refusal.hidden = false;
+      refusal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      refusal.classList.remove('flash');
+      void refusal.offsetWidth;
+      refusal.classList.add('flash');
     }
     return;
   }
-  const note = $('kesRefusal'); if (note) note.hidden = true;
+  const refusal = $('kesRefusal'); if (refusal) refusal.hidden = true;
   const numEmp = Math.max(1, Math.round(num($('numEmployees').value)));
   const band = empBand(numEmp);
 
