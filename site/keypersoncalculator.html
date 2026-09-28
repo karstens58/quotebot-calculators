@@ -501,9 +501,13 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             </div>
             <div class="field">
               <label>Key Emp.</label>
+              <!-- No "Select…" placeholder here, unlike the other dropdowns on
+                   this page. This one is not an answer about the visitor and
+                   changes no price: it decides how many blank cards to draw.
+                   Unchosen, it parsed as NaN and drew none, which left the key
+                   person calculator with no key person input at all. -->
               <select id="numKeyEmployees">
-<option value="" selected disabled>Select…</option>
-                <option value="1">1</option>
+                <option value="1" selected>1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
@@ -677,17 +681,34 @@ function firstName(p){ return (p.first||'').trim() || fullName(p).split(' ')[0];
 /* ============================================================
    KEY EMPLOYEE INPUT CARDS
    ============================================================ */
-let keData = []; // see DEFAULT_KE shape
-/* Blank cards. The shape stays so the rows render, but nobody is named
-   for the visitor -- these were seeded with a real person's name. */
-const DEFAULT_KE = [
-  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
-  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
-  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
-  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
-  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
-  { first:'', last:'', title:'', email:'', phone:'', gender:'', age:'', state:'', owner:false },
-]
+let keData = [];
+
+/**
+ * One blank key person, carrying EVERY field renderKeCards reads.
+ *
+ * It used to be six copies of a nine-field object, and the template reads
+ * nineteen. The four money fields call .toLocaleString() on what they are
+ * given, so the first missing one threw, wrap.innerHTML was never assigned,
+ * and the whole section rendered as nothing -- silently, because the
+ * exception happened inside an event handler.
+ *
+ * So: one object rather than six identical ones, every field present, and
+ * buildKeCards spreads it UNDER whatever it has. A field added to the
+ * template and forgotten here is then a blank input, never an exception that
+ * takes the section with it.
+ *
+ * The three that decide a price are the honest middle rather than the
+ * flattering end: 'Standard' health, not the 'Preferred Plus' the visitor
+ * used to get for free by it being first in the list.
+ */
+const BLANK_KE = {
+  first: '', last: '', title: '', email: '', phone: '',
+  gender: 'Male', age: '', state: '', ownership: 0,
+  tobacco: 'Non-Tobacco', health: 'Standard',
+  salary: 0, bonus: 0, benefits: 0,
+  tied: 'No', loan: 0, loanPct: 0,
+  difficulty: 'Difficult',
+};
 
 function readKeInputs(){
   const cards = document.querySelectorAll('#kesWrap .ke-card');
@@ -716,16 +737,32 @@ function readKeInputs(){
 }
 
 function buildKeCards(){
-  const n = parseInt($('numKeyEmployees').value);
+  /* `|| 1` rather than a bare parseInt. An unchosen select gave NaN, the
+     loop never ran, and this calculator's entire subject disappeared from
+     the page. One card is the floor: there is no such thing as a key person
+     valuation with no key person in it. */
+  const n = parseInt($('numKeyEmployees').value, 10) || 1;
   const existing = readKeInputs();
   keData = [];
-  for (let i=0;i<n;i++){
-    keData.push(existing[i] ? existing[i] : { ...DEFAULT_KE[i % DEFAULT_KE.length] });
+  for (let i = 0; i < n; i += 1){
+    /* Spread over the blank, not instead of it, so a card carrying fewer
+       fields than the template reads still renders. */
+    keData.push({ ...BLANK_KE, ...(existing[i] || {}) });
   }
   renderKeCards();
 }
 
-function stateOptions(sel){ return STATES.map(s=>`<option ${s===sel?'selected':''}>${s}</option>`).join(''); }
+function stateOptions(sel){
+  /* Unchosen rather than falling to Alabama.
+     The list is alphabetical and a blank value matches nothing, so the
+     browser selected the first entry and every untouched key person was
+     quoted in Alabama. That is the failure QBP-91 was written to fix -- it
+     caught the business state and the health class and missed these cards,
+     because nothing on them was rendering by then to notice it on. */
+  const chosen = STATES.includes(sel);
+  return `<option value="" ${chosen ? '' : 'selected'}>Select a state</option>`
+    + STATES.map(s=>`<option ${s===sel?'selected':''}>${s}</option>`).join('');
+}
 function ynOptions(sel){ return ['No','Yes'].map(o=>`<option ${o===sel?'selected':''}>${o}</option>`).join(''); }
 function genderOptions(sel){ return ['Male','Female'].map(o=>`<option ${o===sel?'selected':''}>${o}</option>`).join(''); }
 function tobaccoOptions(sel){ return ['Non-Tobacco','Tobacco'].map(o=>`<option ${o===sel?'selected':''}>${o}</option>`).join(''); }
