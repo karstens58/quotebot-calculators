@@ -38,6 +38,16 @@ const FOOTER_EL = FOOTER.slice(FOOTER.indexOf('<footer'));
 const CSS = part('chrome.css');
 const MARK = 'Kept in step by tools/apply-chrome.mjs';
 
+/**
+ * Pages that carry their own branding and so do not get the brand header.
+ *
+ * The landing page's hero holds the logo itself, so a brand header above it
+ * put the same mark twice within sixty pixels. The calculators are the other
+ * way round — their heroes are a title and a subtitle, so the brand header is
+ * the only thing identifying whose tool you are using, and it stays.
+ */
+const NO_BRAND_HEADER = new Set(['index.html']);
+
 /** Replace the element starting at `open`, counting depth so nesting survives. */
 function spanOf(html, open, tag = 'div') {
   const re = new RegExp(`<${tag}\\b[^>]*>|</${tag}>`, 'g');
@@ -90,7 +100,16 @@ for (const file of fs.readdirSync(SITE).filter((f) => f.endsWith('.html'))) {
   }
 
   /* ---- brand header, directly under the top bar ---- */
-  if (!html.includes('class="brand-header"')) {
+  if (NO_BRAND_HEADER.has(file)) {
+    const bh = html.indexOf('<div class="brand-header"');
+    if (bh >= 0) {
+      const end = spanOf(html, bh);
+      /* Take the comment above it too, so removing it leaves no orphan. */
+      const c = html.lastIndexOf('<!-- BRAND HEADER -->', bh);
+      const from = c >= 0 && bh - c < 40 ? c : bh;
+      if (end > 0) { html = html.slice(0, from) + html.slice(end); notes.push('brand header removed'); }
+    }
+  } else if (!html.includes('class="brand-header"')) {
     const after = html.indexOf(TOPBAR);
     if (after >= 0) {
       const at = after + TOPBAR.length;
