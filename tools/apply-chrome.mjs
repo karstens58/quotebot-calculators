@@ -163,9 +163,23 @@ for (const file of fs.readdirSync(SITE).filter((f) => f.endsWith('.html'))) {
       notes.push('footer added');
     }
   } else {
-    const f = html.indexOf('<footer');
+    let f = html.indexOf('<footer');
     const end = spanOf(html, f, 'footer');
-    if (end > 0 && html.slice(f, end).trim() !== FOOTER_EL) {
+    /*
+     * Swallow the comments above it, however many there are.
+     *
+     * The partial opens with `<!-- FOOTER -->` and the replacement used to
+     * start at `<footer`, so every run left the previous comment behind and
+     * added its own — four of them had stacked up on some pages before anyone
+     * looked at the source. Comments are invisible, which is exactly why this
+     * kind of thing accumulates.
+     */
+    let c = html.lastIndexOf('<!-- FOOTER -->', f);
+    while (c >= 0 && html.slice(c, f).trim() === '<!-- FOOTER -->') {
+      f = c;
+      c = html.lastIndexOf('<!-- FOOTER -->', f - 1);
+    }
+    if (end > 0 && html.slice(f, end).trim() !== FOOTER.trim()) {
       html = html.slice(0, f) + FOOTER + html.slice(end);
       notes.push('footer replaced');
     }
