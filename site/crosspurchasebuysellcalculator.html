@@ -507,9 +507,15 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             </div>
             <div class="field">
               <label>Partners</label>
+              <!-- No "Select…" placeholder, unlike the other dropdowns here.
+                   This one is not an answer about the visitor and changes no
+                   price: it decides how many blank owner cards to draw.
+                   Unchosen it parsed as NaN and drew none, which left the
+                   buy-sell calculator with no owners on it. Two is the floor
+                   because a cross-purchase is an agreement BETWEEN owners --
+                   a sole owner has nobody to be bought out by. -->
               <select id="numPartners">
-<option value="" selected disabled>Select…</option>
-                <option value="2">2</option>
+                <option value="2" selected>2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
                 <option value="5">5</option>
@@ -737,26 +743,36 @@ function computeAge(dobStr){
 }
 function ageLabel(dobStr){ const a = computeAge(dobStr); return a > 0 ? String(a) : '—'; }
 
-/* Blank partners. The rows still exist so the table has its shape, but
-   nobody's name, birthday or state is filled in for them -- these were
-   real-looking people, one of them a real one. */
-const DEFAULT_PARTNERS = [
-  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
-  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
-  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
-  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
-  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
-  { name:'', pct:0, dob:'', gender:'', uw:'', email:'', phone:'', state:'' },
-]
+/**
+ * One blank owner, carrying every field renderPartners reads.
+ *
+ * It was six copies of the same object. One is enough, and spreading it
+ * UNDER whatever buildPartners already has means a field added to the card
+ * and forgotten here is a blank input rather than an exception -- which is
+ * exactly what the equivalent drift did to the key person calculator, where
+ * the blanked shape was ten fields short and every render threw.
+ *
+ * `uw` is the honest middle rather than the flattering end. Blank matched no
+ * option, so the browser selected the first in the list and every untouched
+ * owner was quoted Preferred Plus: the cheapest class, which is the wrong
+ * direction to be wrong about a premium.
+ */
+const BLANK_PARTNER = {
+  name: '', pct: 0, dob: '', gender: 'Male', uw: 'Standard',
+  email: '', phone: '', state: '',
+};
 
 function buildPartners(){
-  const n = parseInt($('numPartners').value);
+  /* `|| 2` rather than a bare parseInt. An unchosen select gave NaN, the
+     loop never ran, and the owners disappeared from the one calculator whose
+     subject is what happens between them. */
+  const n = parseInt($('numPartners').value, 10) || 2;
   // read current values so we keep edits when count changes
   const existing = readPartnerInputs();
   partnerData = [];
   for (let i=0;i<n;i++){
-    if (existing[i]) partnerData.push(existing[i]);
-    else partnerData.push({ ...DEFAULT_PARTNERS[i] });
+    /* Spread over the blank, not instead of it. */
+    partnerData.push({ ...BLANK_PARTNER, ...(existing[i] || {}) });
   }
   // if a fresh build (no existing), distribute even ownership for 2 defaults only
   if (existing.length === 0 && n === 2){
