@@ -585,6 +585,99 @@ const stateSel = document.getElementById('state');
 
 STATES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; /* No default state: it changes the rates, so it is theirs to pick. */ stateSel.appendChild(o); });
 
+/* ---------- PREFILL FROM THE QUERY STRING ----------
+   The hero form on /life-insurance/ collects date of birth, gender, coverage,
+   term and health, and used to throw them away: its button opened this page
+   with no parameters, so the visitor typed everything twice.
+
+   Every value is matched against what this page actually offers rather than
+   assigned. A select set to a string that is not one of its options silently
+   becomes empty, which would look to the visitor exactly like a field they
+   forgot to fill in — so an unrecognised value is ignored and the field is
+   left for them, which is the honest failure.
+
+   Runs after STATES is populated above, because a state cannot be selected
+   before its option exists.
+
+   Nothing here submits anything. It fills the form; the visitor still presses
+   the button, and still has to supply whatever the hero did not ask for.     */
+(function prefillFromQuery() {
+  var q = new URLSearchParams(location.search);
+  if (![...q.keys()].length) return;
+
+  /* Set a <select> only if the wanted value is genuinely one of its options. */
+  function pickOption(sel, wanted, matcher) {
+    if (!sel || !wanted) return false;
+    var opt = [...sel.options].find(matcher || function (o) { return o.value === wanted; });
+    if (!opt || opt.disabled) return false;
+    sel.value = opt.value;
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+
+  /* Gender and tobacco are segmented buttons, not selects: the active one is
+     read from the DOM when quoting, so this has to move the class, not a value. */
+  function pickSegment(id, wanted) {
+    if (!wanted) return false;
+    var seg = document.getElementById(id);
+    if (!seg) return false;
+    var btn = [...seg.querySelectorAll('button')]
+      .find(function (b) { return (b.dataset.val || '').toLowerCase() === wanted.toLowerCase(); });
+    if (!btn) return false;
+    seg.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    btn.dispatchEvent(new Event('click', { bubbles: true }));
+    return true;
+  }
+
+  /* The field is <input type="date">, which accepts YYYY-MM-DD and nothing
+     else: hand it 01/15/1980 and it silently stays empty, so the visitor sees
+     a blank birth date and no error. Both shapes are accepted here and
+     normalised, and the parts are range-checked so an impossible date is
+     ignored rather than quietly dropped by the control. */
+  var dob = (q.get('dob') || '').trim();
+  var iso = null;
+  var us = dob.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (us) iso = [us[3], us[1].padStart(2, '0'), us[2].padStart(2, '0')];
+  else if (/^\d{4}-\d{2}-\d{2}$/.test(dob)) iso = dob.split('-');
+  if (iso) {
+    var y = +iso[0], m = +iso[1], d = +iso[2];
+    var real = new Date(y, m - 1, d);
+    var sane = m >= 1 && m <= 12 && d >= 1 && real.getMonth() === m - 1
+      && real.getDate() === d && y >= 1900 && real <= new Date();
+    var el = document.getElementById('dob');
+    if (sane && el) { el.value = iso.join('-'); el.dispatchEvent(new Event('change', { bubbles: true })); }
+  }
+
+  var coverage = (q.get('coverage') || '').replace(/[^0-9]/g, '');
+  if (coverage) {
+    var cov = document.getElementById('coverage');
+    if (cov) { cov.value = Number(coverage).toLocaleString('en-US'); cov.dispatchEvent(new Event('input', { bubbles: true })); }
+  }
+
+  pickSegment('genderSeg', q.get('gender'));
+  pickSegment('tobaccoSeg', q.get('tobacco'));
+  pickOption(document.getElementById('state'), q.get('state'));
+  pickOption(document.getElementById('health'), q.get('health'));
+
+  /* Term arrives as a number of years and is matched against the option text
+     ("20 Year Level Term Guaranteed"), not against the option's value, which
+     is an internal id — 20 years is "5" — and would be meaningless in a url
+     and would break the day those ids are renumbered. */
+  var years = (q.get('term') || '').replace(/[^0-9]/g, '');
+  if (years) {
+    pickOption(document.getElementById('coverageCat'), years, function (o) {
+      return new RegExp('^\\s*' + years + '\\s+Year\\b').test(o.textContent);
+    });
+  }
+
+  /* Take the answers out of the address bar once they are in the form. They
+     have already been sent, so this is not privacy in any strong sense — but
+     it keeps a birth date out of a url the visitor might copy, bookmark or
+     hand to someone, and out of this page's own outbound referrers. */
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+})();
+
 /* ---------- CARRIERS (per1000 = annual rate per $1,000, calibrated to 48 / Male / Non-tobacco / Standard / 10yr) ---------- */
 const CARRIERS = [
   { id:'amgen',  name:'American General Life Insurance Company', prod:'Select-a-Term - {T} Year',     rating:'A',       per1000:1.557, logo:`<div class="logo logo-corebridge">corebridge<i> :</i><small>financial</small></div>` },
