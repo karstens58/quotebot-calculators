@@ -274,18 +274,18 @@ a { text-decoration: none; color: inherit; }
 .cmp-abltc-note strong { color: var(--gold); }
 
 /* FOOTER */
-footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding: 68px 32px 0; margin-top: 80px; }
-.footer-inner { max-width: 1240px; margin: 0 auto; }
-.footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 52px; border-bottom: 1px solid rgba(255,255,255,0.09); }
-.footer-brand p { font-size: 14px; line-height: 1.7; max-width: 270px; margin-bottom: 22px; margin-top: 18px; }
-.footer-contact a { display: block; font-size: 13.5px; color: #9ec9f0; margin-bottom: 8px; }
-.footer-col h4 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.38); margin-bottom: 16px; }
-.footer-col a { display: block; font-size: 13.5px; color: rgba(255,255,255,0.55); margin-bottom: 11px; transition: color var(--transition); }
-.footer-col a:hover { color: var(--white); }
-.footer-bottom { padding: 26px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: 12px; color: rgba(255,255,255,0.3); }
-.footer-bottom a { color: rgba(255,255,255,0.35); transition: color var(--transition); }
-.footer-bottom a:hover { color: rgba(255,255,255,0.65); }
-.footer-bottom-links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ══════════════════════════════════════════════════════
    RESPONSIVE — TABLET (≤900px)
@@ -417,6 +417,43 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
 
 .cmp-mob-abltc-note { background: #fef9ec; border: 1px solid #fde68a; border-radius: var(--radius); padding: 10px 14px; margin-top: 10px; font-size: 12px; color: var(--gold); line-height: 1.55; }
 .cmp-mob-abltc-note strong { color: var(--gold); }
+
+/* Header and footer — matched to the marketing site.
+   Kept in step by tools/apply-chrome.mjs. */
+.topbar { background: var(--primary-dark); color: rgba(255,255,255,0.8); font-size: 12.5px; padding: 7px 32px; position: static; display: block; }
+.topbar-inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.topbar-phone { color: #ff6b6b; }
+.topbar a { color: #9ec9f0; font-weight: 600; }
+.topbar strong { color: #fff; }
+.brand-header { background: var(--accent-light, #e8f2fb); padding: 14px 32px; }
+.brand-header-inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; }
+.brand-logo-img { height: 46px; width: auto; display: block; }
+footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; }
+.footer-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.footer-brand { display: flex; align-items: center; }
+.footer-logo-img { height: 42px; width: auto; display: block; }
+.footer-copy { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 12px; line-height: 1.6; }
+.footer-links { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+.footer-links-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; font-size: 12.5px; }
+.footer-links-row a { color: rgba(255,255,255,0.7); transition: color 0.2s; }
+.footer-links-row a:hover { color: #fff; }
+.footer-links-row span { color: rgba(255,255,255,0.3); }
+/* A button, not a link: it changes a setting rather than going anywhere, and an
+   <a> with no destination is still announced as a link. The colour comes from
+   the row's anchors rather than `inherit`, which on a dark footer picks up the
+   body colour and renders the control as a smudge beside five legible links. */
+.footer-consent-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: none; color: rgba(255,255,255,0.7); transition: color 0.2s; }
+.footer-consent-link:hover { color: #fff; text-decoration: underline; }
+.footer-consent-link:focus-visible { outline: 2px solid #9ec9f0; outline-offset: 2px; }
+@media (max-width: 760px) {
+  .topbar { padding: 7px 20px; }
+  .topbar-inner { flex-wrap: wrap; row-gap: 6px; justify-content: center; text-align: center; }
+  .brand-header { padding: 12px 20px; }
+  footer { padding: 32px 20px; }
+  .footer-inner { flex-direction: column; gap: 24px; }
+  .footer-links { align-items: flex-start; }
+  .footer-links-row { justify-content: flex-start; }
+}
 </style>
   <script src="/js/quotebot-consent.js"
           data-version="2026-09-28"
@@ -430,6 +467,15 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
           data-tool="care-ltc" data-context></script>
 </head>
 <body>
+
+<div class="topbar" role="banner"> <div class="topbar-inner"> <span><span class="topbar-phone" aria-hidden="true">☎</span> Speak with a licensed expert: <a href="tel:8888048590">(888) 804-8590</a> &nbsp;·&nbsp; <strong>Buy online with or without an agent</strong> — your choice, always</span> <span style="display:flex;align-items:center;gap:12px;flex-shrink:0;"> <a href="https://www.instagram.com/quotebotins/" target="_blank" rel="noopener" aria-label="Instagram" style="color:rgba(255,255,255,0.65);display:flex;align-items:center;transition:color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.65)'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg></a> <a href="https://www.facebook.com/quotebotins" target="_blank" rel="noopener" aria-label="Facebook" style="color:rgba(255,255,255,0.65);display:flex;align-items:center;transition:color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.65)'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg></a> <a href="https://x.com/quotebotins" target="_blank" rel="noopener" aria-label="X" style="color:rgba(255,255,255,0.65);display:flex;align-items:center;transition:color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.65)'"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.735-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg></a> <a href="https://www.linkedin.com/company/quote-bot/" target="_blank" rel="noopener" aria-label="LinkedIn" style="color:rgba(255,255,255,0.65);display:flex;align-items:center;transition:color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.65)'"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg></a> <a href="https://www.youtube.com/@quotebot" target="_blank" rel="noopener" aria-label="YouTube" style="color:rgba(255,255,255,0.65);display:flex;align-items:center;transition:color 0.2s;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.65)'"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"></path></svg></a> </span> </div> </div>
+
+<!-- BRAND HEADER -->
+<div class="brand-header">
+  <div class="brand-header-inner">
+    <a href="https://quote-bot.com/"><img class="brand-logo-img" src="/img/quotebot-logo.png" alt="Quote-Bot" width="670" height="211"></a>
+  </div>
+</div>
 
 <!-- HERO -->
 <div class="tool-hero">
@@ -1160,59 +1206,26 @@ footer { background: var(--primary-dark); color: rgba(255,255,255,0.55); padding
 </div>
 
 <!-- FOOTER -->
+<!-- FOOTER -->
+<!-- FOOTER -->
 <footer>
   <div class="footer-inner">
-    <div class="footer-top">
+    <div>
       <div class="footer-brand">
-        <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAA+qADAAQAAAABAAAATwAAAAD/wAARCABPAPoDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9sAQwACAgICAgIDAgIDBQMDAwUGBQUFBQYIBgYGBgYICggICAgICAoKCgoKCgoKDAwMDAwMDg4ODg4PDw8PDw8PDw8P/9sAQwECAgIEBAQHBAQHEAsJCxAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ/90ABAAQ/9oADAMBAAIRAxEAPwD9/KKr3V1bWNrNe3sqwW9ujSSSOQqoiDLMxPAAAyTX546J+0vqvxZ/aZ8M+GPDUz2nhGznugqDKteultLiWXvtzyiHpwT83T6DI+GsTj41qlJe5Ti5Sb20TdvV20+88TOM/wAPgpUqdV+9UkoxXXVpX9FfU/Q6efyonZfvKpI/AV+E/jL9pX42+LLy4W98VXdpBvZRDZN9kQKDgD9ztJ/4ESa/cuf/AFEn+638q/nNg0zUtZ1h9N0e0mvruWRwkMEbSyN8x6KoJP5V+s+CeX4aq8VUr04yceSzaTtfmva+2x+ZeLuOxFOOGp0Jtc3NdJtX+G17b7lubxZ4puJmuZ9YvJJWOS7XEhYn1JLZrvPDvx5+MfhWRX0fxdqKqpBEc07XEXH/AEzm3r+ldHp/7LXx+1K2F3B4OuYkYZAnlggf/viSRWH4iuH8W/CD4oeBImufFvhi+063XrO0ReEfWWPcg/E1+4fXcoxT+r89Ob/lvF/hqfj31TNMMvb8lSC72kvxPtv4Yft630c0Om/FbS0mhYhTf2K7XX3khJw3uUK+ymv0Z8L+K/DnjXRoPEPhXUItS0+4HySxNkZHVWHVWHdSAR3FfziAg8ivY/gz8a/FnwY8SJq2hymfT5mAvLF2IiuI/wBdrgfdcDIPqCQfznjDwgwuIhKtlq5Ki+z9l+X91/h5dT7zhXxSxNCapZg+eHf7S/zX4+fQ/fmiuQ8B+OPD/wARvCth4v8ADM/nWN8m4A/fjccPG47Mp4I/EZGDXX1/MWIoTpTlSqK0k7NPo0f0RRrQqQVSm7p6p90FFFFYmoUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAf/9D7+/bo+Lc3h/w7ZfC/RZvLu9dXz75lOGW0VsKnH/PVwc+ykHhq+Lf2S/8Ak4Pwl/v3X/pLLWT+0t4rl8YfG3xVqDSF4rS7ayhHYR2n7kY9iVLfUmtb9kv/AJOD8Jf791/6Sy1/XWV5FDL+FqtJL3pUpSl6yg3+Gi+R/L+Y5zLHcSU6jfuxqRjH0Ukvx3+Z+3zqHRkPRgR+dcD8Pvhf4I+F+l/2X4O0yO038zXBAa4nY9WllPzNz26DsBXoFfnl+1R+1NrPhTWLj4afDS4Frf2wC6jqCgM8TsM+TDnIDAH536gnAwQSP5u4YybHZlWeAwb0lrLW0bLrL0vp5s/fOIc2weX0ljcUtY6R0u7vovW2vofoU8kcZCyOqFugYgE/TNOkRXRopVDI4wysMgg9iD1Ffzj6hrWs6vdvf6tqFxe3Uh3NLNM8jknuWYk17t8H/wBpf4i/CjUreN76bWvD+4CfT7mQyDZ3MDtkxuB0x8p7iv07H+B+Kp0XPD11Oa6W5b+ju/xt6o/PMF4w4edVQr0XGL63v96svwv8z7U/aH/ZC0PxNYXXi/4V2aabrsQaWWwiAS3vAOT5a9I5fTGFboQDzX5SyRyQyPDMhjkjJVlYEMrKcEEHkEHgiv6K/C/iXR/GPh3TvFOgT/aNP1SFZ4X6Ha3YjsynIYdiCK/KP9tv4Z23g/4i23jLSohFY+K0eWVVGFW9hIEpH++rK/13V7HhTxriJV3lGPbbV+VvdNbxfy2vtZrtby/ErhGhGis0waSWnMls09pL9e97972/2Jfi1P4S8en4fanMf7J8THbEGPyxXqj92w9PMA2H1Oz0r9f6/my0rUbvR9TtNWsJPKubKaOaJx/C8bBlP4EV/Rl4a1mLxH4c0rxDAMR6nawXSj0EyBx/OvA8bcihRxdLHU1b2iafrG2vzT/A9vwhzmVXDVMHN/A7r0d9Pk/zNuikZlRSzEAAZJPQCvkPx/8Atzfs5/D7U5dGuvED6zewMVlTS4TdKjA4IMuViJHcK5xX4efsB9e0V8o/Db9tX9nr4n6nFomk+ITpmpXBCxW+pxG1MjHoqyHMRYngLvyewr6uoAKKKKACiiigAoopMjOM0ALRRRQAUUUUAFFcv4y8aeF/h94dufFnjPUY9K0izKCa4lzsQyuI0ztBPLMAOO9eIf8ADY37Mv8A0P8AYf8AfM3/AMboA+l6K808BfGT4WfFAyp4A8UWOtywDdJDBKPOVf7xibDge+3Fel0AFFFFABRSZGcZ5paAP//R828QXFzd69qV1eZM81zM8meu9nJOfxr3T9kwgftB+EsnGZLof+SstcX8c/DknhP4v+LdEdNixajPJGMY/dTt5sf/AI4wrL+Evi2LwL8TfDPi24OLfTb6F5j6Qsdkv5Ixr+6swj9cyioqH/Lym7f9vR0/M/jXAy+q5pB1fsVFf5S1P6CGYopdRkqMgeuK/nK1/UbzV9e1PVtQcyXV7dTzSsepeRyzfqa/o0jkSREmhYOjgMrA5BB5BB9CK/Ev9qD4Oan8LfiHfahBbsfDuvTyXNjOB8iNIS8kDHsyMTgHquCO+PwrwQzCjTxdfD1Hac0uXz5b3Xrrf5eR+y+MGBq1MNRrwV4xbv8AO1n+FvmfNNFFaOk6Tqmv6pa6JolrJe397IIoIIl3PI7dAAP1PQDk8V/Ss5qKcpOyR/P0YuTSSuz9bf2FdSvL34M3NncsWi0/VbmKHPZHSOQge25mP41ift9WsEnwv0G8cDzYNXVUPfEkEu7/ANBFfRfwK+GY+Evwy0nwfMyyXyBri9deVa5mO5wD3C8ID3C5r4x/b+8ZW8svhf4f28gaaEy6lcKD90MPKhB+vzn6Yr+V8grRx3F/t8L8LnKV/JJ6/P8AU/pLO6TwfC/scT8XJFW821p8v0Pzfr+gD4Bu8nwU8EM5yf7JtBz6CMAfpX4BwxSTypDEpd5CFVRySTwAK/os8BaCfC3gfw/4aYYbS7C2tm/3oolVv1Br7Px1rxWFw1Pq5N/JL/go+S8GqMnicRU6KKX3v/gH5rf8FEPjv4l0+60n9n7wDLLHfa9Gk2otbkiaWOdzHBaqRz+8IJcDkjaOhYHtvgf/AME6/hd4Z8O2t/8AF+3bxN4iuEDzw+dJFZ2zMP8AVoImRpCvQuzEE8hRXzb+0hPbeEP+ChXhjxN4r/daTLdaHdLJIPkWFNkJfnjCSIxPpjNftjX82H9An5r/AB2/4J1/DTxF4bvNU+Ddu/hzxFbRtJDbGaSWzumUZ8pvNZmjZuisrbQeq45Gf+wf+0X4h17wf4l+GfxBeW81rwJbPc2zTE+fJZw5V4ZC3O6FwFBPOGA/hr9NyQoLMcAckmvxI/Zykt/FX7Vvxp8X+GADoZ07xDKJE/1bJcXA8sjHHz/eHsKEB+lH7Nf7Rem/tH+GtW8SabosuiJpV4LRo5ZlmLkxrJuBVVx97GKy/wBpL9p7S/2cpfDMWpaDNrf/AAkj3CIYZ1h8owGPOdytnPme3Svmj/gl1/ySzxh/2Gh/6Tx1yn/BT7/j6+Fn/XzqH87Wi2oH3R8ef2j/AIefs+eHoNW8YSvcX9+G+xadb4a4uCvU8kBEXI3O3HYZPFfCdv8A8FOtUiuYtS1j4XTweH5nwtwl4xfaehUtbrGx9tw+tYEWgab8b/8AgotrOifERBe6V4Xjf7LZTcxSJYxJ5cZU9VLuZmXo3Ocgmv1y1Pw/oWtaNN4d1fT4LzS7iMwyWssatC0ZGNpQjGMdsUgPm7V/2tvh4vwE1D4+eD45PEGm6a8EU9kGEFzDNNNHEY5QQwRl8wN3DDlSQQa/JDwL+13a+E/2l/EnxzudEu7vTtcjuUj00XQDQmcxkEuVKnbsP8I619LfsmadB8M/2zfiR8G/Dzm48LyRXf7hz5ip9llR4N2erRCRo8nnn1q58E7Ozk/4KNfEW2eCNoVg1DCFAVGGg6DGKYH2b8Rv2t/hx8Lfhh4c+IPilJRe+KrGC9sdIhKyXTiaNZDk8KqJuAZzgZ6Anivj61/4KdanFcRajrXwvuLfQJ2wtxHeMz7T3UvAsbH23D618wfHrx7cN+2jrmt+IfCx8a2vhm5FraaMzMsRhtIwIgVRJCYw5MpXbhiTngmvobVv29vG2vaLP4b1n4FfbdKuYjDJayvM0LRkY2lDa4xjp6dqLAfpv8KPi34H+NPhGDxn4DvftdlKTHJG42TW8wALRTJk7WGR3IIIIJBBr0uvww/Yo8X+NPht8QPiJqmmeEdRj0CbRL7U4tIKyktLZOslvAkrR5Z9rtGG2EnOcV9R/wDDfPxD/wCiCeIP++5//kKlYD2j9vf/AJNX8Y/72n/+l0FfPn7NX7GH7PnxH+BvhLxt4s0Ge61fVbZ5LiVb65iDMszoCESQKOFHQVF8c/jjr3xt/ZE+JN/rvge+8EvpdxpUSRXzOzTiS8iJZd8MPC4wcA9a8N+Cf7Jv7RHjz4WeHvF3hD4rTaFo+pQvJb2S3l9GIFEjqVCxEIMkE8etPoBW/a3+DPhD9kvxd4I+IXwQ1O40fVZ7iRhYvO0zL9n2kSKWJcxvuKSK5IbOBxkV+rfxU+PPgj4LeALbxz8QZmtWvI08iyiAe5nnZAxiiQkZ25+ZiQq9zyM/jl8Uvgh8UP2XPHfhj4xfFr7L8TdHW8jjZ7i4uJczIC6Ry+bhwQFLRk70yvzA/dPr/wAU7jR/2jf24vAXhbxFI0vhCXTrG7tbeQlVlgnszqJUgd5iQj4OSABngUAdg3/BTrVTOdUh+F07eHlfabg3rbtucZ3C3MYPtn2zX2J4e/a1+HHjL4LeIPjF4RWW+Hhm2ae+0uRlhu4XAyEf7ww3O1xlTg9wQPpOPRdGi0kaDFYQJpixeSLURKIBFjGzy8bduOMYxX5EfDzQdO+DH/BRS++HXgdRH4d1+KVJ7JOYoo57L7Z5ZU8YjlUFfRcD1pAfOV/+13aXn7Vdr+0IuiXaaZboqnS/tQ3ErZm1zv27fvHf939ea+7bb/go94eubaK5HgW9AlRXx9sj43DP9yvNdcs7Mf8ABUHTLUQR+T5MfybBt/5BDHpjHWv1lGlaWBgWcP8A37X/AAptgf/S+v8A9vX4XzQ6jpnxX0yEtBcKtjflR92RMmGQ/wC8uUJ7bVHevzg68Gv6O/FfhfRfGvhzUPCviGAXOn6lE0UqHg4PRlPZlOCp7EA1+FPxs+C/iT4L+K5dF1VGn06cs9jehcR3EQPHPQOvAdex9iCf6j8IeMYYjCrLK0rVIfD/AHo+XnHa3a3mfzl4pcKzoYl5hRXuT38pf5P87+R95/shftEWHiLRbP4VeMbsQ63pyCLTppWwLy3UfLFuP/LWMcAfxKBjkGvtzX/D2h+KdKn0LxJYQ6lp9yMSQToHRvQ4PQjsRyOxr+c1HeN1kjYo6EMrKcEEcggjoRX2L8NP21fiZ4KtodK8UQx+K7CEBVa4cxXaqO3ngNv/AOBqx968zjXworVMQ8dlLs27uN7WfeL287O1uj6L0eEfEulCgsHmaukrKVr6dpL9Ve/VdT7C1T9h34I6hetdWn9p6dGxyYYLoGMew81HYD/gRr2n4bfA74ZfCcNJ4N0dYbyRdr3kzGa6ZT1HmPyoPcLgH0r5ltP2/vh5JBuvvDOqwzY+7G0Ei5/3i6H9K8/8Yft/X9xbSW3gLwutpKwIW41CXzSvuIY8An6vj2r5Grw3xdjY/Va/O49eaat89dfxPp6ef8L4SX1mjyc3Tli7/LTT8D7s+KXxT8K/CPwtP4n8UTgYBW2tlI866mxxHGv/AKE3RRya/Cnx5411v4i+LtT8Z+IHDXupylyo+7Gg4SNM/wAKKAo+metN8Z+OfFvxC1qTxB4y1OXU75+A0hwsa9dkaDCovsoArk6/ZuAeAaeTU3Ob5qst30S7Ly7vr5H5PxrxtUzWahBctKOy6t93+i6H1H+yR8LpviL8V7K+uod+keHGW+umI+UuhzBH9WcA47qrV+3Nfnv+xj8WPhJYeG7b4bWqto/iS5cyTPcldt/OeP3cgwAQMBYzg46biSa/QivwbxazLE4jNXCvBwjBWin1X83zf4WW6P2nwyy/D0MtUqM1KUneTXR/y/Jfqz4z/bG/ZdT9obwna6h4deO18X6AHNk8h2x3MT8vbyN2yRlGPCtkHAYkfDngH9tn44fs62kPw0+Ofg241X+y1EEEty7Wl4I04VTKUeOdQOFcckfxNX7X1TvtO0/U4fs+pWsV3F/clRZF/JgRX5jc/RD8L/jZ/wAFBPiT8WvD934N+Hugnwvp2oI0VzNHK11eyRMMMiuqII1YcNhSxHRhzXV/8E8fi18PfC2pap8GPFekHT9Z8YS7U1GRjtuSEKpZyKQPL4LFCCdzMQcHbn9pLTTdOsEEVjaxWyDosaKgH4KBXI+L/hl4B8efZZPFeh21/cWM0dxbXDIFuIJYmDo8Uy4kQhgDwwz3yKLgfkBocvx8/YF8f+INL0vwvL4t8D61LvhkCSGGVUJ8pxNGr+TMFba6spz2BAVq82+O+rftNftI694d8ea58PdT0/QLZ2h021trSeUINyNLIxK7yX+X94VVSFwvQ1/QHRRcD8zP2qv2ePijpXxM0/8Aad/Z8V5vEtkIjf2UShpZGiTyvNjjP+tDxfu5Y+pAyASTjzW6/bw/aT16wPhLw38JpbXxXMvlecsF1N5ch43LatGCpB5G92A7giv19oouB8FfsXfsz+JvhSusfFL4qSmbxz4sB82NmEj20Mj+bIJHBIaWV8M+CQMAZzmvMPg74I8Z6d/wBA8feLL/AEK+ttEu4b8Q30ltKltIWaDbslK7Gzg4wecV+olFFwPzK/ar/Z5+KWh/FKz/AGnv2eVebxDa7G1CyhAaWRo08rzUjP8ArVki+SWMfMRyAcnHmt3+3V+0x4n01vB3hX4US2fiudfJNwkF1MY3bguts8Y2EdRvdlHcEV+v9FFwPB/2crH42WPwzso/j1ewXniNyWURqvnRQYGxLh0Ox5RzkqMYwCWOTXvFFFID5Q/bc0HXPE37NPivRfDmn3GqahO1j5dvaxNNM+28hZtqICxwoJOBwBmvgL4VftH/ALV3wn+H2i/DvSPg7c3lnokTRRzT6bqPmuGdny23Azluwr9rKKdwPxb8U6V+2B+2tqekeFfGHhb/AIQfwjYXC3E0kttNaxBgCplIuGMszqrMEVMLk84+8Pfv2pf2TvFNzH4R+J3wCd4vFXgKztLOO3Vgs09vYAfZ3jJ+VpY8YKnh146gK36TUUXA/INf29f2kINP/wCEUuPhJI3i0L5Xm+RdgGXGN32PZuznnAkx+HFev/sffs4fELSfGur/ALRXx2LDxhrgl+zWsuPNgE/+sllC8I5X5EjH3EyCBwB+jtFFwPy81rwR4zk/4KSad4yj0K+bQEhQNqAtpDaA/wBlNHzNt2ff+Xr1461+odFFAH//0/38rkvG3gXwt8RPD8/hnxfYJf2M4+63DI3Z42HKMOxH06ZFdbRWtCvOlNVKcmpLVNaNGdajCpB06iununsz8hvi1+xF468KzT6p8OmPiXSslhBwt7EvoU4WTHqnJ/uCvi7VNG1fRLx9P1mymsbqP70U8bRuv1VgCK/pKrI1fw/oOvw/Z9d0221GIfwXMKTL+Tgiv2nIvGzF0YKnjqaqW6p8r+ejT/A/JM58IcLWk54Oo6fk1dfLVNfifzdUoBPQZr+gSX4E/BeaTzZPBGjlj/05Qj9AuK1rH4TfC3TcGw8IaRAR0K2MAI/HZX1U/HXCW93Dyv6o+bj4NYq+teP3M/nnEbscKpJ9hTpIJ4v9ZGyZ9QRX9Itro2j2IC2NjBbgdBHEqfyAqxPY2N0hiubeOZD/AAugYfkRXA/HiN9MJp/j/wDtTtXgvK2uK1/wf/bH82McksEqyxMY5EIZWBwQR0INfsf+yL8fbj4peHZfCPimfzPEmhxqfNY/Nd2uQokPq6EhXPfKt1Jx694y/Z2+DfjqGRdY8MWsM7/8vFmgtZgfXdFt3H/eBHtXy1oP7LviX4HfF3w5478Dan/anh77ZHbXccxWO5hguz5J3dFlUb8/Lg5A+XjNZ59xnk/EOBnh6qdOtFNw5u66KS/m2s7dOqRpkvCeaZFjY16bVSlJpSt27tPtvpfr0P0Qooor+ej9yCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/2Q==" alt="Quote-Bot" style="height:36px;width:auto;display:block;filter:brightness(0) invert(1);">
-        <p>Fast, transparent insurance — buy online with or without an agent.</p>
-        <div class="footer-contact">
-          <a href="tel:8888048590">📞 (888) 804-8590</a>
-          <a href="mailto:info@quotebot.io">✉ info@quotebot.io</a>
-          <p style="font-size:12.5px;margin-top:6px;color:rgba(255,255,255,0.35);">Buy online 24/7 · Licensed agents available Mon–Fri</p>
-        </div>
+        <img class="footer-logo-img" src="/img/quotebot-logo-white.png" alt="Quote-Bot" width="720" height="205">
       </div>
-      <div class="footer-col">
-        <h4>Solutions</h4>
-        <a href="#">Life Insurance</a>
-        <a href="#">Disability Insurance</a>
-        <a href="#">Long-Term Care</a>
-        <a href="#">Annuities</a>
-        <a href="https://app.quotebot.io/public/life-insurance" target="_blank">Get a Quote</a>
-      </div>
-      <div class="footer-col">
-        <h4>Company</h4>
-        <a href="#">About Us</a>
-        <a href="#">Our Licenses</a>
-        <a href="#">Editorial Standards</a>
-        <a href="#">Careers</a>
-        <a href="https://trust.quotebot.io/" target="_blank">Trust Center</a>
-      </div>
-      <div class="footer-col">
-        <h4>Education</h4>
-        <a href="#">LTC Guide 2026</a>
-        <a href="#">C.A.R.E. Model</a>
-        <a href="#">Hybrid Bridge Strategy</a>
-        <a href="#">Medicare vs. LTC</a>
-        <a href="#">State Partnership Programs</a>
-      </div>
-      <div class="footer-col">
-        <h4>Partners</h4>
-        <a href="#">P&amp;C Agents</a>
-        <a href="#">Investment Advisors</a>
-        <a href="#">Attorneys &amp; CPAs</a>
-        <a href="#">Financial Planners</a>
-      </div>
+      <p class="footer-copy">Copyright &copy; 2026 Quote Bot LLC.<br>All Rights Reserved.</p>
     </div>
-    <div class="footer-bottom">
-      <span>© 2026 QB Insurance LLC dba Quote-Bot. All rights reserved.</span>
-      <div class="footer-bottom-links">
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
-        <a href="#">Cookies</a>
-        <a href="#">Disclaimer</a>
-        <a href="#">Licenses</a>
-        <a href="#">Do Not Sell</a>
+    <div class="footer-links">
+      <div class="footer-links-row">
+        <a href="https://quote-bot.com/privacy-request/">Do Not Sell or Share My Personal Information</a><span>|</span>
+        <a href="https://quote-bot.com/privacy-request/">Limit The Use of My Sensitive Information</a>
+      </div>
+      <div class="footer-links-row">
+        <a href="https://quote-bot.com/terms-of-service/">Terms of Use</a><span>|</span>
+        <a href="https://quote-bot.com/privacy-policy/">Privacy Policy</a><span>|</span>
+        <a href="https://quote-bot.com/cookie-policy/">Cookie Policy</a><span>|</span>
+        <button type="button" class="footer-consent-link" onclick="window.qbConsentReopen &amp;&amp; window.qbConsentReopen()">Consent Preferences</button>
       </div>
     </div>
   </div>
