@@ -45,6 +45,29 @@ const SITE = path.join(ROOT, 'site');
  */
 const SITE_URL = 'https://main.d32nxpxr4k5tgh.amplifyapp.com';
 
+/**
+ * Where THESE pages live, which is not where the marketing site lives.
+ *
+ * SITE_URL above is the site the footer links point AT. This is the address
+ * of the page doing the pointing, and it goes in a canonical tag so that the
+ * same calculator answering on two hostnames has one authoritative URL.
+ * Twelve of the thirteen had no canonical at all, and the thirteenth named
+ * this host in markup rather than from here.
+ *
+ * It points at the CURRENT home on purpose. A canonical naming a URL that
+ * does not exist yet is worse than none: it tells a crawler the real address
+ * of this page is a 404, and it would say so for however long sits between
+ * shipping it and moving the DNS.
+ *
+ * AT THE DNS CUTOVER: change this to https://quote-bot.com/tools and re-run,
+ * in the same commit as SITE_URL above. Both are QBP-128.
+ *
+ * The paths in these pages are relative, so they resolve at a host root and
+ * under a /tools/ prefix alike. This constant is the only thing that has to
+ * know which it is.
+ */
+const CANON_BASE = 'https://tools.quotebot.io';
+
 const part = (f) => fs.readFileSync(path.join(ROOT, 'tools', f), 'utf8')
   .trim()
   .replaceAll('{{SITE}}', SITE_URL);
@@ -101,6 +124,28 @@ for (const file of fs.readdirSync(SITE).filter((f) => f.endsWith('.html'))) {
     if (close > 0) {
       html = `${html.slice(0, close)}\n${CSS}\n${html.slice(close)}`;
       notes.push('css');
+    }
+  }
+
+  /* ---- canonical, so two hostnames do not become two pages ---- */
+  {
+    /* The landing page canonicalises to the directory, not to index.html:
+       that is the URL people link to and the one a server hands back for the
+       bare path, so naming the filename would make every inbound link point
+       at a non-canonical address. */
+    const self = file === 'index.html' ? '/' : `/${file}`;
+    const want = `<link rel="canonical" href="${CANON_BASE}${self}">`;
+    const has = html.match(/<link rel="canonical"[^>]*>/);
+    if (!has) {
+      /* After the charset and title rather than at the top of head: a
+         canonical is metadata about the document, and the things that decide
+         how the document is PARSED come first. */
+      const t = html.indexOf('</title>');
+      const at = t >= 0 ? t + '</title>'.length : html.indexOf('<head>') + '<head>'.length;
+      if (at > 0) { html = `${html.slice(0, at)}\n${want}${html.slice(at)}`; notes.push('canonical added'); }
+    } else if (has[0] !== want) {
+      html = html.replace(has[0], want);
+      notes.push('canonical updated');
     }
   }
 

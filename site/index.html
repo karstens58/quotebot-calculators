@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Calculators | Quote-Bot</title>
+<link rel="canonical" href="https://tools.quotebot.io/">
 <meta name="description" content="Free insurance and retirement calculators from Quote-Bot — coverage need, guaranteed income, long-term care and business continuation.">
 <!-- No index page existed, so the root URL returned 404. This is it. Same
      palette and type as the calculators so it does not read as a different
@@ -129,17 +130,17 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 }
 </style>
   <!-- The assistant. Never opens itself on a timer; see the file header. -->
-  <script src="/js/quotebot-chat.js"
+  <script src="js/quotebot-chat.js"
           data-endpoint="https://im62dp4hwe34ez7lmhvtfk75xa0zkkxv.lambda-url.us-east-2.on.aws/"
           data-tool="index" data-context></script>
   <!-- This page is where an affiliate's "All tools" link lands
        (tools.quotebot.io/?qb=CODE-TOOLS). Without the capture script the
        landing went unrecorded and the code fell off the first click, so the
        affiliate's main link earned nothing. -->
-  <script src="/js/quotebot-consent.js"
+  <script src="js/quotebot-consent.js"
           data-version="2026-09-28"
           data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/consent"></script>
-  <script src="/js/quotebot-capture.js"
+  <script src="js/quotebot-capture.js"
           data-endpoint="https://dflm7bsd75y3vjj7w5luhihjq40smvjp.lambda-url.us-east-2.on.aws/"
           data-tool="tools-index"></script>
 </head>
@@ -151,7 +152,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
 <div class="hero">
   <div class="inner">
-    <div class="brand"><img class="hero-logo" src="/img/quotebot-logo-white.png" alt="Quote-Bot" width="720" height="205"></div>
+    <div class="brand"><img class="hero-logo" src="img/quotebot-logo-white.png" alt="Quote-Bot" width="720" height="205"></div>
     <h1>Work out what you actually need</h1>
     <p>Straightforward calculators for coverage, retirement income and long-term care.
        No account, no sales call to get an answer — run the numbers yourself.</p>
@@ -165,32 +166,32 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
     <p class="lede">What your money earns, what it pays out, and what happens if the market
        turns at the wrong moment.</p>
     <div class="grid">
-      <a class="card feature" href="/mygacalculator.html">
+      <a class="card feature" href="mygacalculator.html">
         <span class="tag">Guaranteed rates</span>
         <span class="tag live tag-rate">Live Quotes</span>
         <h3>MYGA Calculator</h3>
         <p>Compare multi-year guaranteed annuity rates by term and deposit, and see what a
            fixed rate grows to.</p>
       </a>
-      <a class="card" href="/fiaincomeridercalculator.html">
+      <a class="card" href="fiaincomeridercalculator.html">
         <span class="tag">Income rider</span>
         <span class="tag est tag-rate">Estimates Only</span>
         <h3>FIA Income Rider Calculator</h3>
         <p>Model the guaranteed lifetime income an indexed annuity rider would pay, and when.</p>
       </a>
-      <a class="card" href="/incomefloorcalculator.html">
+      <a class="card" href="incomefloorcalculator.html">
         <span class="tag">Planning</span>
         <span class="tag est tag-rate">Estimates Only</span>
         <h3>Guaranteed Income Floor</h3>
         <p>Find the gap between your essential expenses and the income you can count on.</p>
       </a>
-      <a class="card" href="/sequenceofreturnscalculator.html">
+      <a class="card" href="sequenceofreturnscalculator.html">
         <span class="tag">Risk</span>
         <span class="tag est tag-rate">Estimates Only</span>
         <h3>Sequence of Returns</h3>
         <p>See why losses early in retirement cost far more than the same losses later.</p>
       </a>
-      <a class="card" href="/retirementdistributioncalculator.html">
+      <a class="card" href="retirementdistributioncalculator.html">
         <span class="tag">Tax</span>
         <span class="tag est tag-rate">Estimates Only</span>
         <h3>Tax-Free Retirement Strategy</h3>
@@ -203,13 +204,13 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
     <h2>Life insurance need</h2>
     <p class="lede">Price it, or size it first — and see what the sizing assumes.</p>
     <div class="grid">
-      <a class="card feature" href="/quotetool.html">
+      <a class="card feature" href="quotetool.html">
         <span class="tag">Quote</span>
         <span class="tag live tag-rate">Live Quotes</span>
         <h3>Get Your Quote</h3>
         <p>Real rates from the carriers we represent, based on what you tell us.</p>
       </a>
-      <a class="card" href="/dimeneedscalculator.html">
+      <a class="card" href="dimeneedscalculator.html">
         <span class="tag">Coverage</span>
         <span class="tag live tag-rate">Live Quotes</span>
         <h3>D.I.M.E. Needs Calculator</h3>
@@ -223,7 +224,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
     <h2>Disability insurance need</h2>
     <p class="lede">What your paycheck covers each month, and what it would take to replace it.</p>
     <div class="grid">
-      <a class="card" href="/mugcalculator.html">
+      <a class="card" href="mugcalculator.html">
         <span class="tag">Coverage</span>
         <span class="tag est tag-rate">Estimates Only</span>
         <h3>M.U.G. Coverage Calculator</h3>
@@ -237,14 +238,14 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
     <h2>Long-term care</h2>
     <p class="lede">What care costs, and how a policy or annuity changes the tax picture.</p>
     <div class="grid">
-      <a class="card" href="/careltccalculator.html">
+      <a class="card" href="careltccalculator.html">
         <span class="tag ltc">Care need</span>
         <span class="tag est tag-rate">Estimates Only</span>
         <h3>C.A.R.E. LTC Needs Calculator</h3>
         <p>Estimate the cost of care in your situation and how long savings would last
            against it.</p>
       </a>
-      <a class="card" href="/ltcannuitytaxillustration.html">
+      <a class="card" href="ltcannuitytaxillustration.html">
         <span class="tag ltc">Tax</span>
         <span class="tag est tag-rate">Estimates Only</span>
         <h3>LTC Annuity Tax Illustration</h3>
@@ -258,14 +259,14 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
     <p class="lede">Valuing the people a business depends on, and funding the agreement
        that survives them.</p>
     <div class="grid">
-      <a class="card" href="/keypersoncalculator.html">
+      <a class="card" href="keypersoncalculator.html">
         <span class="tag biz">Valuation</span>
         <span class="tag live tag-rate">Live Quotes</span>
         <h3>Key Person Valuation</h3>
         <p>Put a figure on what losing an essential person would cost the business,
            and price the cover with real carrier rates.</p>
       </a>
-      <a class="card" href="/crosspurchasebuysellcalculator.html">
+      <a class="card" href="crosspurchasebuysellcalculator.html">
         <span class="tag biz">Buy-sell</span>
         <span class="tag live tag-rate">Live Quotes</span>
         <h3>Cross-Purchase Buy-Sell Funding</h3>
@@ -281,7 +282,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   <div class="footer-inner">
     <div>
       <div class="footer-brand">
-        <img class="footer-logo-img" src="/img/quotebot-logo-white.png" alt="Quote-Bot" width="720" height="205">
+        <img class="footer-logo-img" src="img/quotebot-logo-white.png" alt="Quote-Bot" width="720" height="205">
       </div>
       <p class="footer-copy">Copyright &copy; 2026 Quote Bot LLC.<br>All Rights Reserved.</p>
     </div>
