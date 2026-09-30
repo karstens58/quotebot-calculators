@@ -1,0 +1,17 @@
+{
+  "name": "quotebot-og-cards",
+  "private": true,
+  "type": "module",
+  "description": "Renders the social/thumbnail card for each page in site/. Not part of the Amplify build.",
+  "scripts": {
+    "build": "node render.mjs",
+    "shot-index": "node shot-index.mjs",
+    "meta": "node apply-meta.mjs",
+    "meta:check": "node apply-meta.mjs --check"
+  },
+  "devDependencies": {
+    "@fontsource/fraunces": "^5.0.0",
+    "@fontsource/plus-jakarta-sans": "^5.0.0",
+    "playwright": "^1.40.0"
+  }
+}
