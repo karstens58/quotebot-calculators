@@ -9,14 +9,14 @@
 // Re-running is safe: the previous block is removed before the new one goes in.
 //
 // Run: node apply-meta.mjs [--check]     (--check writes nothing, reports drift)
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cards } from './cards.mjs';
+import { ORIGIN, pageUrl } from './origin.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const siteDir = join(here, '..', '..', 'site');
-const BASE = 'https://tools.quotebot.io';
 const check = process.argv.includes('--check');
 
 // The scrapers cache hard once they have fetched an image, so a changed picture
@@ -42,8 +42,8 @@ function pngSize(file) {
 }
 
 function block(card) {
-  const url = `${BASE}/${card.page}`;
-  const img = `${BASE}/og/${card.file}`;
+  const url = pageUrl(card.page);
+  const img = `${ORIGIN}/og/${card.file}`;
   const { width, height } = pngSize(join(siteDir, 'og', card.file));
   const t = esc(card.title);
   const d = esc(card.description);
@@ -98,22 +98,43 @@ function insert(html, text) {
   throw new Error('no anchor found in <head>');
 }
 
-let changed = 0;
-for (const card of cards) {
-  const file = join(siteDir, card.page);
-  const before = readFileSync(file, 'utf8');
-  const after = insert(strip(before), block(card));
+function apply(page, before, after, note) {
   if (after === before) {
-    console.log(`  ${card.page.padEnd(38)} unchanged`);
-    continue;
+    console.log(`  ${page.padEnd(38)} unchanged`);
+    return 0;
   }
-  changed++;
   if (check) {
-    console.log(`  ${card.page.padEnd(38)} WOULD CHANGE`);
+    console.log(`  ${page.padEnd(38)} WOULD CHANGE`);
   } else {
-    writeFileSync(file, after);
-    console.log(`  ${card.page.padEnd(38)} ${card.file}`);
+    writeFileSync(join(siteDir, page), after);
+    console.log(`  ${page.padEnd(38)} ${note}`);
   }
+  return 1;
 }
-console.log(check ? `${changed} page(s) would change` : `${changed} page(s) written`);
+
+let changed = 0;
+
+console.log('link preview blocks:');
+for (const card of cards) {
+  const before = readFileSync(join(siteDir, card.page), 'utf8');
+  changed += apply(card.page, before, insert(strip(before), block(card)), card.file);
+}
+
+/* The canonical link carries the same domain and is the piece most easily left
+   behind in a move, because it is written by hand and nothing about the page
+   looks wrong when it is stale. It is swept across EVERY page, including ones
+   that are not in cards.mjs -- this only ever rewrites the host and path of a
+   tag that is already there, never adds one. */
+console.log('canonical links:');
+for (const page of readdirSync(siteDir).filter((f) => f.endsWith('.html')).sort()) {
+  const before = readFileSync(join(siteDir, page), 'utf8');
+  const want = pageUrl(page);
+  const after = before.replace(
+    /(<link\s+rel="canonical"\s+href=")([^"]*)(")/i,
+    (m, open, href, close) => (href === want ? m : open + want + close),
+  );
+  changed += apply(page, before, after, want);
+}
+
+console.log(check ? `${changed} change(s) pending` : `${changed} write(s)`);
 if (check && changed) process.exitCode = 1;

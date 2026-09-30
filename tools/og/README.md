@@ -28,6 +28,28 @@ Two things worth knowing before editing:
   tests/*.test.mjs`, and `node_modules/` is gitignored, so the rendered PNGs
   are committed and the generator is never installed on the build machine. If
   you change copy, re-run the build and commit the PNGs it writes.
+## Moving to a new domain
+
+`origin.mjs` is the only place the domain is written down. To move the site:
+
+    1. edit ORIGIN in tools/og/origin.mjs
+    2. cd tools/og && npm run meta
+    3. node --test tests/og-cards.test.mjs
+
+Step 2 rewrites the twelve link-preview blocks and sweeps the canonical link on
+every page, including pages that are not in `cards.mjs`. Step 3 is what makes
+this safe rather than hopeful: the test checks every page's `og:url`, `og:image`
+and canonical against `ORIGIN`, so anything step 2 did not reach fails the build
+instead of shipping a preview that points at a host you no longer own.
+
+**`quotetool.html` will not be reached.** Its tags are hand-written and it is
+not in `cards.mjs`, so its three absolute urls have to be edited by hand. The
+test names it, loudly, and will keep failing until they are -- that is the
+design, not an oversight. (There is also one stale reference in a comment on
+`index.html`, which is prose and harms nothing.)
+
+## Notes
+
 - **Do not hand-edit the tags in a page.** They are generated, and the next
   `npm run meta` will overwrite them. Edit `cards.mjs` instead.
 - **`tests/og-cards.test.mjs` is the contract.** It checks that every declared

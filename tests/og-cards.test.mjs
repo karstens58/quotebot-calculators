@@ -20,9 +20,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { ORIGIN, pageUrl } from '../tools/og/origin.mjs';
 
 const SITE = fileURLToPath(new URL('../site/', import.meta.url));
-const ORIGIN = 'https://tools.quotebot.io';
 
 const metas = (html) => {
   const out = {};
@@ -114,6 +114,29 @@ test('the cards are small enough for every network to fetch them', () => {
     /* LinkedIn refuses above 5MB and simply shows nothing. */
     assert.ok(bytes < 5 * 1024 * 1024,
       `${f}: ${(bytes / 1048576).toFixed(1)}MB is over LinkedIn's limit`);
+  }
+});
+
+test('EVERY PAGE POINTS AT THE DOMAIN WE ACTUALLY LIVE ON', () => {
+  /* The switchover guard. These urls are absolute because they have to be, so
+     a domain move leaves thirty-six of them pointing at the old host -- and the
+     pages still load, so nothing looks wrong until someone shares one.
+     tools/og/origin.mjs is the one place that decides; this checks the pages
+     agree with it. */
+  for (const f of PAGES) {
+    const m = META.get(f);
+    assert.equal(m['og:url'], pageUrl(f),
+      `${f}: og:url is ${m['og:url']} -- re-run: cd tools/og && npm run meta`);
+    assert.ok(m['og:image'].startsWith(`${ORIGIN}/og/`), `${f}: og:image is on the wrong host`);
+
+    /* The canonical link carries the same domain and is written by hand, so it
+       is the one most likely to be left behind. */
+    const canonical = readFileSync(SITE + f, 'utf8')
+      .match(/<link\s+rel="canonical"\s+href="([^"]*)"/i);
+    if (canonical) {
+      assert.equal(canonical[1], pageUrl(f),
+        `${f}: canonical points at ${canonical[1]}`);
+    }
   }
 });
 
