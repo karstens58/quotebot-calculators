@@ -171,3 +171,32 @@ test('every class the modal wears has a rule somewhere', () => {
   assert.deepEqual(unstyled, [],
     'these are worn by the modal and styled by nothing: ' + unstyled.join(', '));
 });
+
+test('THE BUTTON RESET CANNOT OUT-RANK A PAGE CLASS', () => {
+  /*
+   * This reset exists to add what a converted anchor is missing, never to
+   * remove what a real button already has. Written as a bare attribute
+   * selector it scores the same as .select-btn -- and this stylesheet is
+   * linked after each page's inline <style>, so it won on source order and
+   * stripped the green, the white text, the radius and the padding off every
+   * Select button on the quote tool.
+   *
+   * :where() scores zero: still beats the browser's defaults, loses to every
+   * page class. The guard is on the selector rather than on any particular
+   * property, because the next person to add a line inside this block should
+   * not have to rediscover why.
+   */
+  const css = fs.readFileSync(
+    path.join(SITE, 'css', 'quotebot-apply.css'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  /* :where(...) groups removed first, so the second selector INSIDE one is
+     not mistaken for a bare selector of its own -- which is what the first
+     version of this guard did, failing on the very file it was written to
+     bless. */
+  const outside = css.replace(/:where\([^)]*\)/g, '');
+  const bare = outside.match(/\[data-qb-(apply|advisor)\]/g) || [];
+  assert.deepEqual(bare, [],
+    'a data-qb-* selector outside :where() will beat the page\'s own button classes');
+  assert.ok(/:where\(\s*\[data-qb-apply\]/.test(css),
+    'the reset is gone entirely -- converted anchors will wear the browser default border');
+});

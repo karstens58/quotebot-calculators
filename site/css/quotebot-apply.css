@@ -90,8 +90,19 @@ button.qbm-back { background: none; border: 0; color: #5b6b80;
    page's own classes -- .select-btn, .cta-primary, .btn-hero-white and the
    rest. Converting them to buttons keeps those classes and inherits the
    browser's own button chrome on top, which is a grey border nobody asked
-   for. This strips what the UA adds and leaves the page's class in charge. */
-[data-qb-apply], [data-qb-advisor] {
+   for. This strips what the UA adds and leaves the page's class in charge.
+
+   :where() AND THAT IS THE WHOLE POINT. Written as a bare attribute selector
+   this has the same specificity as .select-btn -- and this file is linked
+   after each page's inline <style>, so it won it on source order and wiped
+   the green background, the white text, the radius and the padding off every
+   Select button on the quote tool.
+
+   :where() scores zero. It still beats the browser's own defaults, because
+   any author rule does, and it loses to every page class, which is the only
+   behaviour that was ever wanted here: supply a button's missing clothes,
+   never take off the ones it came in. */
+:where([data-qb-apply], [data-qb-advisor]) {
   background: none; border: 0; font: inherit; color: inherit;
   cursor: pointer; text-align: center; text-decoration: none;
   -webkit-appearance: none; appearance: none;
