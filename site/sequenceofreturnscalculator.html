@@ -1387,7 +1387,9 @@ window.addEventListener('load', () => { calculate(); });
             <input type="date" id="qbm-dob" autocomplete="section-buyer bday"></div>
           <div class="qbm-f"><label for="qbm-phone">Phone</label>
             <input type="tel" id="qbm-phone" autocomplete="section-buyer tel"></div>
-          <div class="qbm-f wide"><label for="qbm-email">Email</label>
+          <div class="qbm-f"><label for="qbm-state">State</label>
+            <select id="qbm-state" autocomplete="section-buyer address-level1"></select></div>
+          <div class="qbm-f"><label for="qbm-email">Email</label>
             <input type="email" id="qbm-email" autocomplete="section-buyer email"></div>
         </div>
       </div>
@@ -1403,12 +1405,10 @@ window.addEventListener('load', () => { calculate(); });
             <input type="text" id="qbm-line2" autocomplete="section-buyer address-line2"></div>
           <div class="qbm-f"><label for="qbm-city">City</label>
             <input type="text" id="qbm-city" autocomplete="section-buyer address-level2"></div>
-          <div class="qbm-f"><label for="qbm-state">State</label>
-            <select id="qbm-state" autocomplete="section-buyer address-level1"></select></div>
           <div class="qbm-f"><label for="qbm-zip">ZIP</label>
             <input type="text" id="qbm-zip" inputmode="numeric"
                    autocomplete="postal-code"></div>
-          <div class="qbm-f"><label for="qbm-signstate">State you will sign in</label>
+          <div class="qbm-f wide"><label for="qbm-signstate">State you will sign in</label>
             <select id="qbm-signstate"></select></div>
         </div>
       </div>

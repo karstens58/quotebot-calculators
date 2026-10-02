@@ -267,7 +267,11 @@
      * both intents and a page cannot drift into having a different modal.
      */
     var advising = intent === 'advisor';
-    ['owner', 'bens'].forEach(function (name) {
+    /* 'where' joins these: an advisor request is a request to be called, and
+       nobody needs a street address to make a phone call. The state does
+       matter -- it decides which licensed producer may take the call -- so
+       it lives in 'You' rather than in the address block. */
+    ['owner', 'bens', 'where'].forEach(function (name) {
       var el = document.querySelector('[data-sec="' + name + '"]');
       if (el) el.hidden = advising;
     });
@@ -598,6 +602,14 @@
       delete details.ownerIsAnnuitant;
       details.owner = null;
       details.beneficiaries = [];
+      /* Same reasoning as the owner above, applied to the address: the
+         section is hidden on this intent, so line1, city and ZIP hold
+         nothing anybody typed, and a signing state is a question about a
+         contract that does not exist yet. The state is kept -- it is the
+         one part that was asked and answered, and it is what routes the
+         lead to a producer licensed where this person lives. */
+      details.address = { state: val('qbm-state') };
+      delete details.signedState;
       details.wantsAdvisor = true;
     }
 
