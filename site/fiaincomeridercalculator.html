@@ -61,14 +61,21 @@
 body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--off-white);line-height:1.6;-webkit-font-smoothing:antialiased;}
 
 /* ---------- MASTHEAD ---------- */
-.masthead{background:linear-gradient(160deg,var(--primary-dark) 0%,var(--primary) 62%,var(--primary-mid) 100%);color:var(--white);padding:44px 24px 52px;}
+.masthead{background:linear-gradient(160deg,var(--primary-dark) 0%,var(--primary) 62%,var(--primary-mid) 100%);color:var(--white);padding:44px 24px 44px;}
 .masthead-inner{max-width:1160px;margin:0 auto;}
 .eyebrow{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:12px;}
 .masthead h1{font-family:'Fraunces',Georgia,serif;font-weight:700;font-size:clamp(28px,4.4vw,44px);line-height:1.08;letter-spacing:-0.8px;margin-bottom:14px;max-width:20ch;}
 .masthead p{font-size:15px;color:rgba(255,255,255,0.72);max-width:62ch;}
 
 /* ---------- LAYOUT ---------- */
-.calc-wrapper{max-width:1160px;margin:-30px auto 0;padding:0 24px 64px;}
+/* NO PULL-UP. This was margin-top:-30px, which tucked both panels 30px
+   into the masthead -- so the navy ran past where the cards began and every
+   card straddled the colour boundary with a ragged band behind its top
+   corners. It reads as a mistake rather than as a deliberate overlap,
+   because the masthead has no shape for the cards to sit in and the two
+   panels are different heights. dime, key person and buy-sell all let the
+   hero finish and start the panels below it; so does this now. */
+.calc-wrapper{max-width:1160px;margin:0 auto;padding:28px 24px 64px;}
 .calc-grid{display:grid;grid-template-columns:400px 1fr;gap:22px;align-items:start;}
 .calc-grid.results-revealed{grid-template-columns:1fr;}
 .calc-grid.results-revealed .results-col{max-width:900px;margin:0 auto;width:100%;position:static;}
@@ -384,12 +391,12 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
            The panel collapses on unlock, which it already did. -->
       <div class="send-to">
         <div class="sec-title">Where should we send it?</div>
-        <div class="sec-sub">The full schedule opens on the right, and a copy goes to your inbox.</div>
+        <div class="sec-sub">The full schedule opens on the right, and a copy goes to your inbox. Name, email and state are all we need.</div>
         <div class="lock-form">
           <div class="field" id="f-first"><input type="text" id="first" placeholder="First name"></div>
-          <div class="field" id="f-last"><input type="text" id="last" placeholder="Last name"></div>
+          <div class="field" id="f-last"><input type="text" id="last" placeholder="Last name (optional)"></div>
           <div class="field" id="f-email"><input type="email" id="email" placeholder="you@email.com"></div>
-          <div class="field" id="f-phone"><input type="tel" id="phone" placeholder="(555) 123-4567"></div>
+          <div class="field" id="f-phone"><input type="tel" id="phone" placeholder="Phone (optional)"></div>
           <div data-qb-sms-optin></div>
           <div class="field" id="f-state">
             <select id="state"><option value="">Select your state</option></select>
@@ -397,8 +404,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         </div>
         <div class="lock-dots">
           <div class="lock-dot" id="ldot-1"></div><div class="lock-dot" id="ldot-2"></div>
-          <div class="lock-dot" id="ldot-3"></div><div class="lock-dot" id="ldot-4"></div>
-          <div class="lock-dot" id="ldot-5"></div>
+          <div class="lock-dot" id="ldot-3"></div>
         </div>
         <div class="lock-count" id="lock-count">0 of 5 fields complete</div>
         <button class="unlock-btn" id="unlock-btn" type="button"><span id="unlock-btn-text">&#128274; Complete All Fields to Unlock</span></button>
@@ -719,31 +725,70 @@ function renderChart(rows, inp){
 /* ============================================================
    LEAD GATE
    ============================================================ */
-var FIELDS = ['first','last','email','phone','state'];
+/*
+ * WHAT WE WILL HOLD THE ILLUSTRATION BACK FOR, and what we will not.
+ *
+ * First name, email and state. The email is where it goes, the state
+ * decides which carriers may even be shown, and the first name is what an
+ * agent opens with. Three fields is the whole price of admission.
+ *
+ * Phone and last name are asked for and not demanded. A phone number is
+ * the field people abandon a form over, and we have an email -- insisting
+ * on it costs more leads than it gains calls. OPTIONAL IS NOT UNCHECKED
+ * THOUGH: a phone number that was started and left half-typed is worse
+ * than none, because it reaches nobody and looks like a real contact in
+ * the record, so one that is present still has to be a phone number.
+ */
+var REQUIRED = ['first','email','state'];
+var OPTIONAL = ['last','phone'];
+var FIELDS = REQUIRED.concat(OPTIONAL);
 
 function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 function isValidPhone(v){ return v.replace(/\D/g,'').length >= 10; }
 
 function fieldStatus(id){
   var v = $(id).value.trim();
+  /* Left blank is fine on an optional field; filled in badly is not. */
+  if (OPTIONAL.indexOf(id) !== -1 && v === '') return true;
   if (id === 'email') return isValidEmail(v);
   if (id === 'phone') return isValidPhone(v);
   return v.length > 0;
 }
 
 function updateFormProgress(){
-  var done = FIELDS.filter(fieldStatus).length;
-  FIELDS.forEach(function(id, i){ $('ldot-' + (i+1)).classList.toggle('done', fieldStatus(id)); });
-  $('lock-count').textContent = done + ' of 5 fields complete';
+  /* The dots count the REQUIRED fields only. Counting the optional ones
+     would show "3 of 5" to somebody who has given us everything we asked
+     for, which reads as a form that is not finished when it is. */
+  var done = REQUIRED.filter(fieldStatus).length;
+  REQUIRED.forEach(function(id, i){
+    $('ldot-' + (i+1)).classList.toggle('done', fieldStatus(id));
+  });
+  $('lock-count').textContent = done + ' of ' + REQUIRED.length + ' required';
   var btn = $('unlock-btn'), txt = $('unlock-btn-text');
-  if (done === 5){ btn.classList.add('btn-ready'); txt.innerHTML = '&#128275; See My Illustration &rarr;'; }
-  else { btn.classList.remove('btn-ready'); txt.innerHTML = '&#128274; Complete All Fields to Unlock'; }
+  var needsMore = done < REQUIRED.length;
+  var badOptional = OPTIONAL.filter(function (id) { return !fieldStatus(id); });
+  var ready = !needsMore && !badOptional.length;
+  if (ready){
+    btn.classList.add('btn-ready'); txt.innerHTML = '&#128275; See My Illustration &rarr;';
+  } else {
+    btn.classList.remove('btn-ready');
+    /* "Complete the required fields" is a lie when the required fields ARE
+       complete and it is the optional phone that is half-typed -- it sends
+       somebody hunting through fields that are already right. Name what is
+       actually wrong. */
+    txt.innerHTML = needsMore
+      ? '&#128274; Complete the required fields'
+      : '&#128274; Check the phone number';
+  }
 }
 
 function tryUnlock(){
   var allOk = true;
   FIELDS.forEach(function(id){
     var ok = fieldStatus(id);
+    /* An empty optional field is not an error and must not be reddened --
+       marking it would tell somebody to fix a field we just told them they
+       could skip. */
     $('f-' + id).classList.toggle('has-error', !ok);
     if (!ok) allOk = false;
   });
