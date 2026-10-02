@@ -270,6 +270,33 @@
       if (from && to && !to.value) to.value = from.value || '';
     });
 
+    /*
+     * THE SAME CARRY-OVER, ON PAGES THAT NAME THEIR FIELDS DIFFERENTLY.
+     *
+     * The ids above are MYGA's capture form. No other calculator has them,
+     * so on the nine the modal opened blank and asked for an email the
+     * person had typed into the gate ninety seconds earlier -- which is the
+     * single most common place a form gets abandoned, and worse here than
+     * anywhere, because an apply with no matching email is recorded as
+     * nothing at all.
+     *
+     * Found by type rather than by id: the first filled email, tel and date
+     * on the page outside this modal. Crude, and right far more often than
+     * a list of ids that each page has to remember to match.
+     */
+    [['email','qbm-email'], ['tel','qbm-phone'], ['date','qbm-dob']]
+      .forEach(function (pair) {
+        var to = document.getElementById(pair[1]);
+        if (!to || to.value) return;
+        var all = document.querySelectorAll('input[type="' + pair[0] + '"]');
+        for (var i = 0; i < all.length; i += 1) {
+          if (all[i].closest('.qbm-veil')) continue;
+          if (all[i].value && String(all[i].value).trim()) {
+            to.value = all[i].value; return;
+          }
+        }
+      });
+
     /* The state they gave the calculator is the state they are signing in —
        that is the question the rate lookup asked. The home state starts there
        too and can be changed, because most people live where they sign. */
@@ -534,14 +561,32 @@
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  function applicantName() {
+    var e = document.getElementById('qbm-fname') || document.getElementById('cf-fname');
+    return e ? String(e.value).trim() : '';
+  }
+
+  function qbCloseDone() {
+    var v = document.getElementById('qbm-done-veil');
+    if (v) v.classList.remove('open');
+  }
+
+  /*
+   * The confirmation, wherever this page keeps one.
+   *
+   * MYGA has a panel under its results and keeps it -- it reads better
+   * there, in the page, beside what they were looking at. The nine pages
+   * that got the modal have no such panel, and without the fallback the
+   * flow submitted and the box simply shut: somebody presses the biggest
+   * button on the page, it disappears, nothing says whether it worked, and
+   * they press it again. A duplicate application is the polite version of
+   * what happens next.
+   */
   function qbShowApplyConfirmation(term, rate) {
     var box = document.getElementById('qb-applied');
-    if (!box) return;
+    if (!box) return qbShowDoneModal(term, rate);
 
-    var name = (function () {
-      var e = document.getElementById('qbm-fname') || document.getElementById('cf-fname');
-      return e ? String(e.value).trim() : '';
-    })();
+    var name = applicantName();
     var bits = [];
     if (qbmSel && qbmSel.carrierName) bits.push(qbmSel.carrierName);
     if (term) bits.push(term + '-year');
@@ -555,6 +600,31 @@
 
     box.hidden = false;
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function qbShowDoneModal(term, rate) {
+    var v = document.getElementById('qbm-done-veil');
+    if (!v) return;
+    var bits = [];
+    if (qbmSel && qbmSel.carrierName) bits.push(qbmSel.carrierName);
+    if (term) bits.push(term + '-year');
+    if (rate) bits.push(num(rate) ? num(rate).toFixed(2) + '%' : null);
+    bits = bits.filter(Boolean);
+
+    var who = applicantName();
+    var t = document.getElementById('qbm-done-title');
+    if (t) t.textContent = who ? ('Thanks, ' + who + ' — we have it.') : 'Thanks — we have it.';
+
+    var what = document.getElementById('qbm-done-what');
+    if (what) {
+      what.textContent = intent === 'advisor'
+        ? 'An advisor will go through what you worked out and help you design '
+          + 'the cover around it.'
+        : (bits.length
+          ? ('You asked to apply for the ' + bits.join(' ') + ' policy.')
+          : 'You asked to apply for the policy shown on this page.');
+    }
+    v.classList.add('open');
   }
 
   /* Escape closes it, like every other dialog anybody has used. */
@@ -572,6 +642,7 @@
   window.qbApplyNow = qbApplyNow;
   window.qbAskAdvisor = qbAskAdvisor;
   window.qbCloseApply = qbCloseApply;
+  window.qbCloseDone = qbCloseDone;
   window.qbSubmitApply = qbSubmitApply;
   window.qbAddBeneficiary = qbAddBeneficiary;
   window.qbRemoveBeneficiary = qbRemoveBeneficiary;

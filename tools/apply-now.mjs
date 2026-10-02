@@ -115,9 +115,38 @@ function apply(file, cfg) {
       `  <script src="${JS_SRC}" defer></script>\n</head>`);
   }
 
-  if (!s.includes(MARK)) {
-    const modal = read(path.join(PARTIALS, 'apply-modal.html'))
-      .replace('<div class="qbm-veil"', `<div ${MARK} class="qbm-veil"`);
+  /*
+   * THE PARTIAL WINS, EVERY RUN.
+   *
+   * The first version of this only inserted when the marker was absent, so
+   * a page that already had the modal kept whatever version of it landed
+   * the first time. That is precisely the drift this script exists to stop
+   * -- and it bit immediately: the partial grew a confirmation card and
+   * nine pages quietly did not get it.
+   *
+   * The region is delimited rather than guessed at, so replacing it cannot
+   * eat markup that belongs to the page.
+   */
+  const START = '<!-- qb:apply-modal:start -->';
+  const END = '<!-- qb:apply-modal:end -->';
+  const modal = START + '\n'
+    + read(path.join(PARTIALS, 'apply-modal.html'))
+      .replace('<div class="qbm-veil"', `<div ${MARK} class="qbm-veil"`)
+    + '\n' + END;
+
+  const from = s.indexOf(START);
+  if (from !== -1) {
+    const to = s.indexOf(END, from);
+    if (to === -1) throw new Error(`${file}: modal region opens and never closes`);
+    s = s.slice(0, from) + modal + s.slice(to + END.length);
+  } else if (s.includes(MARK)) {
+    /* Inserted by the version of this script that had no delimiters. Its
+       block ran from the marker to the last thing before </body>, which is
+       where this script put it and nowhere else. */
+    const at = s.indexOf(`<div ${MARK}`);
+    const body = s.lastIndexOf('</body>');
+    s = s.slice(0, at) + modal + '\n' + s.slice(body);
+  } else {
     s = s.replace('</body>', modal + '\n</body>');
   }
 

@@ -1691,6 +1691,7 @@ function restart() {
 }
 </script>
 
+<!-- qb:apply-modal:start -->
 <div data-qb-apply-modal class="qbm-veil" id="qbm-veil" role="dialog" aria-modal="true"
      aria-labelledby="qbm-title">
   <div class="qbm" role="document">
@@ -1797,5 +1798,33 @@ function restart() {
     </div>
   </div>
 </div>
+<!-- ── THE ANSWER ───────────────────────────────────────────────────────
+     MYGA has its own confirmation panel under the results and keeps it.
+     The nine pages that got the modal have no such panel, so without this
+     the flow submitted and the modal simply shut -- a person presses the
+     biggest button on the page, the box disappears, and nothing says
+     whether it worked. They press it again. -->
+<div class="qbm-veil" id="qbm-done-veil" role="dialog" aria-modal="true"
+     aria-labelledby="qbm-done-title">
+  <div class="qbm qbm-done" role="document">
+    <div class="qbm-head">
+      <h2 id="qbm-done-title">Thanks — we have it.</h2>
+      <button class="qbm-x" type="button" aria-label="Close"
+              onclick="qbCloseDone()">&times;</button>
+    </div>
+    <div class="qbm-body">
+      <p id="qbm-done-what"></p>
+      <p class="qbm-note" id="qbm-done-next">
+        A Client Solutions Advisor will be in touch. Nothing is submitted to a
+        carrier yet, and nothing happens to your cover until you say so.
+      </p>
+    </div>
+    <div class="qbm-foot">
+      <button class="qbm-go" type="button" onclick="qbCloseDone()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- qb:apply-modal:end -->
 </body>
 </html>
