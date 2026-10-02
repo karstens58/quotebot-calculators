@@ -98,9 +98,16 @@ body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;color:va
 .field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
 .field.has-error input,.field.has-error select{border-color:var(--red);background:var(--red-light);}
 .field-err{font-size:11px;color:var(--red);margin-top:4px;min-height:14px;}
-.has-prefix{position:relative;}
-.has-prefix span.pfx{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--gray-mid);pointer-events:none;}
-.has-prefix input{padding-left:26px;}
+/* THE $ IS POSITIONED AGAINST THE INPUT, NOT THE FIELD.
+   position:relative used to sit on .has-prefix, which is the whole field --
+   label included -- so top:50% centred the $ against label-plus-input and
+   floated it up to straddle the top edge of the box. The wrapper gives it
+   something the size of the input to centre in. */
+.has-prefix{position:static;}
+.pfx-wrap{position:relative;display:block;}
+.pfx-wrap .pfx{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  font-size:14px;line-height:1;color:var(--gray-mid);pointer-events:none;}
+.pfx-wrap input{padding-left:26px;}
 .has-suffix{position:relative;}
 .has-suffix span.sfx{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gray-mid);pointer-events:none;}
 .has-suffix input{padding-right:30px;}
@@ -308,7 +315,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
       <div class="field has-prefix">
         <label for="premium">Premium <span class="hint">— single deposit</span></label>
-        <span class="pfx">$</span><input type="text" id="premium" inputmode="numeric">
+        <div class="pfx-wrap"><span class="pfx">$</span><input type="text" id="premium" inputmode="numeric"></div>
       </div>
 
       <div class="row2">
