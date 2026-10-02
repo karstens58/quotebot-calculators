@@ -114,16 +114,40 @@ for (const file of fs.readdirSync(SITE).filter((f) => f.endsWith('.html'))) {
   const before = html;
   const notes = [];
 
-  /* ---- css, once, before anything references it ---- */
-  if (!html.includes(MARK)) {
-    /* Drop the page's own copies of the rules this block replaces, so the
-       later definition does not lose to an earlier, more specific one. */
-    const owned = /^(\.topbar[^\n]*|\.brand-header[^\n]*|\.brand-header-inner[^\n]*|\.brand-logo-img[^\n]*|footer \{[^\n]*|\.footer-[^\n]*)$/gm;
-    html = html.replace(owned, '');
-    const close = html.indexOf('</style>');
-    if (close > 0) {
-      html = `${html.slice(0, close)}\n${CSS}\n${html.slice(close)}`;
-      notes.push('css');
+  /* ---- css, replaced on EVERY run ----
+   *
+   * This used to be `if (!html.includes(MARK))`, so the block went in once
+   * and never again: the partial could change forever and the pages would
+   * keep whichever version landed first. Which is precisely the drift this
+   * script exists to prevent, and it bit twice in one day -- the footer
+   * named a company that does not exist, somebody fixed it in all thirteen
+   * pages by hand, and the partial it came from still said the old name.
+   * The next run of this tool would have put the wrong name back.
+   *
+   * The region is delimited now, so replacing it cannot eat page CSS on
+   * either side of it. */
+  {
+    const START = '/* qb:chrome-css:start */';
+    const END = '/* qb:chrome-css:end */';
+    const from = html.indexOf(START);
+    if (from !== -1) {
+      const to = html.indexOf(END, from);
+      if (to === -1) throw new Error(`${file}: chrome css opens and never closes`);
+      const was = html.slice(from, to + END.length);
+      if (was !== CSS.trim()) {
+        html = html.slice(0, from) + CSS.trim() + html.slice(to + END.length);
+        notes.push('css refreshed');
+      }
+    } else {
+      /* Drop the page's own copies of the rules this block replaces, so the
+         later definition does not lose to an earlier, more specific one. */
+      const owned = /^(\.topbar[^\n]*|\.brand-header[^\n]*|\.brand-header-inner[^\n]*|\.brand-logo-img[^\n]*|footer \{[^\n]*|\.footer-[^\n]*)$/gm;
+      html = html.replace(owned, '');
+      const close = html.indexOf('</style>');
+      if (close > 0) {
+        html = `${html.slice(0, close)}\n${CSS}\n${html.slice(close)}`;
+        notes.push('css');
+      }
     }
   }
 

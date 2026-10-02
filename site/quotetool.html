@@ -56,20 +56,20 @@ img { max-width: 100%; display: block; }
 
 /* TOPBAR */
 /* Top bar — matched to the marketing site. Kept in step by tools/apply-chrome.mjs. */
-.topbar { background: var(--primary-dark); color: rgba(255,255,255,0.8); font-size: 12.5px; padding: 7px 32px; position: static; display: block; }
-.topbar-inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.topbar-phone { color: #ff6b6b; }
-.topbar a { color: #9ec9f0; font-weight: 600; }
+
+
+
+
 @media (max-width: 700px) {
   .topbar { padding: 7px 20px; }
   .topbar-inner { flex-wrap: wrap; row-gap: 6px; justify-content: center; text-align: center; }
 }
-.topbar strong { color: #fff; }
+
 
 /* BRAND HEADER */
-.brand-header { background: var(--accent-light); padding: 16px 0; border-bottom: 1px solid var(--border); }
-.brand-header-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; }
-.brand-logo-img { height: 46px; width: auto; display: block; }
+
+
+
 
 /* PAGE */
 .page { max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px; }
@@ -306,17 +306,17 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .show-more.gone { display: none; }
 
 /* FOOTER */
-footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; }
-.footer-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
-.footer-brand { display: flex; align-items: center; }
-.footer-logo-img { height: 42px; width: auto; display: block; }
-.footer-copy { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 12px; line-height: 1.6; }
-.footer-platform { font-size: 11.5px; color: rgba(255,255,255,0.55); margin-top: 10px; letter-spacing: .03em; }
-.footer-links { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
-.footer-links-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; font-size: 12.5px; }
-.footer-links-row a { color: rgba(255,255,255,0.7); transition: color var(--transition); }
-.footer-links-row a:hover { color: #fff; }
-.footer-links-row span { color: rgba(255,255,255,0.3); }
+
+
+
+
+
+
+
+
+
+
+
 
 /* RESPONSIVE */
 @media (max-width: 980px) {
@@ -353,9 +353,82 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
    The colour is taken from the row's anchors rather than inherited. `inherit`
    picks up the footer's body colour, which on a dark footer is nearly the
    background — the control rendered as a smudge beside five legible links. */
-.footer-consent-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: none; color: rgba(255,255,255,0.7); transition: color var(--transition); }
+
+
+
+
+/* qb:chrome-css:start */
+/* Header and footer — matched to the marketing site.
+   Kept in step by tools/apply-chrome.mjs. */
+.topbar { background: var(--primary-dark); color: rgba(255,255,255,0.8); font-size: 12.5px; padding: 7px 32px; position: static; display: block; }
+.topbar-inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.topbar-phone { color: #ff6b6b; }
+.topbar a { color: #9ec9f0; font-weight: 600; }
+.topbar strong { color: #fff; }
+.brand-header { background: var(--accent-light, #e8f2fb); padding: 14px 32px; }
+.brand-header-inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; }
+.brand-logo-img { height: 46px; width: auto; display: block; }
+footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; }
+.footer-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.footer-brand { display: flex; align-items: center; }
+.footer-logo-img { height: 42px; width: auto; display: block; }
+.footer-copy { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 12px; line-height: 1.6; }
+.footer-platform { font-size: 11.5px; color: rgba(255,255,255,0.55); margin-top: 10px; letter-spacing: .03em; }
+.footer-links { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+.footer-links-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; font-size: 12.5px; }
+.footer-links-row a { color: rgba(255,255,255,0.7); transition: color 0.2s; }
+.footer-links-row a:hover { color: #fff; }
+.footer-links-row span { color: rgba(255,255,255,0.3); }
+/* A button, not a link: it changes a setting rather than going anywhere, and an
+   <a> with no destination is still announced as a link. The colour comes from
+   the row's anchors rather than `inherit`, which on a dark footer picks up the
+   body colour and renders the control as a smudge beside five legible links. */
+.footer-consent-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: none; color: rgba(255,255,255,0.7); transition: color 0.2s; }
 .footer-consent-link:hover { color: #fff; text-decoration: underline; }
 .footer-consent-link:focus-visible { outline: 2px solid #9ec9f0; outline-offset: 2px; }
+@media (max-width: 760px) {
+  .topbar { padding: 7px 20px; }
+  .topbar-inner { flex-wrap: wrap; row-gap: 6px; justify-content: center; text-align: center; }
+  .brand-header { padding: 12px 20px; }
+  footer { padding: 32px 20px; }
+  .footer-inner { flex-direction: column; gap: 24px; }
+  .footer-links { align-items: flex-start; }
+  .footer-links-row { justify-content: flex-start; }
+}
+
+/* ── ONE LEFT EDGE FOR EVERY PAGE ─────────────────────────────────────────
+   Measured across all thirteen before this existed: the top bar and the
+   logo agreed at 88, and almost nothing else did. Hero text came in at 88,
+   118, 128, 182 or 278 depending on the page; content containers at 0, 14,
+   56, 68, 92 or 158. The eye followed a different staircase down the left
+   of each calculator.
+
+   THE ARITHMETIC, not just the number. The bands above are a full-width
+   element with 32px of side padding holding a plain 1240 inner, so their
+   content sits at 32 + (available - 1240) / 2. Anything that wants to line
+   up with them has to reproduce that at EVERY width, not only at the one
+   somebody happened to be looking at:
+
+     an inner inside a 32px-padded band  ->  max-width 1240, no side padding
+     a container with no band around it  ->  max-width 1304 (1240 + 2x32)
+                                             with the 32px padding inside it
+
+   Only the sides are set. Vertical padding belongs to each page and is left
+   alone.
+
+   The footer was 1280 while the bar directly above it was 1240 -- 20px out
+   on all thirteen pages, which is the same bug this block exists to stop. */
+.footer-inner { max-width: 1240px; }
+
+.calc-hero, .masthead, .tool-hero { padding-left: 32px; padding-right: 32px; }
+.calc-hero-inner, .masthead-inner, .hero-inner, .tool-hero-inner {
+  max-width: 1240px; margin-left: auto; margin-right: auto;
+  padding-left: 0; padding-right: 0; }
+
+.page-layout, .calc-grid, .page, .calc-wrapper, .main-layout {
+  max-width: 1304px; margin-left: auto; margin-right: auto;
+  padding-left: 32px; padding-right: 32px; }
+/* qb:chrome-css:end */
 </style>
   <script src="js/quotebot-consent.js"
           data-version="2026-09-28"
