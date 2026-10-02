@@ -230,6 +230,14 @@ a { text-decoration: none; color: inherit; }
 .metric-val { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--primary-dark); line-height: 1.05; }
 .metric-sub { font-size: 10.5px; color: var(--gray-mid); margin-top: 3px; line-height: 1.4; }
 @media(max-width:560px){
+  /* The carrier picker box. 319px of the first screen for a control the
+     ranked carrier list below already provides (.carrier-rank-row is
+     clickable). Its two disclosures survive without it: .carrier-rank-note
+     carries the as-of date under the list, #rateStatus carries staleness,
+     and the projection header names the carrier it is modelling.
+     Base rule is .carrier-card at line ~139 -- same specificity, earlier in
+     source, so this wins. Nothing sets display on it inline. */
+  .carrier-card { display: none; }
   .metric-grid { grid-template-columns: 1fr; }
 
   /* COMPARE ROWS — fixed columns that do not fit a phone.
