@@ -185,7 +185,8 @@ tbody tr.neg-row td:first-child::before { content: '↓ '; color: var(--red); }
 .qb-gate-grid > div:has(> #gate-last)  { grid-column: 2; grid-row: 1; }
 .qb-gate-grid > div:has(> #gate-phone) { grid-column: 1; grid-row: 2; }
 .qb-gate-grid > div:has(> #gate-email) { grid-column: 2; grid-row: 2; }
-.qb-gate-grid > .qb-gate-optin         { grid-column: 1 / -1; grid-row: 3; }
+.qb-gate-grid > .qb-gate-state         { grid-column: 1 / -1; grid-row: 3; }
+.qb-gate-grid > .qb-gate-optin         { grid-column: 1 / -1; grid-row: 4; }
 
 /* One column on a phone, stacked in the order above rather than the markup
    order, so the opt-in still follows both fields instead of splitting them. */
@@ -195,7 +196,8 @@ tbody tr.neg-row td:first-child::before { content: '↓ '; color: var(--red); }
   .qb-gate-grid > div:has(> #gate-last)  { grid-column: 1; grid-row: 2; }
   .qb-gate-grid > div:has(> #gate-phone) { grid-column: 1; grid-row: 3; }
   .qb-gate-grid > div:has(> #gate-email) { grid-column: 1; grid-row: 4; }
-  .qb-gate-grid > .qb-gate-optin         { grid-column: 1; grid-row: 5; }
+  .qb-gate-grid > .qb-gate-state         { grid-column: 1; grid-row: 5; }
+  .qb-gate-grid > .qb-gate-optin         { grid-column: 1; grid-row: 6; }
 }
 
 .insight-box { background: var(--teal-light); border: 1.5px solid rgba(13,148,136,0.25); border-radius: var(--radius-lg); padding: 20px 24px; display: flex; gap: 14px; align-items: flex-start; }
@@ -566,6 +568,11 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <input type="tel" id="gate-phone" placeholder="(555) 000-0000" oninput="formatPhone(this)" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
           </div>
             <div class="qb-gate-optin" data-qb-sms-optin></div>
+          <div class="qb-gate-state">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">State <span style="color:var(--red);">*</span></label>
+            <select id="gate-state" data-qb-states style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;"></select>
+          </div>
+
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Email <span style="color:var(--red);">*</span></label>
             <input type="email" id="gate-email" placeholder="jane@example.com" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
@@ -1100,37 +1107,15 @@ function resetCalc() {
   document.getElementById('scenario').value = 'actual';
   document.getElementById('custom-returns-wrap').style.display = 'none';
   updateAnnualIncome();
-  // Restore the gate form
-  document.getElementById('lead-gate').innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-      <div style="width:28px;height:28px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🔓</div>
-      <div style="font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--primary-dark);">Unlock Your Results</div>
-    </div>
-    <p style="font-size:13px;color:var(--gray-mid);line-height:1.6;margin-bottom:18px;">Enter your details below to view your personalized cash value analysis.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-      <div>
-        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">First Name <span style="color:var(--red);">*</span></label>
-        <input type="text" id="gate-first" placeholder="Jane" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-      </div>
-      <div>
-        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Last Name <span style="color:var(--red);">*</span></label>
-        <input type="text" id="gate-last" placeholder="Smith" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-      </div>
-      <div>
-        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Phone</label>
-        <input type="tel" id="gate-phone" placeholder="(555) 000-0000" oninput="formatPhone(this)" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-      </div>
-      <div>
-        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Email <span style="color:var(--red);">*</span></label>
-        <input type="email" id="gate-email" placeholder="jane@example.com" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-      </div>
-    </div>
-    <div id="gate-error" style="display:none;font-size:12.5px;color:var(--red);font-weight:600;margin-bottom:10px;padding:8px 12px;background:var(--red-light);border-radius:8px;"></div>
-    <button onclick="submitGate()" style="width:100%;padding:14px;border-radius:var(--radius-lg);background:var(--primary);color:var(--white);font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseenter="this.style.background='var(--primary-dark)'" onmouseleave="this.style.background='var(--primary)'">
-      🔓 View My Results
-    </button>
-    <button class="reset-btn" onclick="resetCalc()" style="margin-top:10px;">Reset to defaults</button>
-    <p style="font-size:11px;color:var(--gray-mid);line-height:1.6;margin-top:12px;text-align:center;">We will only reply to follow-up on your quote through Phone/SMS/eMail. You can opt-out any time. We do not sell your information. You also agree to our <a href="https://quotebot.io/Privacy-Policy" target="_blank" style="color:var(--accent);font-weight:600;">Privacy Policy</a> and <a href="https://quotebot.io/Terms-Conditions" target="_blank" style="color:var(--accent);font-weight:600;">Terms of Service</a>.</p>`;
+  // Restore the gate form exactly as it was, rather than from a copy
+  rememberGate();
+  if (GATE_HTML !== null) document.getElementById('lead-gate').innerHTML = GATE_HTML;
+  ['gate-first', 'gate-last', 'gate-phone', 'gate-email', 'gate-state'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var optin = document.getElementById('qb-sms-optin');
+  if (optin) optin.checked = false;
   document.getElementById('results-panel').innerHTML = `
     <div class="empty-state">
       <div class="empty-icon">🔒</div>
@@ -1215,7 +1200,7 @@ function qbCaptureLead(){
       email: V('gate-email'), phone: V('gate-phone'),
       firstName: V('gate-first'), lastName: V('gate-last'),
       productLine: 'INDEXED_UL',
-      inputs: { annualIncome: N('annualIncome') },
+      inputs: { annualIncome: N('annualIncome'), state: V('gate-state') },
       results: null,
       consentText: C('#qb-consent') || C('.disclaimer')
     });
@@ -1232,16 +1217,37 @@ function qbEsc(v) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+/* The gate's own markup, kept before anything overwrites it.
+ *
+ * resetCalc used to rebuild this form from a second copy of the markup
+ * written out longhand, and the copy had drifted: it carried no SMS
+ * opt-in marker at all, so after a reset the page asked for a phone
+ * number with no consent box on the form. The static-markup guard
+ * could not see it, because the second copy lives inside a template
+ * string. Restoring what was actually on the page removes the duplicate
+ * rather than patching it, so it cannot drift again. */
+var GATE_HTML = null;
+function rememberGate() {
+  if (GATE_HTML === null) {
+    var el = document.getElementById('lead-gate');
+    if (el) GATE_HTML = el.innerHTML;
+  }
+}
+
 function submitGate() {
+  rememberGate();
   const first = document.getElementById('gate-first').value.trim();
   const last  = document.getElementById('gate-last').value.trim();
   const phone = document.getElementById('gate-phone').value.trim();
   const email = document.getElementById('gate-email').value.trim();
+  const state = document.getElementById('gate-state').value;
   const err   = document.getElementById('gate-error');
 
   // Validation
-  /* Phone is optional; the other three are not. */
-  if (!first || !last || !email) {
+  /* Phone is optional; the other four are not. State decides who may take
+     the lead -- routing skips an agent not licensed where they live, and a
+     lead with no state skips that check altogether. */
+  if (!first || !last || !email || !state) {
     err.textContent = 'Please fill in all required fields.';
     err.style.display = 'block';
     return;
@@ -1286,7 +1292,8 @@ function submitGate() {
     <input type="hidden" id="gate-first" value="${qbEsc(first)}">
     <input type="hidden" id="gate-last" value="${qbEsc(last)}">
     <input type="hidden" id="gate-phone" value="${qbEsc(phone)}">
-    <input type="hidden" id="gate-email" value="${qbEsc(email)}">`;
+    <input type="hidden" id="gate-email" value="${qbEsc(email)}">
+    <input type="hidden" id="gate-state" value="${qbEsc(state)}">`;
 
   // Now run the calculation and show results
   calculate();

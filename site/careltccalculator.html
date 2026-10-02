@@ -1027,6 +1027,11 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             </div>
               <div data-qb-sms-optin></div>
             <div class="field-group">
+              <label class="field-label" for="cf-state">State <span class="req-star">*</span></label>
+              <select id="cf-state" class="text-input" data-qb-states autocomplete="address-level1"></select>
+              <span class="field-error" id="err-state"></span>
+            </div>
+            <div class="field-group">
               <label class="field-label" for="cf-dob">Date of Birth <span class="req-star">*</span></label>
               <input type="date" id="cf-dob" class="text-input" autocomplete="bday">
               <span class="field-hint" style="margin-top:4px;display:block;">Used to confirm your age for underwriting purposes.</span>
@@ -1515,9 +1520,14 @@ function validateContact() {
   const email = document.getElementById('cf-email').value.trim();
   const phone = document.getElementById('cf-phone').value.trim();
   const dob   = document.getElementById('cf-dob').value;
+  const state = document.getElementById('cf-state').value;
 
   if (!fname) { setErr('err-fname', 'First name is required.'); ok = false; } else setErr('err-fname', '');
   if (!lname) { setErr('err-lname', 'Last name is required.'); ok = false; } else setErr('err-lname', '');
+  /* Required because it decides WHO may take this lead: an agent not
+     licensed where the applicant lives is skipped by routing, and a lead
+     with no state skips that check entirely. */
+  if (!state) { setErr('err-state', 'State is required.'); ok = false; } else setErr('err-state', '');
 
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email) { setErr('err-email', 'Email address is required.'); ok = false; }
@@ -1574,7 +1584,7 @@ function qbCaptureLead(){
       email: V('cf-email'), phone: V('cf-phone'),
       firstName: V('cf-fname'), lastName: V('cf-lname'),
       productLine: 'LONG_TERM_CARE',
-      inputs: { dateOfBirth: V('cf-dob') },
+      inputs: { dateOfBirth: V('cf-dob'), state: V('cf-state') },
       results: null,
       consentText: C('#qb-consent')
     });

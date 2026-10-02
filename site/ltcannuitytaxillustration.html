@@ -627,7 +627,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
         <div class="form-progress-wrap">
           <div class="form-prog-bar"><div class="form-prog-fill" id="form-prog-fill"></div></div>
-          <span class="form-prog-label" id="form-prog-label">0 of 4 complete</span>
+          <span class="form-prog-label" id="form-prog-label">0 of 5 complete</span>
         </div>
 
         <div class="lead-form">
@@ -654,6 +654,11 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <div class="f-error" id="err-phone"></div>
           </div>
             <div data-qb-sms-optin></div>
+          <div class="form-field">
+            <label>State</label>
+            <select class="form-input" id="f-state" data-qb-states autocomplete="address-level1"></select>
+            <div class="f-error" id="err-state"></div>
+          </div>
           <button class="unlock-btn" id="unlock-btn" onclick="tryUnlock()">🔒 Complete All Fields to Unlock</button>
           <p class="form-fine" id="qb-consent">By clicking <strong style="color:var(--gray-dark);">View My Results</strong> you acknowledge that we will only call, SMS, or email to follow up on your request. You also agree to our <a href="https://quotebot.io/Privacy-Policy" target="_blank">Privacy Policy</a> &amp; <a href="https://quotebot.io/Terms-Conditions" target="_blank">Terms of Service</a>.</p>
         </div>
@@ -675,8 +680,9 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <div class="lock-dot" id="ldot-2"></div>
             <div class="lock-dot" id="ldot-3"></div>
             <div class="lock-dot" id="ldot-4"></div>
+            <div class="lock-dot" id="ldot-5"></div>
           </div>
-          <div class="lock-count" id="lock-count">0 of 4 fields complete</div>
+          <div class="lock-count" id="lock-count">0 of 5 fields complete</div>
         </div>
 
         <!-- RESULTS CONTENT -->
@@ -919,7 +925,7 @@ bindField(E.basI, "currency");
 bindField(E.disI, "currency");
 
 // ─── LEAD GATE ──────────────────────────────────────────────────────────────
-const FIELDS = ["first","last","email","phone"];
+const FIELDS = ["first","last","email","phone","state"];
 function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 function isValidPhone(v){ return v.replace(/\D/g,"").length >= 10; }
 function formatPhone(input){
@@ -932,6 +938,7 @@ function formatPhone(input){
 function fieldStatus(id){
   const v = document.getElementById("f-"+id).value.trim();
   if(id==="first"||id==="last") return v.length > 0;
+  if(id==="state") return v.length > 0;
   if(id==="email") return isValidEmail(v);
   if(id==="phone") return isValidPhone(v);
   return false;
@@ -944,21 +951,22 @@ function validateField(id){
   el.classList.toggle("f-invalid", !ok && el.value.trim() !== "");
   if(!ok && el.value.trim() !== ""){
     const msgs = {first:"Please enter your first name.", last:"Please enter your last name.",
-      email:"Please enter a valid email address.", phone:"Please enter a valid 10-digit phone number."};
+      email:"Please enter a valid email address.", phone:"Please enter a valid 10-digit phone number.",
+      state:"Please choose your state."};
     err.textContent = msgs[id];
   } else { err.textContent = ""; }
   return ok;
 }
 function updateFormProgress(){
   const done = FIELDS.filter(id => fieldStatus(id)).length;
-  document.getElementById("form-prog-fill").style.width = (done/4*100) + "%";
-  document.getElementById("form-prog-label").textContent = done + " of 4 complete";
+  document.getElementById("form-prog-fill").style.width = (done/FIELDS.length*100) + "%";
+  document.getElementById("form-prog-label").textContent = done + " of " + FIELDS.length + " complete";
   FIELDS.forEach((id,idx) => {
     document.getElementById("ldot-"+(idx+1)).classList.toggle("done", fieldStatus(id));
   });
-  document.getElementById("lock-count").textContent = done + " of 4 fields complete";
+  document.getElementById("lock-count").textContent = done + " of " + FIELDS.length + " fields complete";
   const btn = document.getElementById("unlock-btn");
-  if(done === 4){ btn.classList.add("btn-ready"); btn.textContent = "🔓 View My Results →"; }
+  if(done === FIELDS.length){ btn.classList.add("btn-ready"); btn.textContent = "🔓 View My Results →"; }
   else { btn.classList.remove("btn-ready"); btn.textContent = "🔒 Complete All Fields to Unlock"; }
 }
 function tryUnlock(){
@@ -982,7 +990,7 @@ function qbCaptureLead(){
       inputs: {
         age: N('age-input'), creditedRatePercent: N('rate-input'),
         accountValue: N('value-input'), costBasis: N('basis-input'),
-        annualDistribution: N('dist-input')
+        annualDistribution: N('dist-input'), state: V('f-state')
       },
       results: null,
       consentText: C('#qb-consent')

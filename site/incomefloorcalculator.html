@@ -678,7 +678,11 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         </div>
           <div data-qb-sms-optin></div>
       </div>
-      <div id="contactError" style="display:none;color:var(--red);font-size:10px;margin-top:8px;font-weight:600;"></div>
+      <div class="field">
+          <label style="color:var(--primary);">State</label>
+          <select id="contactState" data-qb-states autocomplete="address-level1"></select>
+        </div>
+        <div id="contactError" style="display:none;color:var(--red);font-size:10px;margin-top:8px;font-weight:600;"></div>
     </div>
 
     <!-- COMPLIANCE / CONSENT -->
@@ -974,7 +978,7 @@ function qbCaptureLead(){
       email: V('contactEmail'), phone: V('contactPhone'),
       firstName: V('contactFirst'), lastName: V('contactLast'),
       productLine: 'ANNUITY_IMMEDIATE',
-      inputs: { currentAge: N('curAge') },
+      inputs: { currentAge: N('curAge'), state: V('contactState') },
       results: null,
       consentText: C('#qb-consent')
     });
@@ -986,10 +990,13 @@ function runCalcGated() {
   const last  = document.getElementById('contactLast').value.trim();
   const email = document.getElementById('contactEmail').value.trim();
   const phone = document.getElementById('contactPhone').value.trim();
+  const state = document.getElementById('contactState').value;
   const errEl = document.getElementById('contactError');
 
-  /* Phone is optional; the other three are not. */
-  if (!first || !last || !email) {
+  /* Phone is optional; the other four are not. State decides who may take
+     the lead -- routing skips an agent not licensed where they live, and a
+     lead with no state skips that check altogether. */
+  if (!first || !last || !email || !state) {
     errEl.textContent = '⚠ Please complete all fields in Your Information before calculating.';
     errEl.style.display = 'block';
     document.getElementById('contactFirst').closest('.input-section').scrollIntoView({ behavior: 'smooth', block: 'center' });

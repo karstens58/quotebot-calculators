@@ -159,3 +159,34 @@ test('nothing hard-codes the disclosure into a page', () => {
       `${file} contains its own copy of the disclosure wording`);
   }
 });
+
+test('A FORM REBUILT IN SCRIPT STILL CARRIES THE OPT-IN', () => {
+  /*
+   * The checks above read markup, and markup is not the only place these
+   * forms come from. Sequence of Returns rebuilt its gate on reset from a
+   * second copy of the form written out longhand inside a template string,
+   * and that copy had drifted: no opt-in marker. So the page shipped a
+   * consent box, the visitor pressed "Reset to defaults", and the form came
+   * back asking for a phone number with no consent box on it -- while every
+   * assertion in this file passed, because the static markup was fine.
+   *
+   * Any template that builds a visible phone field has to bring the opt-in
+   * with it. type="tel" rather than any phone id on purpose: a hidden input
+   * preserving a value the visitor already gave is not a field asking for
+   * a number, and should not have to carry a consent box.
+   */
+  const offenders = [];
+  for (const [file, html] of capturingPages()) {
+    for (const m of html.matchAll(/innerHTML\s*=\s*`([\s\S]*?)`/g)) {
+      const tpl = m[1];
+      if (!/<input[^>]*type="tel"/i.test(tpl)) continue;
+      if (!tpl.includes(MARKER)) {
+        offenders.push(`${file}: a template rebuilds a phone field with no opt-in`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], offenders.join('\n  ')
+    + '\n\nRestore the markup that was on the page rather than keeping a '
+    + 'second copy of the form in a string — a copy drifts, and the drift '
+    + 'is invisible to every other check here.');
+});

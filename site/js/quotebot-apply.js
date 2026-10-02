@@ -762,6 +762,31 @@
     }
   });
 
+  /*
+   * A page's own state select, filled from the same list as the modal's.
+   *
+   * Declarative rather than a function the page calls, because this script
+   * is deferred: an inline page script runs at parse time, before this one
+   * executes, so a call would land on an undefined global. The page marks
+   * the select and this fills it whenever it gets there.
+   *
+   * The list matters more than it looks. routing.ts skips an agent who is
+   * not licensed in the applicant's state, and a null state skips the
+   * licensing filter entirely -- so a page that cannot say where someone
+   * lives gets its leads routed on priority alone.
+   */
+  function qbFillMarkedStateSelects() {
+    var marked = document.querySelectorAll('select[data-qb-states]');
+    for (var i = 0; i < marked.length; i += 1) {
+      if (marked[i].id) qbFillStates(marked[i].id);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', qbFillMarkedStateSelects);
+  } else {
+    qbFillMarkedStateSelects();
+  }
+
   /* The markup calls these by name from onclick attributes, which is how the
      thirteen pages are written. Exported deliberately rather than by living
      at the top level, so that what the page may call is a list someone can
