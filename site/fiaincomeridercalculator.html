@@ -373,6 +373,45 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   position: sticky; bottom: 0; z-index: 5; margin-top: 10px;
   box-shadow: 0 10px 0 10px var(--off-white), 0 -8px 16px -8px rgba(26,61,107,.22);
 }
+
+/* ── RESULTS-HEADER CTA ──────────────────────────────────────────────────
+   The ask, placed against the number instead of three scroll-lengths below
+   it. The results header is a dark band on every page that has one, so the
+   button takes the same white treatment as the band CTA at the foot.
+
+   Anchored on the header's FIRST CHILD rather than .results-header-inner:
+   M.U.G. has no such element, it nests an inline flex row holding Edit
+   Inputs. A rule naming the class would have silently skipped that page. */
+.results-header {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 14px 18px;
+}
+.results-header > :first-child { flex: 1 1 320px; min-width: 0; }
+
+.qb-result-cta {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 20px; min-height: 42px;
+  background: var(--white, #ffffff); color: var(--primary, #1a3d6b);
+  border: none; border-radius: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; font-weight: 700; line-height: 1.2; cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.qb-result-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.22); }
+.qb-result-cta:focus-visible { outline: 3px solid var(--gold-bright, #f59e0b); outline-offset: 2px; }
+
+/* Phone: the header stacks, so the button spans it at a thumb-sized target.
+   It stays inside the dark band rather than landing between the heading and
+   the figures, where a full-width solid bar reads as a second gate on the
+   pages that just unlocked their results. */
+@media (max-width: 680px) {
+  .results-header { flex-direction: column; align-items: stretch; }
+  .qb-result-cta { width: 100%; justify-content: center; min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qb-result-cta, .qb-result-cta:hover { transition: none; transform: none; }
+}
+
 /* qb:chrome-css:end */
 </style>
 </head>

@@ -347,3 +347,23 @@ test('EVERY PAGE USING THE APPLY MODAL DECLARES ITS SUMMARY', () => {
   const stale = AWAITING_SUMMARY.filter((f) => !usesModal.includes(f) || srcOf(f).includes('data-qb-sum'));
   assert.deepEqual(stale, [], `remove from AWAITING_SUMMARY:\n  ${stale.join('\n  ')}`);
 });
+
+/*
+ * ONE RESULTS-HEADER CTA, NOT TWO.
+ *
+ * Both injectors in this repo have shipped the same bug once: apply-now.mjs
+ * and apply-chrome.mjs each inserted when they should have replaced, so a
+ * second run doubled their output. result-cta.mjs replaces a delimited
+ * region for that reason, and this is the check that it keeps doing so.
+ */
+test('NO PAGE CARRIES TWO RESULTS-HEADER CTAS', () => {
+  const bad = [];
+  for (const f of PAGES) {
+    const src = fs.readFileSync(path.join(SITE, f), 'utf8');
+    const starts = (src.match(/qb:result-cta:start/g) || []).length;
+    const buttons = (src.match(/class="qb-result-cta"/g) || []).length;
+    if (starts > 1 || buttons > 1) bad.push(`${f}: ${starts} markers, ${buttons} buttons`);
+    if (starts !== buttons) bad.push(`${f}: ${starts} markers but ${buttons} buttons`);
+  }
+  assert.deepEqual(bad, [], bad.join('\n  '));
+});
