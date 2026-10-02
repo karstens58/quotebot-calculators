@@ -33,11 +33,20 @@ const PAGES = [
   { file: 'careltccalculator.html', anchor: '<div class="results-header">' },
   { file: 'ltcannuitytaxillustration.html', anchor: '<div class="results-header">' },
   { file: 'mugcalculator.html', anchor: '<div class="results-header">' },
-  /* Retirement Distribution has no results header. Its anchor is the header
-     of the strategy card, which is a pale lavender, so the button takes the
-     light variant -- the white one assumes the dark band and vanishes here. */
+  /* These two have no results header. Retirement Distribution anchors in the
+     header of its strategy card; Sequence of Returns in the insight box that
+     reads the figures back -- "what this means for your policy" followed by
+     the ask is one thought, where a chart title would not be. Both grounds
+     are pale, so both take the light variant: the white button assumes the
+     dark results band and vanishes on anything else.
+
+     Not the summary row on either page. Those are filled grids of stat
+     cards -- three at 381px on Sequence of Returns -- and a further cell
+     shrinks every figure in the row to make space for a button. */
   { file: 'retirementdistributioncalculator.html',
-    anchor: '<div class="chart-card-header">', variant: 'qb-result-cta--onlight' }
+    anchor: '<div class="chart-card-header">', variant: 'qb-result-cta--onlight' },
+  { file: 'sequenceofreturnscalculator.html',
+    anchor: '<div class="insight-box">', variant: 'qb-result-cta--onlight' }
 ];
 
 const button = (variant) =>

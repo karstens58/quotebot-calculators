@@ -496,6 +496,20 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   gap: 14px; flex-wrap: wrap;
 }
 
+/* Sequence of Returns anchors its CTA in the insight box, which is a flex
+   row whose text takes the whole width. Same shape as the card header
+   above, so the same treatment: cap the measure to make the room, and let
+   the row wrap so the button drops under the text on a phone rather than
+   squeezing it. :has keeps every other insight box on the site untouched. */
+.insight-box:has(> .qb-result-cta) { flex-wrap: wrap; }
+.insight-box:has(> .qb-result-cta) > .insight-text {
+  flex: 1 1 auto; min-width: 0; max-width: 68ch;
+}
+/* Capping the text leaves slack between it and the edge, and this row has
+   no justify-content to spend it. Without this the button floated mid-row,
+   out of line with the flush-right button on the other five pages. */
+.insight-box:has(> .qb-result-cta) > .qb-result-cta { margin-left: auto; }
+
 /* A card header whose text block would otherwise run the full row. Capping
    the measure is what makes room for the button beside it; without the cap
    the paragraph simply takes the space back. */
