@@ -77,6 +77,14 @@ button.qbm-mini.danger { color: #b91c1c; }
 .qbm-foot { padding: 16px 24px 22px; border-top: 1px solid #e6ebf2;
   display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .qbm-foot .note { font-size: 11.5px; color: #8a9ab5; line-height: 1.45;
+  flex: 1 1 200px; }
+button.qbm-go { background: #16a34a; color: #fff; border: 0; border-radius: 10px;
+  padding: 12px 22px; font-family: inherit; font-size: 14px; font-weight: 800;
+  cursor: pointer; box-shadow: 0 6px 20px rgba(22,163,74,.3); }
+button.qbm-go:disabled { opacity: .5; cursor: default; box-shadow: none; }
+button.qbm-back { background: none; border: 0; color: #5b6b80;
+  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+
 /* A BUTTON WEARING A LINK'S CLOTHES.
    Ten of these were anchors to another site, and their styling lives in each
    page's own classes -- .select-btn, .cta-primary, .btn-hero-white and the
@@ -88,3 +96,8 @@ button.qbm-mini.danger { color: #b91c1c; }
   cursor: pointer; text-align: center; text-decoration: none;
   -webkit-appearance: none; appearance: none;
 }
+
+/* The confirmation card, which is this file's own and has no MYGA original. */
+.qbm-done .qbm-body p { margin: 0 0 10px; font-size: 14px; line-height: 1.55;
+  color: #1c2a3a; }
+.qbm-note { font-size: 12.5px; color: #5b6b80; }

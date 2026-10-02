@@ -122,3 +122,52 @@ test('EVERY SELECT AND APPLY BUTTON IS WIRED TO SOMETHING', () => {
   assert.deepEqual(bad, [],
     'these look like a choose-this button and do nothing:\n  ' + bad.join('\n  '));
 });
+
+test('THE MODAL STYLESHEET CLOSES EVERY RULE IT OPENS', () => {
+  /*
+   * The first version of this file was sliced out of mygacalculator.html by
+   * grepping for lines starting ".qbm-", which stopped one line short of the
+   * end of a rule -- and three lines short of the two footer buttons, whose
+   * selectors are written "button.qbm-go" and never matched the pattern.
+   *
+   * An unclosed rule does not fail loudly. It swallows whatever CSS follows
+   * it, so the damage lands on the next thing added rather than on the thing
+   * that was cut, which is how "Not yet" and "Start my application" shipped
+   * as unstyled browser buttons at the foot of a form asking for somebody's
+   * date of birth.
+   */
+  const css = fs.readFileSync(
+    path.join(SITE, 'css', 'quotebot-apply.css'), 'utf8');
+  const open = (css.match(/\{/g) || []).length;
+  const close = (css.match(/\}/g) || []).length;
+  assert.equal(open, close,
+    `${open} rules opened, ${close} closed -- an unclosed rule swallows the CSS after it`);
+});
+
+test('every class the modal wears has a rule somewhere', () => {
+  const css = fs.readFileSync(
+    path.join(SITE, 'css', 'quotebot-apply.css'), 'utf8');
+  const markup = fs.readFileSync(
+    path.join(SITE, 'dimeneedscalculator.html'), 'utf8');
+  const used = new Set();
+  const re = /class="([^"]*)"/g;
+  let m;
+  while ((m = re.exec(markup))) {
+    for (const c of m[1].split(/\s+/)) if (/^qbm/.test(c)) used.add(c);
+  }
+  assert.ok(used.size > 5, 'found almost no modal classes -- is the modal still there?');
+
+  /*
+   * Comments stripped first, so a class named only in the prose above a rule
+   * does not count as styled. Beyond that this asks the plain question --
+   * does any rule mention this class -- and not the cleverer one about
+   * whether that rule is the right one. The failure it exists for is a whole
+   * block going missing, which is what happened; distinguishing a base rule
+   * from a lone :disabled rule would be fitting the test to a mutant rather
+   * than to a bug anybody has had.
+   */
+  const rules = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const unstyled = [...used].filter((c) => !new RegExp('\\.' + c + '(?![\\w-])').test(rules));
+  assert.deepEqual(unstyled, [],
+    'these are worn by the modal and styled by nothing: ' + unstyled.join(', '));
+});
