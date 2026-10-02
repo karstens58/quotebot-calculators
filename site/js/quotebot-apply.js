@@ -326,12 +326,35 @@
      * was already holding -- and why it looked broken rather than empty,
      * since the type-based pass below filled their email and phone anyway.
      */
+    /* GENERATED, NOT LISTED.
+     *
+     * This map has now been wrong twice, both times because a page used a
+     * naming convention nobody had thought of. There are five across the
+     * site -- bare, cf-, f-, gate-, and contact -- and a hand-kept list
+     * silently misses whichever one is added next. So the candidates are
+     * every prefix crossed with every spelling of the field, and
+     * capture-ids-are-reachable.test.mjs fails if any page carries a
+     * capture field this rule cannot find. */
+    var PREFIXES = ['', 'cf-', 'f-', 'gate-', 'contact'];
+    function candidates(names) {
+      var out = [];
+      for (var p = 0; p < PREFIXES.length; p += 1) {
+        for (var n = 0; n < names.length; n += 1) {
+          /* contactFirst, not contactfirst -- that one camel-cases. */
+          out.push(PREFIXES[p] === 'contact'
+            ? 'contact' + names[n].charAt(0).toUpperCase() + names[n].slice(1)
+            : PREFIXES[p] + names[n]);
+        }
+      }
+      return out;
+    }
+
     var copy = [
-      ['qbm-fname', ['cf-fname', 'cf-first', 'contactFirst', 'firstName', 'first']],
-      ['qbm-lname', ['cf-lname', 'cf-last', 'contactLast', 'lastName', 'last']],
-      ['qbm-dob',   ['cf-dob', 'contactDob', 'dob']],
-      ['qbm-phone', ['cf-phone', 'contactPhone', 'phone']],
-      ['qbm-email', ['cf-email', 'contactEmail', 'email']]
+      ['qbm-fname', candidates(['first', 'fname', 'firstName'])],
+      ['qbm-lname', candidates(['last', 'lname', 'lastName'])],
+      ['qbm-dob',   candidates(['dob'])],
+      ['qbm-phone', candidates(['phone'])],
+      ['qbm-email', candidates(['email'])]
     ];
     copy.forEach(function (pair) {
       var to = document.getElementById(pair[0]);
@@ -375,7 +398,7 @@
        that is the question the rate lookup asked. The home state starts there
        too and can be changed, because most people live where they sign. */
     var quoted = '';
-    ['rateState', 'cf-state', 'contactState', 'state'].forEach(function (id) {
+    ['rateState'].concat(candidates(['state'])).forEach(function (id) {
       if (quoted) return;
       var el = document.getElementById(id);
       if (el && el.value && String(el.value).trim()) quoted = el.value;

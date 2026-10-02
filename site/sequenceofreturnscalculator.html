@@ -1222,6 +1222,16 @@ function qbCaptureLead(){
   } catch (e) { /* capture must never break the calculator */ }
 }
 
+function qbEsc(v) {
+  /* The gate's own values go back into innerHTML below. Unescaped, a name
+     containing markup executes it -- the visitor's own input, so the blast
+     radius is their browser, but this is a lead form and the repo's rule is
+     that nothing ever posts HTML a person wrote. */
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function submitGate() {
   const first = document.getElementById('gate-first').value.trim();
   const last  = document.getElementById('gate-last').value.trim();
@@ -1260,12 +1270,23 @@ function submitGate() {
     <div style="display:flex;align-items:center;gap:12px;padding:18px 20px;background:var(--green-light);border-radius:var(--radius-lg);border:1.5px solid rgba(22,163,74,0.2);">
       <div style="font-size:22px;flex-shrink:0;">✅</div>
       <div>
-        <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:2px;">Results Unlocked — Thanks, ${first}!</div>
+        <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:2px;">Results Unlocked — Thanks, ${qbEsc(first)}!</div>
         <div style="font-size:12.5px;color:var(--gray-dark);line-height:1.5;">A Quote-Bot advisor will follow up with you shortly.</div>
       </div>
     </div>
     <button class="calc-btn" onclick="calculate()" style="margin-top:14px;"><span>⚡</span> View Updated Results</button>
-    <button class="reset-btn" onclick="resetCalc()" style="margin-top:10px;">Reset to defaults</button>`;
+    <button class="reset-btn" onclick="resetCalc()" style="margin-top:10px;">Reset to defaults</button>
+    <!--
+      The four fields above were just destroyed by this very assignment, and
+      the apply modal reads the visitor's details out of the DOM to avoid
+      asking twice. Kept as hidden inputs under their original ids so the
+      carry-over still finds them; no id map could have fixed this, because
+      there was nothing left on the page to find.
+    -->
+    <input type="hidden" id="gate-first" value="${qbEsc(first)}">
+    <input type="hidden" id="gate-last" value="${qbEsc(last)}">
+    <input type="hidden" id="gate-phone" value="${qbEsc(phone)}">
+    <input type="hidden" id="gate-email" value="${qbEsc(email)}">`;
 
   // Now run the calculation and show results
   calculate();
