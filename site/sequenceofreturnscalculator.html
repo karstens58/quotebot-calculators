@@ -171,6 +171,33 @@ tbody tr.neg-row td:first-child::before { content: '↓ '; color: var(--red); }
 .zero { color: var(--gray-mid); }
 
 /* CALLOUT */
+/* GATE FIELD ORDER
+   Email sits beside Phone, with the SMS opt-in on its own full-width row
+   underneath. Placed explicitly rather than reordered in the markup: the
+   opt-in marker has to stay within reach of the phone input it asks about
+   -- sms-optin-present.test.mjs requires a phone field within 700 chars
+   above it, and moving email between them puts the input about 1,130 away,
+   because these fields carry ~600 chars of inline style each. The markup
+   order is therefore phone, opt-in, email, and only the grid differs.
+   Focus order follows the markup: phone, then consent to be texted, then
+   email -- which reads in the order the consent is about. */
+.qb-gate-grid > div:has(> #gate-first) { grid-column: 1; grid-row: 1; }
+.qb-gate-grid > div:has(> #gate-last)  { grid-column: 2; grid-row: 1; }
+.qb-gate-grid > div:has(> #gate-phone) { grid-column: 1; grid-row: 2; }
+.qb-gate-grid > div:has(> #gate-email) { grid-column: 2; grid-row: 2; }
+.qb-gate-grid > .qb-gate-optin         { grid-column: 1 / -1; grid-row: 3; }
+
+/* One column on a phone, stacked in the order above rather than the markup
+   order, so the opt-in still follows both fields instead of splitting them. */
+@media (max-width: 560px) {
+  .qb-gate-grid { grid-template-columns: 1fr; }
+  .qb-gate-grid > div:has(> #gate-first) { grid-column: 1; grid-row: 1; }
+  .qb-gate-grid > div:has(> #gate-last)  { grid-column: 1; grid-row: 2; }
+  .qb-gate-grid > div:has(> #gate-phone) { grid-column: 1; grid-row: 3; }
+  .qb-gate-grid > div:has(> #gate-email) { grid-column: 1; grid-row: 4; }
+  .qb-gate-grid > .qb-gate-optin         { grid-column: 1; grid-row: 5; }
+}
+
 .insight-box { background: var(--teal-light); border: 1.5px solid rgba(13,148,136,0.25); border-radius: var(--radius-lg); padding: 20px 24px; display: flex; gap: 14px; align-items: flex-start; }
 .insight-icon { font-size: 22px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
 .insight-text h4 { font-size: 14px; font-weight: 700; color: var(--teal); margin-bottom: 5px; }
@@ -525,7 +552,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div style="font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--primary-dark);">Unlock Your Results</div>
         </div>
         <p style="font-size:13px;color:var(--gray-mid);line-height:1.6;margin-bottom:18px;">Enter your details below to view your personalized cash value analysis.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="qb-gate-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">First Name <span style="color:var(--red);">*</span></label>
             <input type="text" id="gate-first" placeholder="Jane" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
@@ -538,7 +565,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Phone</label>
             <input type="tel" id="gate-phone" placeholder="(555) 000-0000" oninput="formatPhone(this)" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
           </div>
-            <div data-qb-sms-optin></div>
+            <div class="qb-gate-optin" data-qb-sms-optin></div>
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Email <span style="color:var(--red);">*</span></label>
             <input type="email" id="gate-email" placeholder="jane@example.com" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">

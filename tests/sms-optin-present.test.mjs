@@ -27,7 +27,14 @@ const MARKER = 'data-qb-sms-optin';
 function capturingPages() {
   return readdirSync(site)
     .filter((f) => f.endsWith('.html'))
-    .map((f) => [f, readFileSync(join(site, f), 'utf8')])
+    /* Stylesheets stripped before anything is matched. A page that STYLES
+       the marker -- a grid placement naming it in a selector -- put the
+       string three more times in a <style> block with no phone input above
+       it, and the placement test below read those as three misplaced
+       markers. Narrowing what is searched to markup is not a loosening of
+       that rule: every real marker is still checked exactly as before. */
+    .map((f) => [f, readFileSync(join(site, f), 'utf8')
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')])
     .filter(([, html]) => /QuoteBot\.capture\s*\(/.test(html))
     .filter(([, html]) => /<input[^>]*(type="tel"|id="[^"]*phone)/i.test(html));
 }
