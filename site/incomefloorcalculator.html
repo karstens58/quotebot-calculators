@@ -287,8 +287,12 @@ table.proj-table tbody tr:nth-child(even) td { background: var(--off-white); }
 .cta-section-inner { position: relative; z-index: 1; }
 .cta-section h3 { font-family: 'Fraunces', serif; font-size: 21px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
 .cta-section p { font-size: 13.5px; color: rgba(255,255,255,0.68); margin-bottom: 18px; max-width: 540px; line-height: 1.6; }
-.cta-section a { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--white); color: var(--primary); border-radius: 10px; font-size: 14px; font-weight: 700; transition: transform var(--transition), box-shadow var(--transition); }
-.cta-section a:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+/* The CTA was an <a> styled by element, so converting it to a button
+   orphaned it: no class to keep, and the [data-qb-*] reset then stripped
+   the browser's own button chrome too, leaving bare text on the dark
+   band. Both element types, so neither can be orphaned again. */
+.cta-section a, .cta-section [data-qb-advisor], .cta-section [data-qb-apply] { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--white); color: var(--primary); border-radius: 10px; font-size: 14px; font-weight: 700; transition: transform var(--transition), box-shadow var(--transition); }
+.cta-section a:hover, .cta-section [data-qb-advisor]:hover, .cta-section [data-qb-apply]:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
 
 /* DISCLAIMER */
 .disclaimer { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-top: 18px; }
@@ -738,7 +742,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         <div class="cta-section-inner">
           <h3>Lock in the real numbers with a licensed specialist</h3>
           <p>This is an illustrative starting point — not a recommendation, offer, or guarantee. A licensed Quote-Bot specialist can pull live carrier illustrations with current roll-up and payout rates, confirm suitability, and tailor the income floor to your full picture, with no sales pressure.</p>
-          <button type="button" data-qb-advisor>Review my income floor →</button>
+          <button type="button" data-qb-advisor>Design it for me &rarr;</button>
         </div>
       </div>
 

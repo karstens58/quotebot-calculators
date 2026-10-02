@@ -255,3 +255,39 @@ test('A SCROLLING PANEL NEVER HIDES ITS OWN BUTTON', () => {
     'these scroll their input panel internally and leave the button below '
     + 'its fold: ' + bad.join(', '));
 });
+
+test('NO CONVERTED BUTTON IS LEFT WITH NOTHING STYLING IT', () => {
+  /*
+   * The ten "help me" buttons used to be anchors. The conversion carried
+   * over class and style attributes -- but one of them had neither, because
+   * it was styled by element type: `.cta-section a { ... }`. Turning it into
+   * a <button> orphaned it, and the [data-qb-*] reset then stripped the
+   * browser's own button chrome as well, so the most enthusiastic CTA on
+   * the income floor results page rendered as bare text on a dark band.
+   *
+   * A button is considered styled if it carries a class, carries an inline
+   * style, or the page has a rule naming the data attribute. That is not a
+   * rendering check -- it cannot be, in a CI run with no browser -- but it
+   * is exactly the hole the conversion left.
+   */
+  const bad = [];
+  for (const page of PAGES) {
+    const src = fs.readFileSync(path.join(SITE, page), 'utf8');
+    /* A :hover rule naming the attribute is not styling the button at rest.
+       The first version of this check accepted one, so reverting only the
+       base rule walked straight past it -- the mutant that proved the guard
+       did not work. */
+    const styledByAttr = (src.match(/\[data-qb-(?:advisor|apply)\][^{]*\{/g) || [])
+      .some((sel) => !/:(hover|focus|active|visited)/.test(sel));
+    const re = /<button\b[^>]*data-qb-(?:advisor|apply)[^>]*>/g;
+    let m;
+    while ((m = re.exec(src))) {
+      const tag = m[0];
+      if (/\bclass="/.test(tag) || /\bstyle="/.test(tag) || styledByAttr) continue;
+      bad.push(`${page}: ${tag.slice(0, 64)}…`);
+    }
+  }
+  assert.deepEqual(bad, [],
+    'these buttons have no class, no inline style and no rule naming the '
+    + 'attribute, so they render as bare text:\n  ' + bad.join('\n  '));
+});
