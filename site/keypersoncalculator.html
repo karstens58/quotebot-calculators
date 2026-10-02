@@ -569,6 +569,18 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
    pages that just unlocked their results. */
 @media (max-width: 680px) {
   .results-header { flex-direction: column; align-items: stretch; }
+  /*
+   * In a COLUMN, flex-basis is height.
+   *
+   * The 320px basis above was written for the row, where it is the width the
+   * text block wants before the button takes its share. Turning the
+   * container on its side turned it into a height, so the block was pinned
+   * to 320px against about 156px of copy and the projection card carried
+   * ~164px of empty navy under the last line, on all five pages with a
+   * results header. Nothing overflowed and nothing clipped, so only the
+   * white space said anything was wrong.
+   */
+  .results-header > :first-child { flex: 0 1 auto; }
   .qb-result-cta { width: 100%; justify-content: center; min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {

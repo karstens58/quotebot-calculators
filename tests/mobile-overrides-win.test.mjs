@@ -170,3 +170,47 @@ test('NO min-width WIDER THAN A PHONE SURVIVES THE MOBILE BREAKPOINT', () => {
   assert.deepEqual(fixed, [],
     'these were fixed — take them out of WIDE_ON_PHONES:\n  ' + fixed.join('\n  '));
 });
+
+test('A FLEX BASIS IN PX IS RESET WHERE THE ROW BECOMES A COLUMN', () => {
+  /*
+   * flex-basis is along the main axis, so turning a container to
+   * `flex-direction: column` at a breakpoint turns every px basis on its
+   * children from a WIDTH into a HEIGHT.
+   *
+   *   .results-header > :first-child { flex: 1 1 320px }       <- a width
+   *   @media (max-width:680px){ .results-header { flex-direction: column } }
+   *
+   * pinned a text block to 320px tall against ~156px of copy, so the MYGA
+   * projection card carried about 164px of empty navy under its last line,
+   * on all five pages with a results header. Nothing overflowed, nothing
+   * clipped, nothing scrolled: the only symptom was white space, which no
+   * other check here can see.
+   */
+  const offenders = [];
+  for (const [file, css] of sheets()) {
+    const { base, mobile } = parse(css);
+
+    const columns = mobile
+      .filter((r) => /flex-direction\s*:\s*column/.test(r.body))
+      .flatMap((r) => r.sel.split(',').map((x) => x.trim()).filter(Boolean));
+    if (!columns.length) continue;
+
+    for (const b of base) {
+      const basis = /(^|;)\s*flex(?:-basis)?\s*:[^;]*?(\d+)px/.exec(b.body);
+      if (!basis || Number(basis[2]) === 0) continue;
+      for (const bsel of b.sel.split(',').map((x) => x.trim()).filter(Boolean)) {
+        /* A child of a container that becomes a column. */
+        if (!columns.some((c) => bsel.startsWith(c + ' ') || bsel === c)) continue;
+        const reset = mobile.some((m) =>
+          /(^|;)\s*flex(?:-basis)?\s*:/.test(m.body)
+          && m.sel.split(',').map((x) => x.trim()).includes(bsel));
+        if (!reset) {
+          offenders.push(`${file}: ${bsel} keeps a ${basis[2]}px basis where its container turns to a column`);
+        }
+      }
+    }
+  }
+  assert.deepEqual([...new Set(offenders)], [],
+    'a px basis becomes a HEIGHT in a column — reset it in the same media query:\n  '
+    + [...new Set(offenders)].join('\n  '));
+});
