@@ -66,17 +66,79 @@
   var qbmSel = null;
 
   function selectionNow(override) {
+    var base = (override && typeof override === 'object') ? override
+      : (override ? { termYears: override } : {});
     try {
-      return (typeof cfg.selection === 'function' ? cfg.selection(override) : null) || {};
-    } catch (e) { return {}; }
+      if (typeof cfg.selection !== 'function') return base;
+      /* The page gets what the button said and may add to it -- the premium
+         the engine computed, the term the page has selected elsewhere. It
+         does not have to repeat what the button already carried. */
+      return cfg.selection(base) || base;
+    } catch (e) { return base; }
   }
+  var usd = function (n) {
+    return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  };
+
   function summaryRows(sel) {
     try {
-      var r = (typeof cfg.summary === 'function') ? cfg.summary(sel) : null;
-      return Array.isArray(r) ? r.filter(function (x) { return x && x[1]; }) : [];
-    } catch (e) { return []; }
+      if (typeof cfg.summary === 'function') {
+        var r = cfg.summary(sel);
+        if (Array.isArray(r)) return r.filter(function (x) { return x && x[1]; });
+      }
+    } catch (e) { /* fall through to the generic rows below */ }
+    /* What every one of these cards has. A page only writes a summary() when
+       it has something to say that these four lines cannot. */
+    var rows = [];
+    if (sel.carrierName) rows.push(['Carrier', sel.carrierName]);
+    if (sel.product) rows.push(['Product', sel.product]);
+    if (num(sel.termYears)) rows.push(['Term', num(sel.termYears) + ' years']);
+    if (num(sel.coverage)) rows.push(['Cover', usd(sel.coverage)]);
+    if (num(sel.rate)) rows.push(['Rate', num(sel.rate).toFixed(2) + '%']);
+    return rows;
   }
   var num = function (v) { var n = Number(v); return isFinite(n) ? n : null; };
+
+  /*
+   * BUTTONS ARE FOUND, NOT WIRED.
+   *
+   * Every rate card on these pages is built from a template string when the
+   * engine answers, so a listener attached at load finds nothing and an
+   * onclick attribute means serialising a selection into markup -- quoting a
+   * carrier name like O'Brien & Sons into an attribute that then has to
+   * survive two levels of escaping. One delegated listener on the document
+   * reads the dataset off whichever button was pressed, so a card rendered
+   * ten seconds from now works with no further thought.
+   *
+   *   <button type="button" data-qb-apply
+   *           data-carrier-name="Foresters" data-term-years="20"
+   *           data-premium="42.17" data-coverage="500000"
+   *           data-person="1">Apply Now</button>
+   *
+   *   <button type="button" data-qb-advisor>Help me with my plan</button>
+   *
+   * The dataset keys ARE the selection field names, so a page that has
+   * nothing unusual to say needs no selection() at all.
+   */
+  function datasetOf(el) {
+    var out = {};
+    if (!el || !el.dataset) return out;
+    Object.keys(el.dataset).forEach(function (k) {
+      if (k === 'qbApply' || k === 'qbAdvisor') return;
+      var v = el.dataset[k];
+      out[k] = (v !== '' && v !== null && isFinite(Number(v))) ? Number(v) : v;
+    });
+    return out;
+  }
+
+  document.addEventListener('click', function (ev) {
+    var btn = ev.target && ev.target.closest
+      ? ev.target.closest('[data-qb-apply],[data-qb-advisor]') : null;
+    if (!btn) return;
+    var over = datasetOf(btn);
+    if (btn.hasAttribute('data-qb-advisor')) qbAskAdvisor(ev, over);
+    else qbApplyNow(ev, over);
+  });
 
 
   /* ── APPLY REVIEW ──────────────────────────────────────────────────────────
