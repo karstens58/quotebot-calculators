@@ -227,3 +227,31 @@ test('THE SMS DISCLOSURE DOES NOT ASK THE PAGE WHAT COLOUR TO BE', () => {
     + 'swallow it -- pinning the text colour alone does not help, because '
     + '--text is a page token and the surface is local');
 });
+
+test('A SCROLLING PANEL NEVER HIDES ITS OWN BUTTON', () => {
+  /*
+   * .left-panel is height:100vh with overflow-y:auto, so it scrolls inside
+   * itself and the page scrollbar does not reach it. The Calculate button
+   * is the last thing in that panel, so without a sticky rule it sat below
+   * the fold of a column people may not realise is scrollable -- 589px
+   * down on income floor, 989 on retirement distribution, 1312 on MYGA.
+   *
+   * Source-level, not rendered: these pages are static HTML and a CI run
+   * with no browser cannot measure a scrollport. What it CAN check is that
+   * every page which scrolls a panel internally also pins the button in
+   * it, which is the property that was missing.
+   */
+  const bad = [];
+  for (const page of PAGES) {
+    const src = fs.readFileSync(path.join(SITE, page), 'utf8');
+    const scrolls = /\.left-panel\s*\{[^}]*overflow-y:\s*auto/.test(src);
+    const hasCta = /class="run-btn"/.test(src);
+    if (!scrolls || !hasCta) continue;
+    if (!/\.left-panel\s+\.run-btn\s*\{[^}]*position:\s*sticky/.test(src)) {
+      bad.push(page);
+    }
+  }
+  assert.deepEqual(bad, [],
+    'these scroll their input panel internally and leave the button below '
+    + 'its fold: ' + bad.join(', '));
+});

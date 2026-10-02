@@ -518,6 +518,24 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 .page-layout, .calc-grid, .page, .calc-wrapper, .main-layout {
   max-width: 1304px; margin-left: auto; margin-right: auto;
   padding-left: 32px; padding-right: 32px; }
+
+/* ── THE BUTTON IS ALWAYS REACHABLE ───────────────────────────────────────
+   .left-panel is height:100vh with overflow-y:auto, so it scrolls INSIDE
+   itself. The Calculate button is the last thing in it, which meant you
+   had to scroll a panel you may not have realised was scrollable before
+   you could press the only button on the page. Measured: 589px of hidden
+   scrolling on income floor, 989 on retirement distribution and 1312 on
+   MYGA -- on the page that sells annuities, the call to action was more
+   than a screen and a half below the fold of its own column.
+
+   Sticky to the bottom of the scrollport, so the fields move behind it and
+   it never leaves. The first shadow is a solid band of the panel's own
+   colour under the button, so a half-visible form row cannot peer out from
+   beneath it; the second is an ordinary lift. */
+.left-panel .run-btn {
+  position: sticky; bottom: 0; z-index: 5; margin-top: 10px;
+  box-shadow: 0 10px 0 10px var(--off-white), 0 -8px 16px -8px rgba(26,61,107,.22);
+}
 /* qb:chrome-css:end */
 </style>
   <!-- The quote engine. Same Function URL the quote tool and D.I.M.E. use;
