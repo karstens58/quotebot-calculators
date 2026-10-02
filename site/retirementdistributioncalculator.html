@@ -130,7 +130,7 @@ nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.97)
 
 @media(max-width:900px) {
   .page-layout { grid-template-columns: 1fr; }
-  .left-panel { position: static; height: auto; border-right: none; border-bottom: 1.5px solid var(--border); }
+  .left-panel, .page-layout.inputs-hidden .left-panel { position: static; height: auto; border-right: none; border-bottom: 1.5px solid var(--border); }
   .right-panel { padding: 24px 20px 60px; }
 }
 

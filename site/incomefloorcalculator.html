@@ -112,7 +112,7 @@ a { text-decoration: none; color: inherit; }
 
 @media(max-width:900px) {
   .page-layout { grid-template-columns: 1fr; }
-  .left-panel { position: static; height: auto; border-right: none; border-bottom: 1.5px solid var(--border); }
+  .left-panel, .page-layout.inputs-hidden .left-panel { position: static; height: auto; border-right: none; border-bottom: 1.5px solid var(--border); }
   .right-panel { padding: 24px 20px 60px; }
 }
 
