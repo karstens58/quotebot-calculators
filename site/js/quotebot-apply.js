@@ -87,8 +87,34 @@
         if (Array.isArray(r)) return r.filter(function (x) { return x && x[1]; });
       }
     } catch (e) { /* fall through to the generic rows below */ }
-    /* What every one of these cards has. A page only writes a summary() when
-       it has something to say that these four lines cannot. */
+    /*
+     * WHAT THE PAGE IS ALREADY SHOWING.
+     *
+     * cfg.summary is a function, and the config reaches these pages as JSON
+     * (window.QB_APPLY = {...}), which cannot carry one. That is why no
+     * calculator had a summary and all ten printed the generic rows below:
+     * not ten authors forgetting, but a channel that could not express it.
+     *
+     * So the page declares its summary in markup instead -- data-qb-sum on
+     * the element holding each value, with the label as the attribute. The
+     * figures are read from the rendered results, so what the modal shows
+     * is by construction the same arithmetic the visitor just read. A
+     * summary that can drift from the page is worse than none, because
+     * this is the panel someone checks before giving us their name.
+     */
+    var marked = document.querySelectorAll('[data-qb-sum]');
+    if (marked.length) {
+      var declared = [];
+      for (var m = 0; m < marked.length && declared.length < 6; m += 1) {
+        if (marked[m].closest('.qbm-veil')) continue;
+        var label = marked[m].getAttribute('data-qb-sum');
+        var value = (marked[m].textContent || '').trim();
+        if (label && value) declared.push([label, value]);
+      }
+      if (declared.length) return declared;
+    }
+
+    /* What every one of these cards has, for a page that declares nothing. */
     var rows = [];
     if (sel.carrierName) rows.push(['Carrier', sel.carrierName]);
     if (sel.product) rows.push(['Product', sel.product]);
@@ -259,15 +285,34 @@
     qbFillStates('qbm-state');
     qbFillStates('qbm-signstate');
 
-    /* Everything they have already typed, carried over. Asking a second time
-       for a name they gave two minutes ago is how a form gets abandoned. */
-    var copy = [['cf-fname','qbm-fname'], ['cf-lname','qbm-lname'],
-                ['cf-dob','qbm-dob'], ['cf-phone','qbm-phone'],
-                ['cf-email','qbm-email']];
+    /*
+     * Everything they have already typed, carried over. Asking a second time
+     * for a name they gave two minutes ago is how a form gets abandoned.
+     *
+     * One destination, SEVERAL possible sources, because the capture forms
+     * were not built together and name their fields three different ways:
+     * MYGA uses cf-*, the income pages use contactFirst/contactLast, and the
+     * FIA rider page uses bare first/last/email. A single-convention map is
+     * why the modal kept asking Income Floor visitors for a name the page
+     * was already holding -- and why it looked broken rather than empty,
+     * since the type-based pass below filled their email and phone anyway.
+     */
+    var copy = [
+      ['qbm-fname', ['cf-fname', 'cf-first', 'contactFirst', 'firstName', 'first']],
+      ['qbm-lname', ['cf-lname', 'cf-last', 'contactLast', 'lastName', 'last']],
+      ['qbm-dob',   ['cf-dob', 'contactDob', 'dob']],
+      ['qbm-phone', ['cf-phone', 'contactPhone', 'phone']],
+      ['qbm-email', ['cf-email', 'contactEmail', 'email']]
+    ];
     copy.forEach(function (pair) {
-      var from = document.getElementById(pair[0]);
-      var to = document.getElementById(pair[1]);
-      if (from && to && !to.value) to.value = from.value || '';
+      var to = document.getElementById(pair[0]);
+      if (!to || to.value) return;
+      for (var i = 0; i < pair[1].length; i += 1) {
+        var from = document.getElementById(pair[1][i]);
+        if (from && from.value && String(from.value).trim()) {
+          to.value = from.value; return;
+        }
+      }
     });
 
     /*
@@ -300,8 +345,12 @@
     /* The state they gave the calculator is the state they are signing in —
        that is the question the rate lookup asked. The home state starts there
        too and can be changed, because most people live where they sign. */
-    var quoted = (document.getElementById('rateState') || {}).value
-      || (document.getElementById('cf-state') || {}).value || '';
+    var quoted = '';
+    ['rateState', 'cf-state', 'contactState', 'state'].forEach(function (id) {
+      if (quoted) return;
+      var el = document.getElementById(id);
+      if (el && el.value && String(el.value).trim()) quoted = el.value;
+    });
     var sign = document.getElementById('qbm-signstate');
     var home = document.getElementById('qbm-state');
     if (sign && !sign.value) sign.value = quoted;

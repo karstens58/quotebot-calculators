@@ -291,3 +291,59 @@ test('NO CONVERTED BUTTON IS LEFT WITH NOTHING STYLING IT', () => {
     'these buttons have no class, no inline style and no rule naming the '
     + 'attribute, so they render as bare text:\n  ' + bad.join('\n  '));
 });
+
+/*
+ * A CTA THAT GOES NOWHERE.
+ *
+ * Retirement Distribution shipped two "Talk to an Advisor" buttons pointing
+ * at href="#". They looked like working CTAs, sat in the dark band next to a
+ * real one, and did nothing when pressed. The host allowlist above could not
+ * see them, because "#" names no host.
+ */
+test('NO CTA LINKS TO href="#"', () => {
+  const offenders = [];
+  for (const f of PAGES) {
+    const src = fs.readFileSync(path.join(SITE, f), 'utf8');
+    for (const m of src.matchAll(/<a\s[^>]*href="#"[^>]*>([\s\S]{0,60}?)<\/a>/g)) {
+      const label = m[1].replace(/<[^>]+>/g, '').trim();
+      if (label) offenders.push(`${f}: "${label}"`);
+    }
+  }
+  assert.deepEqual(offenders, [], `dead links:\n  ${offenders.join('\n  ')}`);
+});
+
+/*
+ * THE MODAL'S SUMMARY MUST COME FROM THE PAGE.
+ *
+ * cfg.summary is a function and the config arrives as JSON, so for a long
+ * while every calculator fell through to the module's generic rows and the
+ * panel headed "What you worked out" told the visitor "The contract shown
+ * above". A page that opens the apply modal has to declare its own figures.
+ */
+const AWAITING_SUMMARY = [
+  'careltccalculator.html',
+  'crosspurchasebuysellcalculator.html',
+  'dimeneedscalculator.html',
+  'keypersoncalculator.html',
+  'ltcannuitytaxillustration.html',
+  'mugcalculator.html',
+  'quotetool.html',
+  'retirementdistributioncalculator.html',
+  'sequenceofreturnscalculator.html'
+];
+
+test('EVERY PAGE USING THE APPLY MODAL DECLARES ITS SUMMARY', () => {
+  const srcOf = (f) => fs.readFileSync(path.join(SITE, f), 'utf8');
+  const usesModal = PAGES.filter((f) => srcOf(f).includes('quotebot-apply.js'));
+
+  const missing = usesModal
+    .filter((f) => !srcOf(f).includes('data-qb-sum'))
+    .filter((f) => !AWAITING_SUMMARY.includes(f));
+  assert.deepEqual(missing, [], `no summary declared:\n  ${missing.join('\n  ')}`);
+
+  /* The list above is work owed, not a permanent exemption: a page that has
+     since been given its figures must come off it, or the next page added
+     to the list hides behind a name nobody rechecks. */
+  const stale = AWAITING_SUMMARY.filter((f) => !usesModal.includes(f) || srcOf(f).includes('data-qb-sum'));
+  assert.deepEqual(stale, [], `remove from AWAITING_SUMMARY:\n  ${stale.join('\n  ')}`);
+});

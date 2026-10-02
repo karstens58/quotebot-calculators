@@ -1069,7 +1069,7 @@ function runCalc() {
     ['Guaranteed monthly income', fmt0(incomeBaseAtRet * payout / 12)]
   ];
   document.querySelector('#projTable tbody').innerHTML =
-    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+    rows.map(r => `<tr><td>${r[0]}</td><td data-qb-sum="${r[0]}">${r[1]}</td></tr>`).join('');
 }
 
 /* ── INIT ─────────────────────────────────────────────────────────────────── */
