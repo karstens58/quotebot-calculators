@@ -55,7 +55,17 @@ const TOOLS = {
   'ltcannuitytaxillustration.html': { productLine: 'ANNUITY_FIXED' },
   'mugcalculator.html': { productLine: 'TERM_LIFE' },
   'mygacalculator.html': { productLine: 'ANNUITY_FIXED' },
-  'quotetool.html': { productLine: 'TERM_LIFE' },
+  /*
+   * The quote tool's Select buttons carry the carrier, but not the term:
+   * the term is a property of what the visitor ASKED for, not of the row
+   * the engine answered with, and it lives in the category dropdown. A
+   * to-age-95 UL has no term length at all, which is why termYearsOf gives
+   * null rather than a number -- and null is the right thing to send.
+   */
+  'quotetool.html': {
+    productLine: 'TERM_LIFE',
+    selectionFrom: 'quotetool',
+  },
   'retirementdistributioncalculator.html': { productLine: 'ANNUITY_FIXED' },
   'sequenceofreturnscalculator.html': { productLine: 'ANNUITY_FIXED' },
   'fiaincomeridercalculator.html': { productLine: 'ANNUITY_FIXED' },
@@ -82,8 +92,30 @@ function publishCss() {
   return false;
 }
 
+/**
+ * A page that needs to compute part of its selection says so by name, and
+ * the function lives here rather than in thirteen pages.
+ *
+ * Kept deliberately small. The moment one of these needs more than a few
+ * lines it belongs in the page it describes, not in the script that writes
+ * the pages.
+ */
+const SELECTORS = {
+  quotetool:
+    'function (s) { s.termYears = (typeof getInputs === "function" '
+    + '? getInputs().term : null); return s; }',
+};
+
 function configLine(cfg) {
-  return '  <script>window.QB_APPLY = ' + JSON.stringify(cfg) + ';</script>';
+  const { selectionFrom, ...rest } = cfg;
+  let json = JSON.stringify(rest);
+  if (selectionFrom) {
+    const fn = SELECTORS[selectionFrom];
+    if (!fn) throw new Error(`no selector named ${selectionFrom}`);
+    json = json.replace(/\}$/, ',"selection":' + JSON.stringify('@@FN@@') + '}')
+      .replace('"@@FN@@"', fn);
+  }
+  return '  <script>window.QB_APPLY = ' + json + ';</script>';
 }
 
 function apply(file, cfg) {

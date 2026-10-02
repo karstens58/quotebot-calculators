@@ -97,3 +97,28 @@ test('the highest-intent buttons open something rather than going somewhere', ()
       `${page} has an Apply Now that is a link rather than a button`);
   }
 });
+
+test('EVERY SELECT AND APPLY BUTTON IS WIRED TO SOMETHING', () => {
+  /*
+   * The quote tool's two Select buttons did nothing at all -- no handler, no
+   * href, no listener. Press one and the page sat there. That is harder to
+   * notice than a dead link, because a dead link at least navigates
+   * somewhere and shows an error; a dead button looks like a slow page, so
+   * the visitor presses it again and then leaves.
+   *
+   * Any button wearing the class that means "choose this one" has to carry
+   * data-qb-apply. A new rate card copied from an old one fails here rather
+   * than in front of somebody who wanted to buy.
+   */
+  const bad = [];
+  for (const page of PAGES) {
+    const src = fs.readFileSync(path.join(SITE, page), 'utf8');
+    const re = /<button\b[^>]*class="[^"]*\bselect-btn\b[^"]*"[^>]*>/gi;
+    let m;
+    while ((m = re.exec(src))) {
+      if (!/data-qb-apply/.test(m[0])) bad.push(`${page}: ${m[0].slice(0, 70)}…`);
+    }
+  }
+  assert.deepEqual(bad, [],
+    'these look like a choose-this button and do nothing:\n  ' + bad.join('\n  '));
+});

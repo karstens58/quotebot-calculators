@@ -368,6 +368,9 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           data-endpoint="https://im62dp4hwe34ez7lmhvtfk75xa0zkkxv.lambda-url.us-east-2.on.aws/"
           data-tool="quote" data-state="#state" data-context></script>
   <script>window.QB_QUOTE_ENDPOINT = "https://dwicf2jtppp3vpigyhrxybiyra0frcao.lambda-url.us-east-2.on.aws/";</script>
+  <link rel="stylesheet" href="css/quotebot-apply.css">
+  <script>window.QB_APPLY = {"productLine":"TERM_LIFE","selection":function (s) { s.termYears = (typeof getInputs === "function" ? getInputs().term : null); return s; }};</script>
+  <script src="js/quotebot-apply.js" defer></script>
 </head>
 <body>
 
@@ -1729,7 +1732,9 @@ function renderBest(){
           <div class="best-rating">Rating: <b>${esc(cfg.rating)}</b></div>
         </div>
         ${cfg.health ? '<div class="best-health">' + cfg.health + '</div>' : ''}
-        <button class="select-btn">Select</button>
+        <button class="select-btn" type="button" data-qb-apply
+                data-carrier-name="${esc(cfg.name)}" data-product="${esc(cfg.prod)}"
+                data-coverage="${cfg.coverage}" data-premium="${cfg.monthly}">Select</button>
       </div>
     </div>`;
 
@@ -1855,7 +1860,9 @@ function renderList(){
       </div>
       <div class="pr-rating ${q.rating==='Unknown'?'unknown':''}">Rating: <b>${q.rating}</b></div>
       ${healthBadge(q)}
-      <button class="select-btn sm">Select</button>
+      <button class="select-btn sm" type="button" data-qb-apply
+              data-carrier-name="${esc(q.name)}" data-product="${esc(q.prodResolved)}"
+              data-coverage="${q.coverage}" data-premium="${q.monthly}">Select</button>
     </div>`).join('');
 
   // show more visibility
@@ -1976,5 +1983,140 @@ function editInputs(){
       </div>
     </div>
 
+<!-- qb:apply-modal:start -->
+<div data-qb-apply-modal class="qbm-veil" id="qbm-veil" role="dialog" aria-modal="true"
+     aria-labelledby="qbm-title">
+  <div class="qbm" role="document">
+    <div class="qbm-head">
+      <div>
+        <h2 id="qbm-title">Let's check this before we start</h2>
+        <p>Three things to confirm and we can get your application moving. It
+           takes about a minute, and nothing is submitted to a carrier yet.</p>
+      </div>
+      <button class="qbm-x" type="button" aria-label="Close"
+              onclick="qbCloseApply()">&times;</button>
+    </div>
+
+    <div class="qbm-body">
+
+      <div class="qbm-sec" data-sec="chosen">
+        <h3>The contract you chose</h3>
+        <div class="qbm-chosen" id="qbm-chosen"></div>
+      </div>
+
+      <div class="qbm-sec" data-sec="you">
+        <h3>You</h3>
+        <p class="qbm-why">Change anything that is not right — this is what
+          goes on the application.</p>
+        <div class="qbm-grid">
+          <div class="qbm-f"><label for="qbm-fname">First name</label>
+            <input type="text" id="qbm-fname" autocomplete="section-buyer given-name"></div>
+          <div class="qbm-f"><label for="qbm-lname">Last name</label>
+            <input type="text" id="qbm-lname" autocomplete="section-buyer family-name"></div>
+          <div class="qbm-f"><label for="qbm-dob">Date of birth</label>
+            <input type="date" id="qbm-dob" autocomplete="section-buyer bday"></div>
+          <div class="qbm-f"><label for="qbm-phone">Phone</label>
+            <input type="tel" id="qbm-phone" autocomplete="section-buyer tel"></div>
+          <div class="qbm-f wide"><label for="qbm-email">Email</label>
+            <input type="email" id="qbm-email" autocomplete="section-buyer email"></div>
+        </div>
+      </div>
+
+      <div class="qbm-sec" data-sec="where">
+        <h3>Where you live</h3>
+        <p class="qbm-why">A carrier issues the contract to an address, so we
+          cannot start without one.</p>
+        <div class="qbm-grid">
+          <div class="qbm-f wide"><label for="qbm-line1">Street address</label>
+            <input type="text" id="qbm-line1" autocomplete="section-buyer address-line1"></div>
+          <div class="qbm-f wide"><label for="qbm-line2">Apartment, suite (optional)</label>
+            <input type="text" id="qbm-line2" autocomplete="section-buyer address-line2"></div>
+          <div class="qbm-f"><label for="qbm-city">City</label>
+            <input type="text" id="qbm-city" autocomplete="section-buyer address-level2"></div>
+          <div class="qbm-f"><label for="qbm-state">State</label>
+            <select id="qbm-state" autocomplete="section-buyer address-level1"></select></div>
+          <div class="qbm-f"><label for="qbm-zip">ZIP</label>
+            <input type="text" id="qbm-zip" inputmode="numeric"
+                   autocomplete="postal-code"></div>
+          <div class="qbm-f"><label for="qbm-signstate">State you will sign in</label>
+            <select id="qbm-signstate"></select></div>
+        </div>
+      </div>
+
+      <div class="qbm-sec" data-sec="owner">
+        <h3>Who owns it</h3>
+        <!-- Asked because on an annuity the owner and the measuring life need
+             not be the same person, and that split carries the tax and
+             death-benefit consequences. Most people are both, so that is the
+             default and the rest of it stays out of the way. -->
+        <p class="qbm-why">On an annuity the owner and the person it is
+          measured on can be different people, and it changes how it is taxed
+          and what happens on death.</p>
+        <div class="qbm-choice">
+          <label><input type="radio" name="qbm-own" value="me" checked
+                        onchange="qbOwnerChanged()"> I own it, and it is measured on my life</label>
+          <label><input type="radio" name="qbm-own" value="other"
+                        onchange="qbOwnerChanged()"> Somebody else owns it</label>
+        </div>
+        <div class="qbm-grid" id="qbm-owner-fields" hidden>
+          <div class="qbm-f"><label for="qbm-own-fname">Owner's first name</label>
+            <input type="text" id="qbm-own-fname" autocomplete="section-owner given-name"></div>
+          <div class="qbm-f"><label for="qbm-own-lname">Owner's last name</label>
+            <input type="text" id="qbm-own-lname" autocomplete="section-owner family-name"></div>
+          <div class="qbm-f wide"><label for="qbm-own-rel">How they are related to you</label>
+            <input type="text" id="qbm-own-rel" placeholder="Spouse, trust, employer…" autocomplete="off"></div>
+        </div>
+      </div>
+
+      <div class="qbm-sec" data-sec="bens">
+        <h3>Who receives it</h3>
+        <p class="qbm-why">Your beneficiaries, and what share each one gets.
+          Shares have to add up to 100.</p>
+        <div id="qbm-bens"></div>
+        <button class="qbm-mini" type="button" onclick="qbAddBeneficiary()">
+          + Add a beneficiary</button>
+        <p class="qbm-total" id="qbm-bentotal"></p>
+      </div>
+
+      <div id="qbm-error" class="qbm-err" hidden></div>
+    </div>
+
+    <div class="qbm-foot">
+      <button class="qbm-back" type="button" onclick="qbCloseApply()">Not yet</button>
+      <span class="note">No signature, no payment, and nothing goes to a
+        carrier. One of our advisors will call you to confirm.</span>
+      <button class="qbm-go" type="button" id="qbm-go" onclick="qbSubmitApply()">
+        Confirm and start</button>
+    </div>
+  </div>
+</div>
+<!-- ── THE ANSWER ───────────────────────────────────────────────────────
+     MYGA has its own confirmation panel under the results and keeps it.
+     The nine pages that got the modal have no such panel, so without this
+     the flow submitted and the modal simply shut -- a person presses the
+     biggest button on the page, the box disappears, and nothing says
+     whether it worked. They press it again. -->
+<div class="qbm-veil" id="qbm-done-veil" role="dialog" aria-modal="true"
+     aria-labelledby="qbm-done-title">
+  <div class="qbm qbm-done" role="document">
+    <div class="qbm-head">
+      <h2 id="qbm-done-title">Thanks — we have it.</h2>
+      <button class="qbm-x" type="button" aria-label="Close"
+              onclick="qbCloseDone()">&times;</button>
+    </div>
+    <div class="qbm-body">
+      <p id="qbm-done-what"></p>
+      <p class="qbm-note" id="qbm-done-next">
+        A Client Solutions Advisor will be in touch. Nothing is submitted to a
+        carrier yet, and nothing happens to your cover until you say so.
+      </p>
+    </div>
+    <div class="qbm-foot">
+      <button class="qbm-go" type="button" onclick="qbCloseDone()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- qb:apply-modal:end -->
 </body>
 </html>
