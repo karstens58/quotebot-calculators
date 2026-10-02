@@ -229,7 +229,86 @@ a { text-decoration: none; color: inherit; }
 .metric-tile.gold .metric-label { color: var(--gold); }
 .metric-val { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--primary-dark); line-height: 1.05; }
 .metric-sub { font-size: 10.5px; color: var(--gray-mid); margin-top: 3px; line-height: 1.4; }
-@media(max-width:560px){ .metric-grid { grid-template-columns: 1fr; } }
+@media(max-width:560px){
+  .metric-grid { grid-template-columns: 1fr; }
+
+  /* COMPARE ROWS — fixed columns that do not fit a phone.
+     90 + 110 + 22 of fixed track, 84 for Apply and 4x12 of gap is 354px of
+     demand inside a card with ~331px to give. The 1fr bar track had already
+     collapsed to 0 absorbing it, and the row still overflowed: at 408px the
+     value box ran to 386 and the chevron to 420 while the card ended at 355,
+     so every maturity figure was clipped to "$569" and not one row showed it
+     could be opened. Nothing reported it, because the PAGE never scrolled --
+     the card hid its own overflow. */
+  .compare-row { grid-template-columns: 1fr auto auto; gap: 10px; }
+  .compare-bar-track { display: none; }
+  .compare-apply { display: none; }
+  /* Apply belongs to the row they opened. Eight identical green buttons down
+     a scrolling list compete with each other; one is a decision. Ordered last
+     so it lands on its own line under the value rather than before it. */
+  .compare-item.expanded .compare-apply {
+    display: inline-flex; order: 1; grid-column: 1 / -1;
+    width: 100%; min-height: 44px; margin-top: 9px;
+  }
+
+  /* YEAR-BY-YEAR — min-width 400 inside a 277px parent put Account Value at
+     466px against a 408px viewport: not clipped at the edge, entirely off the
+     screen, on all ten tables. A five-row table whose third column is the
+     whole point is five figures with labels, which is a list, and a list has
+     no width to run out of. */
+  .table-scroll { overflow-x: visible; }
+  /* `table.proj-table` sets the 400, and that is (0,1,1) against this
+     rule's (0,1,0) -- a media query does not change specificity, so a
+     bare .proj-table here loses and the table stays 400px wide. Matched
+     on the element too. Measured, not assumed: display:block applied
+     from the weaker selector because nothing competed for it, which is
+     exactly what made this look like it had worked. */
+  table.proj-table { min-width: 0; display: block; }
+  .proj-table thead { display: none; }
+  .proj-table tbody { display: block; }
+  .proj-table tbody tr {
+    display: grid; grid-template-columns: 1fr auto; column-gap: 12px;
+    align-items: center; background: var(--white);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 9px 12px; margin-bottom: 7px;
+  }
+  .proj-table tbody td { display: block; border: none; padding: 0; text-align: left; }
+  /* Zebra striping is painted on the CELLS, which as rows made sense and as
+     cards reads as grey rectangles floating inside a white box. Moved to the
+     card, where the stripe belongs now that the row IS the card. The maturity
+     row keeps its emphasis the same way. */
+  .proj-table tbody tr:nth-child(even) td,
+  .proj-table tbody tr:last-child td,
+  .proj-table tbody tr:last-child td:nth-child(even) { background: none; }
+  .proj-table tbody tr:nth-child(even) { background: var(--off-white); }
+  .proj-table tbody tr:last-child { background: var(--accent-light); border-color: var(--accent); }
+  .proj-table tbody tr:last-child td:nth-child(3) { color: var(--primary); }
+  .proj-table tbody td:nth-child(1) {
+    grid-column: 1; grid-row: 1; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-mid);
+  }
+  .proj-table tbody td:nth-child(2) {
+    grid-column: 1; grid-row: 2; font-size: 11.5px; color: var(--gray-dark);
+  }
+  /* The column head carried this word and the head is hidden here. */
+  .proj-table tbody td:nth-child(2)::after { content: ' credited'; color: var(--gray-mid); }
+  .proj-table tbody td:nth-child(3) {
+    grid-column: 2; grid-row: 1 / 3; align-self: center; text-align: right;
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 17px;
+    color: var(--primary-dark);
+  }
+
+  /* 8.5px is below any readable floor, and these two labels do the most work
+     in the carrier list. Sentence case buys back the width the size costs. */
+  .carrier-rank-badge, .term-tile .t-best {
+    font-size: 11px; text-transform: none; letter-spacing: 0; padding: 3px 9px;
+  }
+
+  /* 33-36px against a 44px floor. */
+  input[type="text"], input[type="email"], input[type="tel"],
+  input[type="date"], input[type="number"], select { min-height: 44px; }
+  .apply-now-btn, .qual-toggle button, .radio-opt { min-height: 44px; }
+}
 
 /* COMPARE ALL TERMS — expandable rows */
 .compare-list { display: flex; flex-direction: column; gap: 8px; }
