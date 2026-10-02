@@ -610,6 +610,27 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   .qb-result-cta, .qb-result-cta:hover { transition: none; transform: none; }
 }
 
+
+/* Only a header that actually carries the button becomes a row. The
+   strategy card's header is display:block, so without this the button
+   dropped onto a line of its own underneath -- and :has keeps the
+   collapsible cards' headers exactly as they were. */
+.chart-card-header:has(> .qb-result-cta) {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
+}
+
+/* A card header whose text block would otherwise run the full row. Capping
+   the measure is what makes room for the button beside it; without the cap
+   the paragraph simply takes the space back. */
+.qb-card-head-text { flex: 1 1 auto; min-width: 0; max-width: 68ch; }
+
+/* The same button on a light card. The white treatment above assumes the
+   dark results band and disappears on anything pale. */
+.qb-result-cta--onlight {
+  background: var(--primary, #1a3d6b); color: var(--white, #ffffff);
+}
+
 /* qb:chrome-css:end */
 </style>
   <script src="js/quotebot-consent.js"

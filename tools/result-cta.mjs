@@ -29,14 +29,20 @@ const END = '<!-- qb:result-cta:end -->';
    .results-header; Retirement Distribution and Sequence of Returns have no
    such element and are deliberately absent until they get one. */
 const PAGES = [
-  'incomefloorcalculator.html',
-  'careltccalculator.html',
-  'ltcannuitytaxillustration.html',
-  'mugcalculator.html'
+  { file: 'incomefloorcalculator.html', anchor: '<div class="results-header">' },
+  { file: 'careltccalculator.html', anchor: '<div class="results-header">' },
+  { file: 'ltcannuitytaxillustration.html', anchor: '<div class="results-header">' },
+  { file: 'mugcalculator.html', anchor: '<div class="results-header">' },
+  /* Retirement Distribution has no results header. Its anchor is the header
+     of the strategy card, which is a pale lavender, so the button takes the
+     light variant -- the white one assumes the dark band and vanishes here. */
+  { file: 'retirementdistributioncalculator.html',
+    anchor: '<div class="chart-card-header">', variant: 'qb-result-cta--onlight' }
 ];
 
-const BUTTON =
-  START + '<button type="button" data-qb-advisor class="qb-result-cta">' +
+const button = (variant) =>
+  START + '<button type="button" data-qb-advisor class="qb-result-cta' +
+  (variant ? ' ' + variant : '') + '">' +
   'Have an advisor design this &rarr;</button>' + END;
 
 /* The closing tag of the element the opening tag at `from` starts. Counting
@@ -62,7 +68,7 @@ function closingTagOf(html, from) {
 }
 
 let touched = 0;
-for (const file of PAGES) {
+for (const { file, anchor, variant } of PAGES) {
   const full = path.join(SITE, file);
   let html = fs.readFileSync(full, 'utf8');
 
@@ -74,11 +80,11 @@ for (const file of PAGES) {
     html = html.slice(0, had) + html.slice(to + END.length);
   }
 
-  const m = /<div class="results-header">/.exec(html);
-  if (!m) throw new Error(file + ': no .results-header to anchor to');
+  const idx = html.indexOf(anchor);
+  if (idx === -1) throw new Error(file + ': no ' + anchor + ' to anchor to');
 
-  const at = closingTagOf(html, m.index);
-  html = html.slice(0, at) + BUTTON + html.slice(at);
+  const at = closingTagOf(html, idx);
+  html = html.slice(0, at) + button(variant) + html.slice(at);
 
   fs.writeFileSync(full, html);
   touched += 1;

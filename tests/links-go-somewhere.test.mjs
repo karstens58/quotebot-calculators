@@ -361,7 +361,10 @@ test('NO PAGE CARRIES TWO RESULTS-HEADER CTAS', () => {
   for (const f of PAGES) {
     const src = fs.readFileSync(path.join(SITE, f), 'utf8');
     const starts = (src.match(/qb:result-cta:start/g) || []).length;
-    const buttons = (src.match(/class="qb-result-cta"/g) || []).length;
+    /* The class list may carry a variant (qb-result-cta--onlight), so match
+       the base class followed by a space or the closing quote, not the whole
+       attribute -- an exact match silently counted zero on the light pages. */
+    const buttons = (src.match(/class="qb-result-cta[ "]/g) || []).length;
     if (starts > 1 || buttons > 1) bad.push(`${f}: ${starts} markers, ${buttons} buttons`);
     if (starts !== buttons) bad.push(`${f}: ${starts} markers but ${buttons} buttons`);
   }
