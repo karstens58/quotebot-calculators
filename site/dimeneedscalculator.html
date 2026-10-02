@@ -725,12 +725,12 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
           <div class="field">
             <label>Date of Birth <span class="req">*</span><span class="age-pill" id="agePill">Age 48</span></label>
-            <input type="date" id="dob">
+            <input type="date" id="dob" data-qb-sum="Date of birth">
           </div>
 
           <div class="field">
             <label>State <span class="req">*</span></label>
-            <select id="state"></select>
+            <select id="state" data-qb-sum="State"></select>
           </div>
 
           <div class="field-row">
@@ -755,7 +755,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
           <div class="field">
             <label>Underwriting Class <span class="req">*</span></label>
-            <select id="uwClass">
+            <select id="uwClass" data-qb-sum="Underwriting class">
 <option value="" selected disabled>Select…</option>
               <option value="Preferred Plus">Preferred Plus</option>
               <option value="Preferred">Preferred</option>
@@ -785,12 +785,12 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="input-section"><span class="badge i">I</span><h3>Income Replacement</h3><span class="line"></span></div>
           <div class="field">
             <label>Annual Income to Replace</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="incAnnual" class="has-prefix" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="incAnnual" class="has-prefix" inputmode="numeric" data-qb-sum="Annual income to replace" data-qb-sum-prefix="$"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Years to Replace</label>
-              <div class="input-wrap"><input type="number" id="incYears" min="1" max="40"><span class="input-suffix">yrs</span></div>
+              <div class="input-wrap"><input type="number" id="incYears" min="1" max="40" data-qb-sum="Years to replace" data-qb-sum-suffix=" yrs"><span class="input-suffix">yrs</span></div>
             </div>
             <div class="field">
               <label>Expected Return</label>
@@ -806,7 +806,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="input-section"><span class="badge m">M</span><h3>Mortgage Payoff</h3><span class="line"></span></div>
           <div class="field">
             <label>Remaining Mortgage Balance</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="mortBal" class="has-prefix" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="mortBal" class="has-prefix" inputmode="numeric" data-qb-sum="Mortgage balance" data-qb-sum-prefix="$"></div>
           </div>
           <div class="field-row">
             <div class="field">
@@ -824,7 +824,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-row">
             <div class="field">
               <label>Children to Fund</label>
-              <div class="input-wrap"><input type="number" id="eduKids" min="0" max="10"></div>
+              <div class="input-wrap"><input type="number" id="eduKids" min="0" max="10" data-qb-sum="Children to fund"></div>
             </div>
             <div class="field">
               <label>Years Each</label>
@@ -851,7 +851,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-row align-fields">
             <div class="field">
               <label>Existing Life Insurance</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existLife" class="has-prefix" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existLife" class="has-prefix" inputmode="numeric" data-qb-sum="Existing life insurance" data-qb-sum-prefix="$"></div>
             </div>
             <div class="field">
               <label>Liquid Savings</label>
@@ -1661,11 +1661,11 @@ function render(){
         <div class="quote-controls">
           <div class="qc-field">
             <label>Coverage Amount <span class="info-tip" tabindex="0">i<span class="tip-bubble">You can change your coverage amount here.</span></span></label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="coverageInput" class="has-prefix" value="${effectiveCoverage().toLocaleString('en-US')}" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="coverageInput" class="has-prefix" value="${effectiveCoverage().toLocaleString('en-US')}" inputmode="numeric" data-qb-sum="Coverage amount" data-qb-sum-prefix="$"></div>
           </div>
           <div class="qc-field">
             <label>Term Length <span class="info-tip" tabindex="0">i<span class="tip-bubble">You can change the term length to match your desired coverage goal or budget.</span></span></label>
-            <select id="termSelect">
+            <select id="termSelect" data-qb-sum="Term length">
               <option value="10">10-Year Term</option>
               <option value="15">15-Year Term</option>
               <option value="20">20-Year Term</option>

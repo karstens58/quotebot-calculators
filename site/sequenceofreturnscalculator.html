@@ -451,7 +451,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <label>Starting Portfolio Value</label>
           <div class="input-wrap">
             <span class="input-prefix">$</span>
-            <input type="text" id="portfolio" class="has-prefix" inputmode="numeric" autocomplete="off">
+            <input type="text" id="portfolio" class="has-prefix" inputmode="numeric" autocomplete="off" data-qb-sum="Starting portfolio" data-qb-sum-prefix="$">
           </div>
         </div>
 
@@ -459,7 +459,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <label>Annual Income Needed <span class="tip">% of portfolio</span></label>
           <div class="slider-wrap">
             <div class="slider-row">
-              <input type="range" id="income-pct-slider" min="2" max="8" step="0.5" value="4">
+              <input type="range" id="income-pct-slider" min="2" max="8" step="0.5" value="4" data-qb-sum="Annual income needed" data-qb-sum-suffix="% of portfolio">
               <div class="slider-val" id="income-pct-display">4%</div>
             </div>
             <div class="slider-labels" style="display:flex;justify-content:space-between;grid-template-columns:none;"><span>2%</span><span>4%</span><span>6%</span><span>8%</span></div>
@@ -473,7 +473,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
         <div class="field">
           <label>Return Scenario</label>
-          <select id="scenario">
+          <select id="scenario" data-qb-sum="Return scenario">
             <option value="actual">Actual S&amp;P 500 (2000–2019) — Bad years first</option>
             <option value="reversed">Reversed S&amp;P 500 (2019–2000) — Good years first</option>
             <option value="custom">Custom scenario</option>
@@ -483,7 +483,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         <div id="custom-returns-wrap" style="display:none;">
           <div class="field">
             <label>Custom Annual Returns <span class="tip">comma-separated %</span></label>
-            <input type="text" id="custom-returns" placeholder="-10, 8, 15, -5, 12, 3, ..." value="">
+            <input type="text" id="custom-returns" placeholder="-10, 8, 15, -5, 12, 3, ..." value="" data-qb-sum="Custom annual returns">
             <div style="font-size:12px;color:var(--gray-mid);margin-top:4px;">Enter up to 20 years. Negative values = down years.</div>
           </div>
         </div>
@@ -494,7 +494,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <label>Cash Value Growth Rate <span class="tip">in negative years</span></label>
           <div class="slider-wrap">
             <div class="slider-row">
-              <input type="range" id="cv-rate-slider" min="0" max="6" step="0.25" value="5.5">
+              <input type="range" id="cv-rate-slider" min="0" max="6" step="0.25" value="5.5" data-qb-sum="Cash value growth in down years" data-qb-sum-suffix="%">
               <div class="slider-val" id="cv-rate-display">5.5%</div>
             </div>
             <div class="slider-labels" style="justify-content:space-between;"><span style="text-align:center;">0%</span><span style="text-align:center;">1%</span><span style="text-align:center;">2%</span><span style="text-align:center;">3%</span><span style="text-align:center;">4%</span><span style="text-align:center;">5%</span><span style="text-align:center;">6%</span></div>

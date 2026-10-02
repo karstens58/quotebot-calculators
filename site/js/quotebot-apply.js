@@ -117,8 +117,11 @@
         var tag = (el.tagName || '').toLowerCase();
         var value;
         if (tag === 'select') {
+          /* A placeholder option has visible text and no value. Reading the
+             text alone put "Select..." in the panel as though the visitor
+             had answered, which is worse than leaving the row out. */
           var opt = el.options[el.selectedIndex];
-          value = opt ? (opt.text || '').trim() : '';
+          value = (el.value && opt) ? (opt.text || '').trim() : '';
         } else if (tag === 'input' || tag === 'textarea') {
           value = el.type === 'checkbox'
             ? (el.checked ? 'Yes' : 'No')

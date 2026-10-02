@@ -320,31 +320,20 @@ test('NO CTA LINKS TO href="#"', () => {
  * panel headed "What you worked out" told the visitor "The contract shown
  * above". A page that opens the apply modal has to declare its own figures.
  */
-const AWAITING_SUMMARY = [
-  'careltccalculator.html',
-  'crosspurchasebuysellcalculator.html',
-  'dimeneedscalculator.html',
-  'keypersoncalculator.html',
-  'ltcannuitytaxillustration.html',
-  'mugcalculator.html',
-  'quotetool.html',
-  'sequenceofreturnscalculator.html'
-];
-
 test('EVERY PAGE USING THE APPLY MODAL DECLARES ITS SUMMARY', () => {
   const srcOf = (f) => fs.readFileSync(path.join(SITE, f), 'utf8');
-  const usesModal = PAGES.filter((f) => srcOf(f).includes('quotebot-apply.js'));
 
-  const missing = usesModal
+  /* Two ways a page can have a real summary, and the list of names that
+     used to sit here recorded neither of them. A rate-card page feeds the
+     module's generic rows from the card's own dataset -- carrier, product,
+     cover -- so it needs no markup. Every other page declares its figures,
+     or the inputs behind them, with data-qb-sum. A page with neither falls
+     through to "The contract shown above", which is what this catches. */
+  const missing = PAGES
+    .filter((f) => srcOf(f).includes('quotebot-apply.js'))
     .filter((f) => !srcOf(f).includes('data-qb-sum'))
-    .filter((f) => !AWAITING_SUMMARY.includes(f));
+    .filter((f) => !srcOf(f).includes('data-carrier-name'));
   assert.deepEqual(missing, [], `no summary declared:\n  ${missing.join('\n  ')}`);
-
-  /* The list above is work owed, not a permanent exemption: a page that has
-     since been given its figures must come off it, or the next page added
-     to the list hides behind a name nobody rechecks. */
-  const stale = AWAITING_SUMMARY.filter((f) => !usesModal.includes(f) || srcOf(f).includes('data-qb-sum'));
-  assert.deepEqual(stale, [], `remove from AWAITING_SUMMARY:\n  ${stale.join('\n  ')}`);
 });
 
 /*

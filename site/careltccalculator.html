@@ -775,7 +775,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Combined retirement savings (IRA, 401k, investments)</label>
             <div class="range-row">
-              <input type="range" min="50000" max="2000000" step="25000" value="400000" id="retAssets" oninput="syncVal('retAssets','retAssetsVal',true)">
+              <input type="range" min="50000" max="2000000" step="25000" value="400000" id="retAssets" oninput="syncVal('retAssets','retAssetsVal',true)" data-qb-sum="Retirement savings" data-qb-sum-prefix="$">
               <span class="range-val" id="retAssetsVal">$400,000</span>
             </div>
           </div>
@@ -783,7 +783,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Approximate home equity</label>
             <div class="range-row">
-              <input type="range" min="0" max="1000000" step="25000" value="200000" id="homeEq" oninput="syncVal('homeEq','homeEqVal',true)">
+              <input type="range" min="0" max="1000000" step="25000" value="200000" id="homeEq" oninput="syncVal('homeEq','homeEqVal',true)" data-qb-sum="Home equity" data-qb-sum-prefix="$">
               <span class="range-val" id="homeEqVal">$200,000</span>
             </div>
           </div>
@@ -826,7 +826,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Your current age</label>
             <div class="range-row">
-              <input type="range" min="45" max="75" step="1" value="57" id="age" oninput="syncVal('age','ageVal',false)">
+              <input type="range" min="45" max="75" step="1" value="57" id="age" oninput="syncVal('age','ageVal',false)" data-qb-sum="Current age">
               <span class="range-val" id="ageVal">57</span>
             </div>
           </div>
@@ -906,7 +906,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Benefit period — years of coverage the policy provides</label>
             <div class="range-row">
-              <input type="range" min="2" max="6" step="1" value="3" id="benefitYears" oninput="syncVal('benefitYears','benefitYearsVal',false,'yrs')">
+              <input type="range" min="2" max="6" step="1" value="3" id="benefitYears" oninput="syncVal('benefitYears','benefitYearsVal',false,'yrs')" data-qb-sum="Benefit period" data-qb-sum-suffix=" yrs">
               <span class="range-val" id="benefitYearsVal">3 yrs</span>
             </div>
           </div>
@@ -914,7 +914,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Monthly amount you can self-fund from income / savings</label>
             <div class="range-row">
-              <input type="range" min="0" max="5000" step="250" value="0" id="selfFund" oninput="syncVal('selfFund','selfFundVal',true)">
+              <input type="range" min="0" max="5000" step="250" value="0" id="selfFund" oninput="syncVal('selfFund','selfFundVal',true)" data-qb-sum="Can self-fund monthly" data-qb-sum-prefix="$">
               <span class="range-val" id="selfFundVal">$0</span>
             </div>
           </div>
