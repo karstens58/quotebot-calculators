@@ -26,6 +26,19 @@
   line-height: 1.5; }
 
 .qbm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+
+/*
+ * `hidden` loses to any author `display`, because the attribute is only a
+ * UA rule. .qbm-grid sets display:grid, so #qbm-owner-fields rendered with
+ * hidden set and the owner's name fields showed even on "I own it" -- the
+ * default, and the answer almost everyone gives. Nothing in the markup or
+ * the handler was wrong; both said hidden, and the stylesheet outvoted them.
+ *
+ * Written for every element inside the modal rather than for that one id,
+ * because the next element given a display will have the same problem and
+ * it fails silently: a hidden section that is simply there.
+ */
+.qbm-veil [hidden] { display: none !important; }
 .qbm-grid .wide { grid-column: 1 / -1; }
 @media (max-width: 560px) { .qbm-grid { grid-template-columns: 1fr; } }
 
