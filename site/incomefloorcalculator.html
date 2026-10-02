@@ -68,6 +68,20 @@ a { text-decoration: none; color: inherit; }
 .left-panel::-webkit-scrollbar { width: 4px; }
 .left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 .right-panel { padding: 20px 24px 60px; min-width: 0; }
+/* THE RIGHT COLUMN IS AS TALL AS THE LEFT FORM.
+   .left-panel is height:100vh and sticky with its own scrollbar, so the
+   grid row is full height -- but align-items:start left the right column
+   only as tall as its own content. Before a calculation that content is
+   the padlock and one line of text, so the page showed a short panel
+   floating in a tall white void, with the footer arriving while the form
+   on the left was still going.
+   align-self on the RIGHT only: stretching the left one as well would
+   defeat its own sticky 100vh. The locked state already centres what is
+   inside it, so filling the column is all it needed. */
+.right-panel { align-self: stretch; display: flex; flex-direction: column; }
+.right-panel > .results-locked { flex: 1 1 auto; }
+.right-panel > .results-area { flex: 1 1 auto; min-height: 0; }
+
 
 .edit-inputs-bar { display: none; align-items: center; justify-content: space-between; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 16px; margin-bottom: 14px; }
 .edit-inputs-bar.visible { display: flex; }
