@@ -105,10 +105,36 @@
     var marked = document.querySelectorAll('[data-qb-sum]');
     if (marked.length) {
       var declared = [];
-      for (var m = 0; m < marked.length && declared.length < 6; m += 1) {
-        if (marked[m].closest('.qbm-veil')) continue;
-        var label = marked[m].getAttribute('data-qb-sum');
-        var value = (marked[m].textContent || '').trim();
+      for (var m = 0; m < marked.length && declared.length < 10; m += 1) {
+        var el = marked[m];
+        if (el.closest('.qbm-veil')) continue;
+        var label = el.getAttribute('data-qb-sum');
+
+        /* A form control holds its value in .value, not in textContent.
+           Marking an input would otherwise read as empty and be dropped
+           without a word -- which matters because on the pages whose
+           summary IS what the visitor typed, every row is a control. */
+        var tag = (el.tagName || '').toLowerCase();
+        var value;
+        if (tag === 'select') {
+          var opt = el.options[el.selectedIndex];
+          value = opt ? (opt.text || '').trim() : '';
+        } else if (tag === 'input' || tag === 'textarea') {
+          value = el.type === 'checkbox'
+            ? (el.checked ? 'Yes' : 'No')
+            : String(el.value == null ? '' : el.value).trim();
+        } else {
+          value = (el.textContent || '').trim();
+        }
+
+        /* The currency and percent marks on these pages are adornments
+           beside the input, not part of its value, so a page says which
+           one belongs to the number it just declared. */
+        var pre = el.getAttribute('data-qb-sum-prefix');
+        var suf = el.getAttribute('data-qb-sum-suffix');
+        if (value && pre) value = pre + value;
+        if (value && suf) value = value + suf;
+
         if (label && value) declared.push([label, value]);
       }
       if (declared.length) return declared;

@@ -328,7 +328,6 @@ const AWAITING_SUMMARY = [
   'ltcannuitytaxillustration.html',
   'mugcalculator.html',
   'quotetool.html',
-  'retirementdistributioncalculator.html',
   'sequenceofreturnscalculator.html'
 ];
 
