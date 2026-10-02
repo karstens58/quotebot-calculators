@@ -200,3 +200,30 @@ test('THE BUTTON RESET CANNOT OUT-RANK A PAGE CLASS', () => {
   assert.ok(/:where\(\s*\[data-qb-apply\]/.test(css),
     'the reset is gone entirely -- converted anchors will wear the browser default border');
 });
+
+test('THE SMS DISCLOSURE DOES NOT ASK THE PAGE WHAT COLOUR TO BE', () => {
+  /*
+   * This is the A2P 10DLC express-written-consent disclosure, and an
+   * unreadable disclosure undermines the consent it collects.
+   *
+   * It used to take its colour from var(--text), so that it would "still
+   * work if a calculator is ever built dark". The hole in that: --text is a
+   * PAGE token and legibility depends on the LOCAL surface. The FIA income
+   * rider page is light overall with a dark navy unlock panel, and the
+   * opt-in lives inside the panel -- so it rendered near-black on navy,
+   * pinned with !important so the page could not correct it.
+   *
+   * It paints its own ground now. The guard is that it keeps doing so,
+   * because the symptom is invisible to anybody who already knows what the
+   * sentence says.
+   */
+  const js = fs.readFileSync(
+    path.join(SITE, 'js', 'quotebot-capture.js'), 'utf8');
+  const block = js.slice(js.indexOf('function injectSmsStyles'),
+    js.indexOf('document.head.appendChild'));
+  assert.ok(block, 'injectSmsStyles is gone -- this guard is watching nothing');
+  assert.match(block, /\.qb-sms\{[^']*background:var\(--white/,
+    'the disclosure no longer paints its own ground, so a dark panel can '
+    + 'swallow it -- pinning the text colour alone does not help, because '
+    + '--text is a page token and the surface is local');
+});

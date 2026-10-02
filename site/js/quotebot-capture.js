@@ -386,7 +386,7 @@
          below the block sat closer to the NEXT field than to the phone
          number it is asking about -- on careltc it read as attached to
          Date of Birth. */
-      '.qb-sms{margin:8px 0 20px;text-align:left}'
+      '.qb-sms{margin:8px 0 20px;text-align:left;background:var(--white,#ffffff);border:1px solid var(--border,#d8e2f0);border-radius:10px;padding:10px 12px}'
       + '.qb-sms .qb-sms-label{display:flex;align-items:center;gap:8px;'
       + 'font-size:14px;line-height:1.3;cursor:pointer;font-weight:500;'
       /* !important, on the typography resets only.
@@ -401,9 +401,22 @@
          myga styles `.field label` with --gray-mid (#8a9ab5), about 2.8:1
          on its background -- below AA -- and the opt-in label inherited it.
          That label IS the affirmative act, so it has to be readable.
-         var(--text) rather than a literal: it takes the page's own text
-         colour where one is defined, so this still works if a calculator
-         is ever built dark, and falls back only when nothing is set. */
+
+         var(--text) rather than a literal, so a page's own palette still
+         wins. That pinning is right and stays.
+
+         WHAT IT COULD NOT DO ALONE IS SUPPLY A GROUND. --text is a PAGE
+         token; legibility depends on the LOCAL surface. On the FIA income
+         rider page the opt-in sits inside a dark navy unlock panel on an
+         otherwise light page, so --text resolved to #1c2a3a and rendered
+         near-black on navy -- and !important meant the page could not
+         correct it either.
+
+         So the block now paints var(--white) beneath itself: the page's own
+         surface token, paired with the page's own text token, which is the
+         pairing those two were designed for. A disclosure should not depend
+         on what it happens to be embedded in, and the next dark panel
+         somebody builds will not quietly swallow it. */
       + 'color:var(--text,#1c2a3a)!important}'
       + '.qb-sms-label input{width:16px;height:16px;margin:0;flex:none;cursor:pointer}'
       + '.qb-sms .qb-sms-fine{margin:4px 0 0 24px;font-size:11px;line-height:1.45;'
