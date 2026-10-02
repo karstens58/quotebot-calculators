@@ -175,12 +175,22 @@
   }
 
   /**
-   * The "help me work this out" button, which used to be a link off the site.
+   * The "help me work this out" button, which used to be a broken link.
    *
-   * It pointed at app.quotebot.io, so somebody who pressed the most
-   * enthusiastic button on the page left it, and we recorded that they had
-   * read a number and nothing about what they wanted done with it. Same
-   * modal, same record, one field different.
+   * Thirteen of these across nine pages pointed at app.quotebot.io, a host
+   * that does not exist and, as far as anybody can tell, never did. So the
+   * most enthusiastic button on each page -- the one pressed by the visitor
+   * who had just been shown a number and wanted something done about it --
+   * returned an error, and we recorded nothing.
+   *
+   * Worth sitting with, because the lesson is not "check your links". It is
+   * that this was the highest-intent click on the site and the one nobody
+   * ever made themselves, so it could be dead for however long it was dead
+   * without a single test, review or page load catching it. The guard is
+   * tests/links-go-somewhere.test.mjs, which fails the deploy on a host we
+   * do not serve.
+   *
+   * Same modal as Apply, same record, one field different.
    */
   function qbAskAdvisor(ev, override) {
     if (ev) ev.preventDefault();
