@@ -355,7 +355,21 @@
        declared inside describeBand and is not reachable from this script. A
        modal that borrows a helper it cannot see is a modal that opens once and
        then throws for good. */
-    if (prem) rows.push(['Amount', '$' + Number(prem).toLocaleString('en-US')]);
+    /*
+     * "AMOUNT" MEANS TWO DIFFERENT THINGS and this row used to call both the
+     * same. On the annuity tools the premium IS the amount -- the money that
+     * goes in, and the whole subject of the quote. On a life quote it is
+     * what the policy costs per month, and labelling $42.17 "Amount" on the
+     * line under "Cover $500,000" reads as a second, much smaller sum
+     * insured. Somebody checking their own application would have to work
+     * out which number was wrong.
+     */
+    if (prem) {
+      var annuity = /^ANNUITY/.test(String(cfg.productLine || ''));
+      rows.push([annuity ? 'Amount' : 'Monthly premium',
+        '$' + Number(prem).toLocaleString('en-US',
+          annuity ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2 })]);
+    }
     document.getElementById('qbm-chosen').innerHTML = rows.map(function (r) {
       return '<div class="qbm-row"><span class="k">' + r[0]
         + '</span><span class="v">' + r[1] + '</span></div>';
