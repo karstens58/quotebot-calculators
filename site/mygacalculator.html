@@ -101,6 +101,7 @@ a { text-decoration: none; color: inherit; }
 
 /* FIELD */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .qb-optin-row { grid-column: 1 / -1; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-mid); display: flex; align-items: center; }
 .field input[type=number], .field input[type=text], .field input[type=email], .field input[type=tel] {
@@ -820,9 +821,13 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         <div class="field">
           <label>Phone Number</label>
           <div class="phone-wrap"><span class="phone-flag">🇺🇸</span><input type="tel" id="cf-phone" placeholder="(555) 000-0000" autocomplete="section-buyer tel"></div>
-          <div data-qb-sms-optin></div>
           <span class="field-error" id="err-phone"></span>
         </div>
+        <!-- Out of the phone cell and across the row. The box is a checkbox
+             with six lines of required disclosure beside it, and half of a
+             two-column grid is 154px: it rendered 302px tall and read as a
+             wall. Still directly after the number it asks about. -->
+        <div class="qb-optin-row" data-qb-sms-optin></div>
       </div>
     </div>
 
