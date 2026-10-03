@@ -84,7 +84,20 @@ a { text-decoration: none; color: inherit; }
 @media(max-width:900px) {
   .page-layout { grid-template-columns: 1fr; }
   .left-panel { position: static; height: auto; border-right: none; border-bottom: 1.5px solid var(--border); }
-  .right-panel { padding: 24px 20px 60px; }
+
+  /* ONE LEFT EDGE, once the columns stack.
+     Side by side, these paddings are the gutter between the two panels and
+     the shell around them -- they read as the space between columns. Stacked,
+     they are no longer between anything: they sit INSIDE .page-layout's 32px
+     and push each panel's content further in than the hero above it.
+     Measured at 408px: hero 32, inputs 46, results 52. Three left edges down
+     one page, which is the staircase the shared "one left edge" block exists
+     to stop -- reintroduced a level below it, where that block cannot see it.
+     quotetool has no inner padding on its results column, which is why it
+     lines up: hero 32, content 32, nothing to notice.
+     Sides only. The vertical padding is still doing its job. */
+  .left-panel { padding-left: 0; padding-right: 0; }
+  .right-panel { padding: 24px 0 60px; }
 }
 
 /* INPUT SECTION CARDS */
