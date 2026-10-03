@@ -55,21 +55,41 @@ function specificity(sel) {
 }
 const beats = (a, b) => (a[0] !== b[0] ? a[0] > b[0] : a[1] !== b[1] ? a[1] > b[1] : a[2] > b[2]);
 
-/** Rules, split by whether they sit inside a max-width media query. */
+/** Rules, split by whether they sit inside a max-width media query.
+    Each carries `at`, its offset in the sheet, because at EQUAL specificity
+    the cascade is decided by source order and nothing else. The first
+    version of this function threw positions away -- it rebuilt the
+    non-media CSS with .replace() -- which is why it could not see the bug
+    documented at the top of the equal-specificity test below. */
 function parse(css) {
   const base = [], mobile = [];
-  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  const mediaRe = /@media([^{]*)\{((?:[^{}]|\{[^{}]*\})*)\}/g;
-  let rest = stripped, m;
-  while ((m = mediaRe.exec(stripped))) {
-    const cond = m[1];
-    const target = /max-width/.test(cond) ? mobile : base;
-    for (const r of m[2].matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      target.push({ sel: r[1].trim(), body: r[2] });
+  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, ' ');
+
+  const collect = (text, offset, target) => {
+    for (const r of text.matchAll(/([^{}@]+)\{([^{}]*)\}/g)) {
+      target.push({ sel: r[1].trim(), body: r[2], at: offset + r.index });
     }
-    rest = rest.replace(m[0], '');
+  };
+
+  let i = 0;
+  while (i < stripped.length) {
+    const a = stripped.indexOf('@media', i);
+    if (a === -1) { collect(stripped.slice(i), i, base); break; }
+    collect(stripped.slice(i, a), i, base);
+
+    const o = stripped.indexOf('{', a);
+    if (o === -1) break;
+    const cond = stripped.slice(a + 6, o);
+    let depth = 1, j = o + 1;
+    while (j < stripped.length && depth > 0) {
+      if (stripped[j] === '{') depth += 1;
+      else if (stripped[j] === '}') depth -= 1;
+      j += 1;
+    }
+    collect(stripped.slice(o + 1, j - 1), o + 1,
+      /max-width/.test(cond) ? mobile : base);
+    i = j;
   }
-  for (const r of rest.matchAll(/([^{}@]+)\{([^{}]*)\}/g)) base.push({ sel: r[1].trim(), body: r[2] });
   return { base, mobile };
 }
 
@@ -105,7 +125,18 @@ test('NO MOBILE OVERRIDE IS OUTRANKED BY THE RULE IT OVERRIDES', () => {
             for (const msel of mob.sel.split(',').map((s) => s.trim()).filter(Boolean)) {
               if (msel !== bsel && !bsel.endsWith(msel)) continue;
               attempted = true;
-              if (/!important/.test(mob.body) || !beats(bSpec, specificity(msel))) won = true;
+              const mSpec = specificity(msel);
+              if (/!important/.test(mob.body)) { won = true; continue; }
+              if (beats(bSpec, mSpec)) continue;            /* outranked */
+              if (beats(mSpec, bSpec)) { won = true; continue; }
+              /* Dead level. Source order decides, and a media query does not
+                 change that either: MYGA's phone block sat near the top of a
+                 300KB sheet, so thirteen of its declarations lost to base
+                 rules written further down -- including the one that was
+                 supposed to stop .proj-table being 400px wide on a 408px
+                 screen. `display:block` in the same rule DID apply, because
+                 nothing competed for display, so the block looked alive. */
+              if (mob.at > b.at) won = true;
             }
           }
           if (attempted && !won) {
@@ -115,9 +146,34 @@ test('NO MOBILE OVERRIDE IS OUTRANKED BY THE RULE IT OVERRIDES', () => {
       }
     }
   }
-  assert.deepEqual([...new Set(losers)], [],
-    'these mobile rules cannot win — a media query does not raise specificity:\n  '
-    + [...new Set(losers)].join('\n  '));
+  /* Dead already when source order was first checked, all of them in the
+     page chrome rather than in any calculator's own layout. Every one is a
+     phone rule in the 760px chrome block losing to a base rule further down
+     -- which is what you would expect from a block that is injected into
+     each page AND duplicated there, so a later copy of the chrome can
+     out-order an earlier copy's media query. Worth fixing at the injector,
+     not thirteen times by hand, and not while fixing something else.
+     A line comes off when the page is fixed, not when it is annoying: the
+     assertion below fails if a listed loser has quietly been repaired. */
+  const KNOWN_DEAD = [
+    'careltccalculator.html: @media override of { display } cannot beat .cmp-mobile',
+    'careltccalculator.html: @media override of { margin-top } cannot beat footer',
+    'incomefloorcalculator.html: @media override of { align-items } cannot beat .footer-inner',
+    'mugcalculator.html: @media override of { display } cannot beat .topbar',
+    'mygacalculator.html: @media override of { align-items } cannot beat .footer-inner',
+    'retirementdistributioncalculator.html: @media override of { display } cannot beat .topbar'
+  ];
+
+  const found = [...new Set(losers)].sort();
+  const fresh = found.filter((l) => !KNOWN_DEAD.includes(l));
+  assert.deepEqual(fresh, [],
+    'these mobile rules cannot win — a media query raises neither specificity '
+    + 'nor source order:\n  ' + fresh.join('\n  '));
+
+  const healed = KNOWN_DEAD.filter((l) => !found.includes(l));
+  assert.deepEqual(healed, [],
+    'these are listed as known-dead but now win — take them off KNOWN_DEAD '
+    + 'so the list keeps meaning something:\n  ' + healed.join('\n  '));
 });
 
 /*
