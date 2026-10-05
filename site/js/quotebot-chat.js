@@ -352,9 +352,16 @@
    * people stop typing.
    */
   function wantsAgent(text) {
-    var t = String(text || '').trim().toLowerCase().replace(/[.!?]+$/, '');
+    /* Mirrored by amplify/functions/shared/handoff.ts, which the server uses
+       to decide not to put this to a model (QBP-57). The two are held to the
+       same answers by handoff.test.mjs over a corpus - change one and that
+       test fails until the other follows. */
+    var t = String(text || '').trim().toLowerCase()
+      .replace(/[.!?]+$/, '')
+      .replace(/^(please|pls)\s+/, '')
+      .trim();
     if (!t || t.length > 40) return false;
-    return /^(agent|human|a human|real person|person|rep|representative|a person|a human|a rep|an agent|a real person|live person|live agent|someone to talk to|talk to (an? )?(agent|human|person|someone|somebody)|speak (to|with) (an? )?(agent|human|person|someone|somebody)|(can|could) i (talk|speak) (to|with) (an? )?(agent|human|person|someone|somebody)|i want (to talk to )?(an? )?(agent|human|person)|call me|have (an? )?agent call me|get me (an? )?(agent|human|person))$/.test(t);
+    return /^(agent|human|a human|real person|person|rep|representative|a person|a rep|an agent|a real person|live person|live agent|someone to talk to|talk to (an? )?(agent|human|person|someone|somebody)|speak (to|with) (an? )?(agent|human|person|someone|somebody)|(can|could) i (talk|speak) (to|with) (an? )?(agent|human|person|someone|somebody)|i want (to talk to )?(an? )?(agent|human|person)|call me|get me (an? )?(agent|human|person)|have (an? )?(agent|human|person|someone|somebody) (call|contact) me)$/.test(t);
   }
 
   /**
@@ -1438,12 +1445,21 @@
       + '<input type="text" placeholder="Last name" autocomplete="family-name">'
       + '<input type="email" placeholder="Email" autocomplete="email">'
       + '<div class="qbc-row"><button type="button" class="qbc-yes">Send it to me</button>'
-      + '<button type="button">' + (prompt.dismiss || 'No thanks') + '</button></div>';
+      + '<button type="button"></button></div>';
     box.querySelector('b').textContent = prompt.title || '';
     box.querySelector('p').textContent = prompt.body || '';
 
     var ins = box.querySelectorAll('input');
     var btns = box.querySelectorAll('button');
+    /*
+     * The dismiss label is written, not concatenated. It used to be spliced
+     * into the innerHTML string above while title and body — from the same
+     * server-sent object, three lines apart — went through textContent, which
+     * is the kind of asymmetry nobody chooses on purpose. callback() below
+     * had it right all along; this is the same furniture built twice and one
+     * copy drifting. Everything the server names goes in as text.
+     */
+    btns[1].textContent = prompt.dismiss || 'No thanks';
     btns[0].addEventListener('click', function () {
       box.parentNode.removeChild(box);
       ask({ identity: { firstName: ins[0].value, lastName: ins[1].value, email: ins[2].value } });
