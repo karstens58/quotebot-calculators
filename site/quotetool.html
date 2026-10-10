@@ -860,7 +860,15 @@ STATES.forEach(s => { const o = document.createElement('option'); o.value = s; o
      have already been sent, so this is not privacy in any strong sense — but
      it keeps a birth date out of a url the visitor might copy, bookmark or
      hand to someone, and out of this page's own outbound referrers. */
-  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  /* Take the answers out of the address bar once they are in the form, and
+     LEAVE THE TRACKING CODE. This used to clear the whole query string, so
+     every visitor who arrived here from an affiliate's page lost the
+     affiliate on the way in. QuoteBot.tidyQuery keeps the attribution
+     params and drops the rest — one keep-list, next to the code that reads
+     them. See js/quotebot-capture.js. */
+  try {
+    if (window.QuoteBot && window.QuoteBot.tidyQuery) window.QuoteBot.tidyQuery();
+  } catch (e) {}
 })();
 
 /* ---------- CARRIERS (per1000 = annual rate per $1,000, calibrated to 48 / Male / Non-tobacco / Standard / 10yr) ---------- */

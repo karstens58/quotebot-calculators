@@ -17,6 +17,7 @@
  *
  *   node --test tests/dime-prefill.test.mjs
  */
+import { loadCaptureApi } from './capture-api.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -40,7 +41,18 @@ function run(search) {
   for (const id of IDS) {
     nodes[id] = { id, value: '', dispatchEvent: (e) => events.push([id, e.type]) };
   }
+  /* The REAL tidyQuery — see the note in quotetool-prefill. A stub that
+     blanked the search agreed with a page that blanked the search, and
+     the affiliate's code went with it. */
+  const captured = loadCaptureApi(
+    'https://tools.quotebot.io/dimeneedscalculator.html' + (search || ''));
   const location = { search, pathname: '/dimeneedscalculator.html' };
+  const QuoteBot = {
+    tidyQuery: () => {
+      captured.api.tidyQuery();
+      location.search = new URL(captured.hrefNow()).search;
+    },
+  };
   let recalculated = 0;
 
   const sandbox = {
@@ -48,6 +60,7 @@ function run(search) {
     location,
     liveUpdate: () => { recalculated++; },
     document: { getElementById: (id) => nodes[id] ?? null },
+    window: { QuoteBot },
     history: { replaceState: () => { location.search = ''; } },
     Event: class { constructor(type) { this.type = type; } },
   };
@@ -113,6 +126,14 @@ test('nothing happens, and nothing recalculates, without a query string', () => 
   assert.equal(r.recalculated, 0);
 });
 
-test('the numbers are taken out of the address bar', () => {
+test('the numbers are taken out of the address bar and the code is left in', () => {
   assert.equal(run('?income=80000').search, '');
+
+  /* The half that was missing, and the half that mattered: every visitor
+     who reached this calculator from an affiliate's page arrived with
+     their code and was recorded as having arrived from nowhere. */
+  const left = new URLSearchParams(run('?qb=AT-DIME&income=80000').search);
+  assert.equal(left.get('qb'), 'AT-DIME',
+    'the affiliate who sent this visitor was tidied out of the url');
+  assert.equal(left.get('income'), null, 'an answer was left in the url');
 });

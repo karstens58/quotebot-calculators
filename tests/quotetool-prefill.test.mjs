@@ -25,6 +25,7 @@
  *
  *   node --test tests/quotetool-prefill.test.mjs
  */
+import { loadCaptureApi } from './capture-api.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -75,7 +76,24 @@ function makeDom(search) {
     tobaccoSeg: segment('tobaccoSeg', ['Yes', 'No'], 'No'),
   };
 
+  /*
+   * The REAL tidyQuery, not a stub that blanks the search.
+   *
+   * The old stub agreed with the old bug: the page cleared the whole
+   * query string, the stub blanked the whole query string, and the test
+   * was green while every affiliate click arrived uncredited. The page
+   * now calls QuoteBot.tidyQuery, so the sandbox hands it the shipped
+   * one and the assertion can be the thing that actually matters.
+   */
+  const href = 'https://tools.quotebot.io/quotetool.html' + (search || '');
+  const captured = loadCaptureApi(href);
   const location = { search, pathname: '/quotetool.html' };
+  const QuoteBot = {
+    tidyQuery: () => {
+      captured.api.tidyQuery();
+      location.search = new URL(captured.hrefNow()).search;
+    },
+  };
   const sandbox = {
     URLSearchParams, Date, RegExp, Number, location, events: ev,
     document: {
@@ -85,6 +103,7 @@ function makeDom(search) {
         return m ? nodes[m[1]].buttons.find((b) => b.classList._on) ?? null : null;
       },
     },
+    window: { QuoteBot },
     history: { replaceState: (_a, _b, url) => { location.search = ''; location.replaced = url; } },
     Event: class { constructor(type) { this.type = type; } },
   };
@@ -143,9 +162,23 @@ test('a value that is not on offer leaves the field alone', () => {
   assert.equal(r.coverage, '');
 });
 
-test('the answers are taken out of the address bar', () => {
-  assert.equal(makeDom('?dob=1980-01-15&health=Preferred').search, '',
+test('the answers are taken out of the address bar and the code is left in', () => {
+  /*
+   * BOTH HALVES, because this test used to assert only the first and the
+   * page satisfied it by throwing away the affiliate's tracking code too.
+   * Reported from a live page: calculator links worked and credited
+   * nobody.
+   */
+  const bare = makeDom('?dob=1980-01-15&health=Preferred').search;
+  assert.equal(bare, '',
     'a birth date should not sit in a url the visitor might copy or bookmark');
+
+  const coded = makeDom('?qb=AT-QUOTE&dob=1980-01-15&health=Preferred').search;
+  const left = new URLSearchParams(coded);
+  assert.equal(left.get('qb'), 'AT-QUOTE',
+    'the affiliate who sent this visitor was tidied out of the url');
+  assert.equal(left.get('dob'), null, 'a birth date was left in the url');
+  assert.equal(left.get('health'), null, 'an answer was left in the url');
 });
 
 test('a visit with no query string changes nothing', () => {

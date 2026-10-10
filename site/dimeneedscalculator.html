@@ -1970,7 +1970,15 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   if (filled) { try { liveUpdate(); } catch (e) {} }
 
   /* Take the answers out of the address bar once they are in the form. */
-  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  /* Take the answers out of the address bar once they are in the form, and
+     LEAVE THE TRACKING CODE. This used to clear the whole query string, so
+     every visitor who arrived here from an affiliate's page lost the
+     affiliate on the way in. QuoteBot.tidyQuery keeps the attribution
+     params and drops the rest — one keep-list, next to the code that reads
+     them. See js/quotebot-capture.js. */
+  try {
+    if (window.QuoteBot && window.QuoteBot.tidyQuery) window.QuoteBot.tidyQuery();
+  } catch (e) {}
 })();
 </script>
 <!-- qb:apply-modal:start -->

@@ -156,6 +156,25 @@
 
   /* ---------- attribution ------------------------------------------------- */
 
+  /**
+   * THE PARAMS ATTRIBUTION IS BUILT FROM, as a list.
+   *
+   * A page that tidies its own address bar — the quote tool and the DIME
+   * calculator both do, to keep a date of birth out of a URL somebody
+   * might copy — has to keep these and may drop everything else.
+   *
+   * The list is here rather than in those pages because it is the same
+   * list currentParams() reads below, and two copies of it in three files
+   * is how the affiliate code got thrown away in the first place.
+   * tidy-query-keeps-the-code.test.mjs reads currentParams and checks it
+   * asks for nothing this list does not name.
+   */
+  var ATTRIBUTION_PARAMS = [
+    'qb', 'ref', 'aff',
+    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+    'gclid', 'fbclid'
+  ];
+
   function currentParams() {
     var p;
     try { p = new URLSearchParams(window.location.search); } catch (e) { return {}; }
@@ -218,6 +237,39 @@
       current: now,
       sessionId: sessionId()
     };
+  }
+
+  /**
+   * Take a page's own answers out of the address bar and leave attribution.
+   *
+   * WHY THIS IS A FUNCTION AND NOT A LINE IN EACH PAGE. It was a line in
+   * each page:
+   *
+   *     history.replaceState(null, '', location.pathname);
+   *
+   * which removed the ENTIRE query string, the affiliate's tracking code
+   * with it. Every visitor who reached the quote tool or the DIME
+   * calculator from an affiliate's public page arrived with ?qb=THEIR-CODE
+   * and was recorded as having arrived from nowhere. It did not look
+   * broken: the calculator worked, the lead was captured, and the only
+   * thing missing was whose lead it was.
+   *
+   * Dropping the answers is still right — a date of birth has no business
+   * in a URL somebody might copy, bookmark, hand on, or leak as a
+   * referrer. Dropping the code with them never was.
+   */
+  function tidyQuery() {
+    try {
+      var url = new URL(window.location.href);
+      var keep = new URLSearchParams();
+      for (var i = 0; i < ATTRIBUTION_PARAMS.length; i += 1) {
+        var k = ATTRIBUTION_PARAMS[i];
+        var v = url.searchParams.get(k);
+        if (v !== null) keep.set(k, v);
+      }
+      var q = keep.toString();
+      history.replaceState(null, '', url.pathname + (q ? '?' + q : ''));
+    } catch (e) { /* An old browser keeps its query string. Harmless. */ }
   }
 
   /* ---------- carrying the code across the site --------------------------- */
@@ -1062,12 +1114,31 @@
   api.SMS_DISCLOSURE = SMS_DISCLOSURE;
   api.SMS_DISCLOSURE_VERSION = SMS_DISCLOSURE_VERSION;
 
+  /* Exposed so the two pages that tidy their own address bar use the same
+     keep-list the capture uses, rather than a second copy of it. */
+  api.tidyQuery = tidyQuery;
+  api.ATTRIBUTION_PARAMS = ATTRIBUTION_PARAMS;
+
   window.QuoteBot = window.QuoteBot || api;
+
+  /**
+   * READ THE ADDRESS BAR NOW, not at DOMContentLoaded.
+   *
+   * This used to happen inside boot(), which runs on DOMContentLoaded —
+   * after every inline script in the body has run. Two of those scripts
+   * rewrote the URL on their way past, so by the time attribution was
+   * read there was nothing left to read: a visitor arriving from an
+   * affiliate's page with ?qb=THEIR-CODE was stored with no code at all.
+   *
+   * Nothing here needs the DOM. Reading at parse time means no later code
+   * on any page can take the code away before it is recorded — which is
+   * the class of bug, not just the two pages that had it.
+   */
+  var attrAtLoad = resolveAttribution();
 
   function boot() {
     drainQueue();
-    var attr = resolveAttribution();
-    if (attr.current.trackingCode) api.trackClick();
+    if (attrAtLoad.current.trackingCode) api.trackClick();
     decorateAll();
     mountSmsOptIn();
     loadBrand();
