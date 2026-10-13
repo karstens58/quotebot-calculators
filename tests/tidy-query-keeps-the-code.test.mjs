@@ -120,7 +120,7 @@ test('tidyQuery drops the answers and keeps the code', async () => {
    * is left looking at.
    */
   const store = new Map();
-  let href = 'https://tools.quotebot.io/quotetool.html'
+  let href = 'https://tools.quote-bot.com/quotetool.html'
     + '?qb=AT-QUOTE&age=48&dob=1978-03-02&utm_source=fb&gender=male';
   const win = {
     get location() { return new URL(href); },

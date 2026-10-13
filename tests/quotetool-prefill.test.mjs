@@ -85,7 +85,7 @@ function makeDom(search) {
    * now calls QuoteBot.tidyQuery, so the sandbox hands it the shipped
    * one and the assertion can be the thing that actually matters.
    */
-  const href = 'https://tools.quotebot.io/quotetool.html' + (search || '');
+  const href = 'https://tools.quote-bot.com/quotetool.html' + (search || '');
   const captured = loadCaptureApi(href);
   const location = { search, pathname: '/quotetool.html' };
   const QuoteBot = {

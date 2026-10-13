@@ -45,7 +45,7 @@ function run(search) {
      blanked the search agreed with a page that blanked the search, and
      the affiliate's code went with it. */
   const captured = loadCaptureApi(
-    'https://tools.quotebot.io/dimeneedscalculator.html' + (search || ''));
+    'https://tools.quote-bot.com/dimeneedscalculator.html' + (search || ''));
   const location = { search, pathname: '/dimeneedscalculator.html' };
   const QuoteBot = {
     tidyQuery: () => {

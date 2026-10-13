@@ -32,15 +32,17 @@ const PAGES = fs.readdirSync(SITE).filter((f) => f.endsWith('.html'));
  * Hosts a page is allowed to name. Everything here is either ours, a CDN the
  * pages load from, or a social profile the footer links to.
  *
- * `main.d32nxpxr4k5tgh.amplifyapp.com` is the marketing site's Amplify build
- * and is deliberately temporary -- apply-chrome.mjs carries the note about
- * swapping it for quote-bot.com at the DNS cutover. It is listed rather than
- * patterned so that the cutover changes this file too, which is the point.
+ * The amplifyapp build host is gone from here: SITE_URL moved to
+ * quote-bot.com on 13 October and nothing names it any more. Listing the
+ * hosts rather than patterning them is what made that visible -- this test
+ * failed the deploy on the cutover commit, which is the point.
+ *
+ * tools.quotebot.io stays alongside tools.quote-bot.com for as long as both
+ * answer. It comes out when the old host is retired, not before.
  */
 const ALLOWED = new Set([
-  'quotebot.io', 'tools.quotebot.io',
+  'quotebot.io', 'tools.quotebot.io', 'tools.quote-bot.com',
   'quote-bot.com', 'www.quote-bot.com',
-  'main.d32nxpxr4k5tgh.amplifyapp.com',
   'fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com',
   'www.facebook.com', 'www.instagram.com', 'www.linkedin.com',
   'www.youtube.com', 'x.com',

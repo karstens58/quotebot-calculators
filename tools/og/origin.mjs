@@ -18,7 +18,7 @@
  * og:url and canonical link against this value, so a page missed in step 2
  * fails the build instead of shipping a stale domain.
  */
-export const ORIGIN = 'https://tools.quotebot.io';
+export const ORIGIN = 'https://tools.quote-bot.com';
 
 /**
  * The canonical url of a page.

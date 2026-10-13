@@ -1,12 +1,20 @@
 /**
  * Nothing in these pages assumes it is served at a host root.
  *
- * WHY THIS IS A TEST. The calculators are moving from tools.quotebot.io,
- * where they sit at the root, to quote-bot.com/tools/, where they do not. A
- * reference like src="/js/quotebot-capture.js" resolves against the DOMAIN,
- * so under a /tools/ prefix it asks quote-bot.com for /js/quotebot-capture.js
- * — which is the marketing site's path, not ours. It either 404s or, worse,
- * finds a different file of the same name.
+ * WHY THIS IS A TEST. It was written for a move to quote-bot.com/tools/,
+ * where the pages would NOT sit at a host root. A reference like
+ * src="/js/quotebot-capture.js" resolves against the DOMAIN, so under a
+ * /tools/ prefix it asks quote-bot.com for /js/quotebot-capture.js — the
+ * marketing site's path, not ours. It either 404s or, worse, finds a
+ * different file of the same name.
+ *
+ * SETTLED 13 October: the move went to tools.quote-bot.com, a subdomain, so
+ * the pages are still at a root and that particular failure cannot happen
+ * today. The test stays, and the fixtures below still describe the path-prefix
+ * shape on purpose. Relative references are what made the host swap a
+ * one-constant change rather than a migration, and a hand-edit that types the
+ * leading slash back in is still the obvious way to lose that -- quietly, and
+ * only noticed the next time somewhere needs to be served from a prefix.
  *
  * There were 79 of them across thirteen pages, and lead capture was one.
  * Nothing about the page would look broken: the markup is valid, the build
