@@ -1,6 +1,10 @@
 # Quote Bot calculators
 
-The consumer calculators served at **tools.quotebot.io**.
+The consumer calculators served at **tools.quote-bot.com**.
+
+Served at `tools.quotebot.io` until 13 October 2026. That host is retired;
+the domain is not -- quotebot.io still carries the Compulife proxy and is
+being kept for a second product.
 
 ## Layout
 

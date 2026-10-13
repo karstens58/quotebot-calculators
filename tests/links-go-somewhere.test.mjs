@@ -37,11 +37,21 @@ const PAGES = fs.readdirSync(SITE).filter((f) => f.endsWith('.html'));
  * hosts rather than patterning them is what made that visible -- this test
  * failed the deploy on the cutover commit, which is the point.
  *
- * tools.quotebot.io stays alongside tools.quote-bot.com for as long as both
- * answer. It comes out when the old host is retired, not before.
+ * tools.quotebot.io came out on 13 October, when the old host was retired.
+ * It had sat here since the cutover with a note saying exactly that -- it
+ * stays while both answer, and comes out when one stops. The bare
+ * `quotebot.io` went with it: nothing in site/ had named either for weeks,
+ * which is only visible because this list names hosts instead of matching a
+ * pattern.
+ *
+ * quotebot.io the DOMAIN is not gone and is not ours to forget. It still
+ * carries quote-proxy.quotebot.io, which is the Compulife proxy and the one
+ * address Compulife will answer, and it is being kept for a second product.
+ * Nothing in these pages should name it, which is why it is absent here
+ * rather than commented out.
  */
 const ALLOWED = new Set([
-  'quotebot.io', 'tools.quotebot.io', 'tools.quote-bot.com',
+  'tools.quote-bot.com',
   'quote-bot.com', 'www.quote-bot.com',
   'fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com',
   'www.facebook.com', 'www.instagram.com', 'www.linkedin.com',

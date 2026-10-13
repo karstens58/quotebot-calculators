@@ -78,10 +78,17 @@ test('every page carries exactly one canonical', () => {
 test('the canonicals all share one base, and each names its own page', () => {
   /*
    * Asserted as base + suffix rather than against a fixed path, because the
-   * base is about to change: CANON_BASE moves from https://tools.quotebot.io
-   * to https://quote-bot.com/tools at the DNS cutover. A test pinning the
-   * path to `/${file}` would pass today and fail on the one commit it exists
-   * to protect, which is how a guard gets deleted instead of read.
+   * base was going to change and did. A test pinning the path to `/${file}`
+   * would have passed every day until the one commit it existed to protect,
+   * which is how a guard gets deleted instead of read.
+   *
+   * IT MOVED SOMEWHERE ELSE THAN THIS COMMENT PREDICTED. The guess here was
+   * https://quote-bot.com/tools, a path prefix. What shipped on 13 October
+   * was https://tools.quote-bot.com, a subdomain -- chosen so the
+   * calculators keep their own Amplify app and their own deploy, which a
+   * path prefix on the marketing site would have ended. The shape of the
+   * assertion survived being wrong about the destination, which is the
+   * argument for writing it this way.
    *
    * What must stay true at either address: one base for all thirteen, each
    * page naming itself, and the landing page naming the bare directory.
@@ -109,7 +116,9 @@ test('a moved base still passes, and a half-moved one does not', () => {
   const suffixOf = (f) => (f === 'index.html' ? '/' : `/${f}`);
   const moved = pages.map((f) => `https://quote-bot.com/tools${suffixOf(f)}`);
   const half = [...moved];
-  half[1] = `https://tools.quotebot.io${suffixOf(pages[1])}`;
+  /* Any second base will do -- this one is deliberately a host that no
+     longer exists, so nobody reads it as a live address worth checking. */
+  half[1] = `https://old-host.invalid${suffixOf(pages[1])}`;
 
   const basesOf = (hrefs) => new Set(
     hrefs.map((h, i) => h.slice(0, h.length - suffixOf(pages[i]).length)),

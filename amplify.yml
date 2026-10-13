@@ -2,7 +2,7 @@
 #
 # baseDirectory is `site`, and that is the whole point of the split. Anything
 # outside it -- tests, notes, this file -- cannot reach the public bucket, so
-# a stray file in the repo can never end up served at tools.quotebot.io.
+# a stray file in the repo can never end up served at tools.quote-bot.com.
 #
 # It also removes the failure that took the site down on 24 September: a zip
 # built from the folder rather than its contents put every page one level

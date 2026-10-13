@@ -275,7 +275,7 @@
   /* ---------- carrying the code across the site --------------------------- */
 
   /*
-   * A visitor who lands on tools.quotebot.io/?qb=AT-TOOLS and clicks through to
+   * A visitor who lands on tools.quote-bot.com/?qb=AT-TOOLS and clicks through to
    * a calculator used to arrive at a bare URL. Attribution survived in
    * localStorage, but the address bar did not, so a bookmarked, copied or
    * shared link lost the affiliate entirely — and any visitor whose storage is

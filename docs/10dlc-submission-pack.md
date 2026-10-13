@@ -6,6 +6,13 @@ Everything below is a factual description of what the calculators and the backen
 actually do, verified against production at `tools.quotebot.io` on the date above —
 not a legal opinion. Section 2 is the part to read first.
 
+> **Amended 13 October 2026 — every address in this pack changed.** The
+> platform moved off `quotebot.io` onto `quote-bot.com`, and the old
+> hostnames were retired the same day. The behaviour described here did not
+> change; the addresses it is observable at did. The URLs below are the live
+> ones and have been checked. **Three things still need a decision before
+> submission — see section 11.**
+
 ---
 
 ## 1. How to use this
@@ -92,10 +99,10 @@ reviewer is strict about a clickable privacy policy at the point of collection.
 | Legal entity | QB Insurance LLC |
 | DBA / brand | Quote-Bot |
 | Business type | Licensed insurance agency, licensed in all 50 states |
-| Brand website | `https://quotebot.io` |
-| Opt-in surface | `https://tools.quotebot.io` |
-| Privacy Policy | `https://quotebot.io/Privacy-Policy` |
-| Terms | `https://quotebot.io/Terms-Conditions` |
+| Brand website | `https://quote-bot.com` |
+| Opt-in surface | `https://tools.quote-bot.com` |
+| Privacy Policy | `https://quote-bot.com/privacy-policy` |
+| Terms | `https://quote-bot.com/terms-of-service` |
 | Consumer support phone | (888) 804-8590 |
 | Consumer support email | `info@quotebot.io` |
 | EIN / registered address / brand contact | **you supply** |
@@ -180,7 +187,7 @@ does not change what the evidence is — it is still an agent's account of a
 conversation, and it is corroborated the same way.
 
 Note the two chat widgets are **not the same build**. The one on the calculators
-has a callback form that requires a phone number; the one on `quotebot.io` is a
+has a callback form that requires a phone number; the one on `quote-bot.com` is a
 different, smaller build with no phone field, so it is not an SMS collection
 point at all. Anything done to the chat opt-in has to be done to the build that
 actually has the form, and checked on the other.
@@ -194,8 +201,8 @@ the same. The columns below are about *consent*, not capability.
 | Surface | Collects a phone | SMS opt-in captured |
 |---|---|---|
 | The twelve calculators | Optional field | **Yes** — ticked box, section 4 |
-| **Chat callback form** (`tools.quotebot.io`) | **Required** — a callback needs a number to ring | **No** |
-| Chat widget on `quotebot.io` | **No phone field at all** | n/a |
+| **Chat callback form** (`tools.quote-bot.com`) | **Required** — a callback needs a number to ring | **No** |
+| Chat widget on `quote-bot.com` | **No phone field at all** | n/a |
 | **Agent-entered leads** (internal CRM) — including anyone who rings (888) 804-8590 and gives their number to an agent | Optional | **No** |
 
 #### Once QBP-107 and QBP-108 ship
@@ -205,7 +212,7 @@ the same. The columns below are about *consent*, not capability.
 | The calculators | **Yes** — the consumer ticks | Nothing further. A soft confirmation is sent (5.4) |
 | Chat callback form | **Yes** — the consumer ticks the same box, on a rendered form | Nothing further. Same soft confirmation |
 | Agent-entered / inbound caller | **Recorded by the agent** — an assertion, not an act by the consumer | **The consumer's Y reply.** The agent's record alone permits nothing |
-| Chat widget on `quotebot.io` | n/a — collects no number | — |
+| Chat widget on `quote-bot.com` | n/a — collects no number | — |
 
 **Sending a confirmation message does not capture consent.** It is worth being
 exact about this, because it is the whole basis for treating the two routes
@@ -254,7 +261,7 @@ the registration today.
 
 ### 5.3 Where the opt-in appears
 
-All twelve calculators at `tools.quotebot.io`, each publicly reachable with no
+All twelve calculators at `tools.quote-bot.com`, each publicly reachable with no
 login, which makes them usable directly as opt-in evidence if the reviewer wants
 a URL instead of a screenshot:
 
@@ -508,7 +515,7 @@ This is the minimum honest version: it describes only the calculator opt-in and
 the keyword handling, and claims nothing about confirmation messages or the
 agent route.
 
-> A consumer visits a Quote Bot insurance calculator at tools.quotebot.io and
+> A consumer visits a Quote Bot insurance calculator at tools.quote-bot.com and
 > enters their own details to receive a quote. Beneath the phone number field is
 > an unticked, optional checkbox reading "Text me quotes and offers", with the
 > full disclosure displayed directly beneath it. Neither the checkbox nor the
@@ -639,3 +646,49 @@ on either SMS type refuses both purposes — a STOP is a STOP.
 *Facts verified against production on 26 September 2026. Sections 2, 5.2, 5.4, 7
 and 10 describe work that is decided but not built. None of it should be
 represented as built — on the registration or to counsel — until it ships.*
+
+---
+
+## 11. Open before submission — added 13 October 2026
+
+Three things in this pack still name `quotebot.io` and **were deliberately
+not changed**, because changing them is a decision rather than a correction.
+
+### 11.1 The consumer support email
+
+Section 3 and the HELP response both give `info@quotebot.io`.
+
+**That address cannot receive mail.** The `quotebot.io` zone has no MX
+record — checked in Route 53 on 13 October. Anything sent to it is refused.
+A HELP keyword that routes a consumer to a dead mailbox is the kind of thing
+a carrier review is specifically looking for.
+
+`solutions@quote-bot.com` is confirmed working. It has not been substituted
+here because the support address is a business decision and it appears in
+message copy that gets submitted verbatim.
+
+### 11.2 The short links in the sample messages
+
+Section 9's example message bodies contain:
+
+- `quotebot.io/q/XXXX`
+- `quotebot.io`
+- `quotebot.io/ltc`
+
+The `quotebot.io` apex has **no A or CNAME record at all**, so none of these
+resolve today, and none of them have an obvious equivalent on
+`quote-bot.com` — there is no `/q/` route and no `/ltc` page. Replacing a
+dead link with a different dead link would be worse than leaving it visible.
+These need real destinations before the messages they appear in are
+submitted.
+
+### 11.3 quotebot.io is not retired, and is being reused
+
+The domain stays. It carries `quote-proxy.quotebot.io`, the Compulife proxy,
+whose IP is registered with Compulife and whose certificate is bound to that
+hostname. It is also being kept for a second product.
+
+So "quotebot.io" appearing anywhere in a submission is now ambiguous rather
+than merely stale — it may later point at something that is not this brand.
+That is the argument for getting every reference in this pack onto
+`quote-bot.com` before anything is filed.
