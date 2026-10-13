@@ -59,14 +59,26 @@ const SITE_URL = 'https://quote-bot.com';
  * of this page is a 404, and it would say so for however long sits between
  * shipping it and moving the DNS.
  *
- * AT THE DNS CUTOVER: change this to https://quote-bot.com/tools and re-run,
- * in the same commit as SITE_URL above. Both are QBP-128.
+ * SETTLED 13 Oct (QBP-151): a subdomain, not the /tools/ path prefix this
+ * comment used to anticipate. tools.quote-bot.com is its own Amplify app with
+ * its own certificate and its own deploy cadence, so a hostname models what is
+ * actually true; a path prefix would have meant a rewrite rule on quotebot-web
+ * standing in front of a different app's build, which is a seam that only has
+ * to be wrong once. The /tools/<*> rewrite that was on the list is therefore
+ * not needed.
  *
  * The paths in these pages are relative, so they resolve at a host root and
  * under a /tools/ prefix alike. This constant is the only thing that has to
- * know which it is.
+ * know which it is -- which is why the decision was cheap to defer and is
+ * cheap to revisit.
+ *
+ * It is changed only now, and deliberately not in the same commit as SITE_URL:
+ * that one could move the day quote-bot.com went live, this one had to wait
+ * until tools.quote-bot.com actually answered. Verified before the change --
+ * the host resolves, the certificate is valid, and /og/quotetool-card.png
+ * serves at 2400x1260 from the new name.
  */
-const CANON_BASE = 'https://tools.quotebot.io';
+const CANON_BASE = 'https://tools.quote-bot.com';
 
 const part = (f) => fs.readFileSync(path.join(ROOT, 'tools', f), 'utf8')
   .trim()
