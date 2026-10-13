@@ -4,7 +4,7 @@
  * Drop into any page with one tag:
  *
  *   <script src="/js/quotebot-chat.js"
- *           data-endpoint="https://<chat-fn-url>.lambda-url.us-east-2.on.aws/"
+ *           data-endpoint="https://api.quote-bot.com/chat/"
  *           data-tool="myga"></script>
  *
  * No dependencies, no build step, one file. Same shape as quotebot-capture.js,

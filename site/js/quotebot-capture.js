@@ -4,7 +4,7 @@
  * Drop into any calculator page with one tag, before your own script:
  *
  *   <script src="/js/quotebot-capture.js"
- *           data-endpoint="https://<your-fn-url>.lambda-url.us-east-1.on.aws/"
+ *           data-endpoint="https://api.quote-bot.com/lead/"
  *           data-tool="dime"></script>
  *
  * Then, at the point where the tool currently unlocks results behind the
