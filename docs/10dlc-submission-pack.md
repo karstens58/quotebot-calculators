@@ -101,8 +101,8 @@ reviewer is strict about a clickable privacy policy at the point of collection.
 | Business type | Licensed insurance agency, licensed in all 50 states |
 | Brand website | `https://quote-bot.com` |
 | Opt-in surface | `https://tools.quote-bot.com` |
-| Privacy Policy | `https://quote-bot.com/privacy-policy` |
-| Terms | `https://quote-bot.com/terms-of-service` |
+| Privacy Policy | `https://quote-bot.com/privacy-policy/` |
+| Terms | `https://quote-bot.com/terms-of-service/` |
 | Consumer support phone | (888) 804-8590 |
 | Consumer support email | `info@quotebot.io` |
 | EIN / registered address / brand contact | **you supply** |
