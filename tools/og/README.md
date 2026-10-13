@@ -53,7 +53,7 @@ design, not an oversight. (There is also one stale reference in a comment on
 - **Do not hand-edit the tags in a page.** They are generated, and the next
   `npm run meta` will overwrite them. Edit `cards.mjs` instead.
 - **`tests/og-cards.test.mjs` is the contract.** It checks that every declared
-  `og:image` is an absolute https URL on tools.quotebot.io, that the file
+  `og:image` is an absolute https URL on `ORIGIN`, that the file
   exists, that the declared width and height match the PNG's own header, that
   the ratio is about 1.91:1, and that no two pages share a card. Run
   `node --test tests/og-cards.test.mjs` after any change here.
@@ -76,3 +76,14 @@ instead of shipping a bad crop.
 is still the hand-made original, and its tags are still hand-written. It is
 deliberately not in `cards.mjs`: it is the reference the rest of the set was
 measured against, and regenerating it would mean approving it a second time.
+
+That held through the 13 October move to tools.quote-bot.com. Its tags were
+hand-edited as this file says, and its ARTWORK -- which also has the domain
+printed on it -- was updated by lifting the url strip out of a freshly
+rendered card rather than by re-rendering the whole thing. The background in
+that band is byte-identical across every card in the set, so the swap touched
+0.2% of the pixels and left the hand-made original intact everywhere else.
+
+Do the same next time. The band is roughly y 1120-1180, and the check that
+makes it safe is that the rows above and below the url differ by zero between
+any two cards.
