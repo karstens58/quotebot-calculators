@@ -13,13 +13,21 @@ import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cards } from './cards.mjs';
+import { ORIGIN } from './origin.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = process.argv[2] ?? join(here, 'out');
 const W = 2400;
 const H = 1260;
 
-const FONT_DIR = '/home/claude/node_modules/@fontsource';
+/* Resolved from this folder, not from an absolute path.
+ *
+ * These two were hardcoded to /home/claude and /mnt/user-data -- paths inside
+ * one particular cloud container -- which meant the procedure in README.md
+ * ("npm install, npm run build") could not work on anyone's machine, and the
+ * file only ran where it had last been run. QBP-151. */
+const FONT_DIR = process.env.QB_FONT_DIR
+  ?? join(here, 'node_modules', '@fontsource');
 const b64 = (p) => readFileSync(p).toString('base64');
 const face = (family, file, weight, style) =>
   `@font-face{font-family:'${family}';font-weight:${weight};font-style:${style};font-display:block;` +
@@ -33,7 +41,7 @@ const fonts = [
   face('Jakarta', `${FONT_DIR}/plus-jakarta-sans/files/plus-jakarta-sans-latin-700-normal.woff2`, 700, 'normal'),
 ].join('');
 
-const logo = b64('/mnt/user-data/uploads/Developer/GitHub/quotebot-calculators/site/img/quotebot-logo.png');
+const logo = b64(join(here, '..', '..', 'site', 'img', 'quotebot-logo.png'));
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -91,7 +99,7 @@ body{display:flex;font-family:'Jakarta',sans-serif;-webkit-font-smoothing:antial
     <div class="rule"></div>
     <div class="body">${esc(card.body)}</div>
   </div>
-  <div class="url">tools.quotebot.io</div>
+  <div class="url">${ORIGIN.replace(/^https?:\/\//, '')}</div>
 </div>
 <div class="right">${rail}</div>
 </body></html>`;
