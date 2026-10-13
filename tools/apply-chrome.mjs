@@ -43,7 +43,7 @@ const SITE = path.join(ROOT, 'site');
  * AT THE DNS CUTOVER: change this to https://quote-bot.com and re-run. That
  * is the whole change, and it is on the cutover checklist.
  */
-const SITE_URL = 'https://main.d32nxpxr4k5tgh.amplifyapp.com';
+const SITE_URL = 'https://quote-bot.com';
 
 /**
  * Where THESE pages live, which is not where the marketing site lives.
