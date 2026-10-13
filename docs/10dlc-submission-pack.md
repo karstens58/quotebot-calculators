@@ -10,7 +10,7 @@ not a legal opinion. Section 2 is the part to read first.
 > platform moved off `quotebot.io` onto `quote-bot.com`, and the old
 > hostnames were retired the same day. The behaviour described here did not
 > change; the addresses it is observable at did. The URLs below are the live
-> ones and have been checked. **Three things still need a decision before
+> ones and have been checked. **Two things still need a decision before
 > submission — see section 11.**
 
 ---
@@ -104,7 +104,7 @@ reviewer is strict about a clickable privacy policy at the point of collection.
 | Privacy Policy | `https://quote-bot.com/privacy-policy/` |
 | Terms | `https://quote-bot.com/terms-of-service/` |
 | Consumer support phone | (888) 804-8590 |
-| Consumer support email | `info@quotebot.io` |
+| Consumer support email | `info@quote-bot.com` |
 | EIN / registered address / brand contact | **you supply** |
 
 Vertical is insurance, which some carriers treat as a regulated or
@@ -421,7 +421,7 @@ What the registration will need once it is built, and what to build to match:
 | **Y, YES** (reply to the confirmation text, 5.4) | Stamp the record as confirmed from the device. On a calculator opt-in it strengthens a record that already stands; **on an agent-recorded consent it is what unlocks marketing at all**. Never creates consent on its own | "Quote Bot: Confirmed, thanks. Reply STOP to opt out at any time." |
 | **N, NO** | Accepted as an unadvertised synonym for STOP, through the same code path. Not offered in any message | Same as the STOP reply below |
 | STOP, UNSUBSCRIBE, CANCEL, END, QUIT | Stop all marketing texts immediately; write a revoking `ConsentRecord` | "Quote Bot: You're unsubscribed and won't get more texts from us. Reply START to resubscribe. Questions? (888) 804-8590" |
-| HELP, INFO | Identify the brand and route to support | "Quote Bot (QB Insurance LLC): help at (888) 804-8590 or info@quotebot.io. Msg&data rates may apply. Reply STOP to opt out." |
+| HELP, INFO | Identify the brand and route to support | "Quote Bot (QB Insurance LLC): help at (888) 804-8590 or info@quote-bot.com. Msg&data rates may apply. Reply STOP to opt out." |
 | START, UNSTOP | Re-subscribe | "Quote Bot: You're resubscribed. Reply STOP to opt out." |
 
 Two design notes for whoever builds it:
@@ -654,20 +654,22 @@ represented as built — on the registration or to counsel — until it ships.*
 Three things in this pack still name `quotebot.io` and **were deliberately
 not changed**, because changing them is a decision rather than a correction.
 
-### 11.1 The consumer support email
+### 11.1 The consumer support email — SETTLED 13 October
 
-Section 3 and the HELP response both give `info@quotebot.io`.
+Section 3 and the HELP response gave `info@quotebot.io`. That address cannot
+receive mail: the `quotebot.io` zone has no MX record, so anything sent to it
+is refused. A HELP keyword routing a consumer to a dead mailbox is the kind
+of thing a carrier review is specifically looking for.
 
-**That address cannot receive mail.** The `quotebot.io` zone has no MX
-record — checked in Route 53 on 13 October. Anything sent to it is refused.
-A HELP keyword that routes a consumer to a dead mailbox is the kind of thing
-a carrier review is specifically looking for.
+Scott's decision: **every email domain is quote-bot.com.** Both now read
+`info@quote-bot.com`, which is already the published support address in the
+site footer and in the privacy policy — so it is the address a consumer would
+find anyway, and the HELP response now agrees with the website instead of
+contradicting it.
 
-`solutions@quote-bot.com` is confirmed working. It has not been substituted
-here because the support address is a business decision and it appears in
-message copy that gets submitted verbatim.
+Nothing else in the HELP wording changed.
 
-### 11.2 The short links in the sample messages
+### 11.2 The short links in the sample messages — OPEN
 
 Section 9's example message bodies contain:
 
@@ -682,7 +684,7 @@ dead link with a different dead link would be worse than leaving it visible.
 These need real destinations before the messages they appear in are
 submitted.
 
-### 11.3 quotebot.io is not retired, and is being reused
+### 11.3 quotebot.io is not retired, and is being reused — OPEN
 
 The domain stays. It carries `quote-proxy.quotebot.io`, the Compulife proxy,
 whose IP is registered with Compulife and whose certificate is bound to that
