@@ -123,6 +123,24 @@ test('the education fields say that one of them alone is worth nothing', () => {
     'nothing warns that a child count on its own contributes zero');
 });
 
+/**
+ * Figures the house has agreed, by field, and what they are.
+ *
+ * The rule below bars the DRAFTER from inventing a number. It was never
+ * meant to bar Scott from setting one, and the original comment said so.
+ * He set this one on 17 Oct with the returned field-copy sheet: $25,000 as
+ * the recommended minimum for final expenses, which for a visitor with no
+ * mortgage and no children is the whole of that section and the only
+ * anchor they get.
+ *
+ * The excuse is the FIGURE, not the field. Listing the amount means a
+ * later edit to $50,000 fails here and goes back to him, instead of the
+ * exemption quietly becoming a licence for that field to say anything.
+ */
+const AGREED_FIGURES = {
+  finalExp: { amount: '$25,000', agreed: 'Scott, 17 Oct 2026, field-copy sheet' },
+};
+
 test('no copy invents a figure the house has not agreed', () => {
   // The repo's standing position, written on the prefill block: seeding an
   // invented number turns the visitor's first correction into a total
@@ -130,9 +148,33 @@ test('no copy invents a figure the house has not agreed', () => {
   // more digits, and it is Scott's to set, not the drafter's.
   for (const id of NEEDS_FIELDS) {
     const tag = tagFor(id);
+    const agreed = AGREED_FIGURES[id];
     for (const a of ['data-qb-ask', 'data-qb-why', 'data-qb-answer']) {
-      assert.equal(/\$\s?\d/.test(valueOf(tag, a)), false,
-        `${id} ${a} states a dollar figure that nobody has signed off`);
+      const v = valueOf(tag, a);
+      const figures = v.match(/\$\s?[\d,]+/g) ?? [];
+      if (!agreed) {
+        assert.deepEqual(figures, [],
+          `${id} ${a} states a dollar figure that nobody has signed off`);
+        continue;
+      }
+      for (const f of figures) {
+        assert.equal(f.replace(/\s/g, ''), agreed.amount,
+          `${id} ${a} states ${f}; the agreed figure is ${agreed.amount} `
+          + `(${agreed.agreed}). Changing it is Scott's call, not a test's.`);
+      }
     }
+  }
+});
+
+test('AN EXCUSED FIELD STILL HAS TO SAY THE THING IT WAS EXCUSED FOR', () => {
+  // Otherwise the list outlives the copy: somebody rewrites finalExp
+  // without the figure, the exemption stays, and the next drafter inherits
+  // a blank cheque for that field.
+  for (const [id, { amount }] of Object.entries(AGREED_FIGURES)) {
+    const tag = tagFor(id);
+    const says = ['data-qb-ask', 'data-qb-why', 'data-qb-answer']
+      .some((a) => valueOf(tag, a).includes(amount));
+    assert.ok(says,
+      `${id} is excused for ${amount} and no longer states it — drop the excuse`);
   }
 });
