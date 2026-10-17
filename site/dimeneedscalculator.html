@@ -1950,6 +1950,35 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
     ['years', 'incYears'],
     ['mortgage', 'mortBal'],
     ['education', 'eduCost'],   // the card's total, into cost per child per year
+
+    /* ---- the chat's keys, added for the in-chat interview (QBP-183) ----
+       The card above sends five numbers from a form it drew itself. The
+       assistant collects its numbers one question at a time and knows which
+       is which, so it can fill the fields the card could not.
+
+       WHY THESE AND NOT OTHERS. `existing` is the offset: without it a
+       visitor with $250k of group life through work is handed a figure
+       $250k too high, and nothing on the page says the calculation assumed
+       they had none. That is the one that produces a confidently wrong
+       number rather than an incomplete one.
+
+       EDUCATION TAKES ALL THREE OR IT IS WORTH NOTHING. Line ~997 computes
+       kids x years x cost, with years falling back to 1 and the other two
+       to 0, so `kids` on its own contributes exactly zero -- the question
+       was asked, the answer was carried, and the total did not move. Either
+       a caller sends enough to multiply or it sends none of it. Nothing
+       here invents the missing one: the note above about seeding Children
+       to Fund with an invented 1 applies just as much to a cost.
+
+       `educost` after `education` on purpose. They land in the same field,
+       the card's key is a total and the chat's is a genuine per-child
+       figure, and when both arrive the explicit one should win. MAP order
+       is what decides that, so it is stated rather than left to luck. */
+    ['kids', 'eduKids'],
+    ['eduyears', 'eduYears'],
+    ['educost', 'eduCost'],
+    ['existing', 'existLife'],
+    ['savings', 'existSavings'],
   ];
 
   var filled = 0;

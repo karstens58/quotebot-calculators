@@ -33,7 +33,7 @@ assert.notEqual(j, -1, 'the prefill block is not closed');
 const SOURCE = HTML.slice(i, j + END.length);
 
 const IDS = ['debtCards', 'debtAuto', 'debtOther', 'incAnnual', 'incYears',
-  'mortBal', 'eduKids', 'eduCost', 'eduYears'];
+  'mortBal', 'eduKids', 'eduCost', 'eduYears', 'existLife', 'existSavings'];
 
 function run(search) {
   const nodes = {};
@@ -89,6 +89,76 @@ test('education does not invent a number of children or years', () => {
   assert.equal(r.values.eduCost, '100000');
   assert.equal(r.values.eduKids, '', 'Children to Fund must be left for the visitor');
   assert.equal(r.values.eduYears, '', 'Years Each must be left for the visitor');
+});
+
+/* ------------------------------------------- the chat's keys (QBP-183) -- */
+/*
+ * The card above sends five numbers from a form it drew. The assistant
+ * collects its numbers one question at a time and knows which is which, so
+ * it can fill fields the card never could.
+ */
+
+test('EXISTING COVER IS CARRIED, OR THE FIGURE IS CONFIDENTLY WRONG', () => {
+  // The one that produces a wrong answer rather than an incomplete one.
+  // Without it a visitor with $250k of group life through work is handed a
+  // recommendation $250k too high, and nothing on the page says the
+  // calculation assumed they had none.
+  const r = run('?income=140000&existing=250000&savings=40000');
+  assert.equal(r.values.existLife, '250000');
+  assert.equal(r.values.existSavings, '40000');
+  assert.equal(r.values.incAnnual, '140000');
+});
+
+test('education takes all three or the answer does not move', () => {
+  // kids x years x cost, with years falling back to 1 and the other two to
+  // 0. A caller that sends kids alone asked a question, carried the answer,
+  // and changed the total by nothing.
+  const all = run('?kids=2&eduyears=4&educost=30000');
+  assert.equal(all.values.eduKids, '2');
+  assert.equal(all.values.eduYears, '4');
+  assert.equal(all.values.eduCost, '30000');
+});
+
+test('AN EXPLICIT PER-CHILD COST BEATS THE CARD TOTAL', () => {
+  // Both land in eduCost. The card's key is a total it asked for as a
+  // total; the chat's is a genuine per-child-per-year figure. When both
+  // arrive the explicit one wins, and MAP ORDER is the only thing deciding
+  // that -- which is why it is pinned here rather than left to luck.
+  const r = run('?education=100000&educost=30000&kids=2&eduyears=4');
+  assert.equal(r.values.eduCost, '30000',
+    'the card total overwrote a figure the visitor actually gave');
+});
+
+test('the card still behaves exactly as it did', () => {
+  // The new keys must not have changed the old path. Children and Years are
+  // still left alone when only a total arrives.
+  const r = run('?education=100000');
+  assert.equal(r.values.eduCost, '100000');
+  assert.equal(r.values.eduKids, '');
+  assert.equal(r.values.eduYears, '');
+});
+
+test('a chat handoff fills what it collected and nothing else', () => {
+  // The six questions, as the interview will send them. Everything the
+  // visitor was not asked stays empty for the page's own defaults.
+  const r = run('?income=140000&years=20&mortgage=310000&debt=25000&existing=250000');
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(r.values).filter(([, v]) => v !== '')),
+    {
+      incAnnual: '140000', incYears: '20', mortBal: '310000',
+      debtOther: '25000', existLife: '250000',
+    },
+  );
+});
+
+test('a junk value in a new key is ignored like any other', () => {
+  // Whole value or nothing, the same rule the original keys get: stripping
+  // the stray characters out of "12three4" would quietly put 124 into a
+  // money field, which is worse than ignoring it.
+  const r = run('?existing=two%20hundred&kids=-1&savings=40000');
+  assert.equal(r.values.existLife, '');
+  assert.equal(r.values.eduKids, '');
+  assert.equal(r.values.existSavings, '40000', 'one bad key dropped a good one');
 });
 
 test('the debt total does not touch the other two debt buckets', () => {
