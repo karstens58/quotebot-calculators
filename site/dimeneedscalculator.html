@@ -805,16 +805,16 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="input-section"><span class="badge d">D</span><h3>Debt</h3><span class="line"></span></div>
           <div class="field">
             <label>Credit Cards &amp; Personal Loans</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtCards" class="has-prefix" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtCards" data-qb-ask="Roughly what is on credit cards and personal loans?" data-qb-why="Balances the household would still owe: credit cards, store cards, personal and signature loans. Not the mortgage and not the car, which have their own lines." data-qb-followup="Should I include my spouse's cards?" data-qb-answer="Include anything the household would still have to pay. If a card is only in their name and their income covers it, leave it out." class="has-prefix" inputmode="numeric"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Auto Loans</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtAuto" class="has-prefix" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtAuto" data-qb-ask="And anything left on car loans?" data-qb-why="The payoff on vehicle loans and leases: what it would take to clear them, not what the car is worth." data-qb-followup="What about a lease?" data-qb-answer="Put what is left on it. How a lease settles after a death varies by contract, so it is worth counting rather than assuming." class="has-prefix" inputmode="numeric"></div>
             </div>
             <div class="field">
               <label>Other Debts</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtOther" class="has-prefix" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="debtOther" data-qb-ask="Any other debt: student loans, medical bills, anything financed?" data-qb-why="Everything that is not the mortgage, a card or a car. Student loans, medical bills, tax owed, financed purchases." data-qb-followup="Do student loans die with me?" data-qb-answer="Federal student loans are generally discharged on death. Most private ones are not, and a co-signer can be left with them, so count those." class="has-prefix" inputmode="numeric"></div>
             </div>
           </div>
 
@@ -822,37 +822,37 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="input-section"><span class="badge i">I</span><h3>Income Replacement</h3><span class="line"></span></div>
           <div class="field">
             <label>Annual Income to Replace</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="incAnnual" class="has-prefix" inputmode="numeric" data-qb-sum="Annual income to replace" data-qb-sum-prefix="$"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="incAnnual" data-qb-ask="What do you earn a year?" data-qb-why="The income the household would lose. Include regular bonus or commission. Leave out a spouse's earnings: this figure is about replacing yours." data-qb-followup="Gross or net?" data-qb-answer="Net is the more accurate figure. It is what the household actually lives on." class="has-prefix" inputmode="numeric" data-qb-sum="Annual income to replace" data-qb-sum-prefix="$"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Years to Replace</label>
-              <div class="input-wrap"><input type="number" id="incYears" min="1" max="40" data-qb-sum="Years to replace" data-qb-sum-suffix=" yrs"><span class="input-suffix">yrs</span></div>
+              <div class="input-wrap"><input type="number" id="incYears" data-qb-ask="How many years would they need that income?" data-qb-why="How long the money has to last. Most people count to the youngest child finishing school, or to a surviving spouse reaching retirement, whichever is longer." data-qb-followup="How do I pick a number?" data-qb-answer="Count to the nearest milestone: youngest child out of school, or the mortgage paid off. It is one field to change on the results page." min="1" max="40" data-qb-sum="Years to replace" data-qb-sum-suffix=" yrs"><span class="input-suffix">yrs</span></div>
             </div>
             <div class="field">
               <label>Expected Return</label>
-              <div class="input-wrap"><input type="number" id="incReturn" min="0" max="12" step="0.5"><span class="input-suffix">%</span></div>
+              <div class="input-wrap"><input type="number" id="incReturn" data-qb-ask="If that money were invested, what return would you assume on it?" data-qb-why="The rate the lump sum earns while it is being drawn down. A higher return means a smaller lump sum does the same job." data-qb-followup="I have no idea what to put." data-qb-answer="Leave it at zero and the figure assumes the money simply sits there, which gives a larger and more cautious number. An agent can run it both ways with you." min="0" max="12" step="0.5"><span class="input-suffix">%</span></div>
             </div>
           </div>
           <div class="field">
             <label>Annual Income Growth <span class="tip">raises &amp; inflation</span></label>
-            <div class="input-wrap"><input type="number" id="incGrowth" min="0" max="8" step="0.5"><span class="input-suffix">%</span></div>
+            <div class="input-wrap"><input type="number" id="incGrowth" data-qb-ask="Would you expect that income to rise each year, for raises and inflation?" data-qb-why="How much the replaced income grows annually. It raises the total, because later years cost more than today's figure does." data-qb-followup="What do people usually use?" data-qb-answer="Often something near long-run inflation. Left at zero, the calculation replaces today's income every year with no increase." min="0" max="8" step="0.5"><span class="input-suffix">%</span></div>
           </div>
 
           <!-- M - MORTGAGE -->
           <div class="input-section"><span class="badge m">M</span><h3>Mortgage Payoff</h3><span class="line"></span></div>
           <div class="field">
             <label>Remaining Mortgage Balance</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="mortBal" class="has-prefix" inputmode="numeric" data-qb-sum="Mortgage balance" data-qb-sum-prefix="$"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="mortBal" data-qb-ask="What is left on the mortgage?" data-qb-why="The payoff balance today: what it would take to clear the loan. Not the original amount, and not what the home is worth." data-qb-followup="Does a HELOC or second mortgage count?" data-qb-answer="Yes, if it is secured against the house. Add them together and give the combined payoff." class="has-prefix" inputmode="numeric" data-qb-sum="Mortgage balance" data-qb-sum-prefix="$"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Interest Rate</label>
-              <div class="input-wrap"><input type="number" id="mortRate" min="0" max="15" step="0.125"><span class="input-suffix">%</span></div>
+              <div class="input-wrap"><input type="number" id="mortRate" data-qb-ask="What rate is the mortgage at?" data-qb-why="Used for the payment schedule on the results page. It does not change the recommended cover, which uses the payoff balance." data-qb-followup="Why ask if it does not change the number?" data-qb-answer="It only shapes the breakdown: the monthly payment and the interest still to come. Skip it if you would rather." min="0" max="15" step="0.125"><span class="input-suffix">%</span></div>
             </div>
             <div class="field">
               <label>Years Remaining</label>
-              <div class="input-wrap"><input type="number" id="mortYears" min="1" max="40"><span class="input-suffix">yrs</span></div>
+              <div class="input-wrap"><input type="number" id="mortYears" data-qb-ask="And how many years are left on it?" data-qb-why="The remaining term, for the same payment schedule. Like the rate, it does not change the recommended cover." data-qb-followup="I am not sure exactly." data-qb-answer="An estimate is fine. It affects the chart, not the recommendation." min="1" max="40"><span class="input-suffix">yrs</span></div>
             </div>
           </div>
 
@@ -861,25 +861,25 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-row">
             <div class="field">
               <label>Children to Fund</label>
-              <div class="input-wrap"><input type="number" id="eduKids" min="0" max="10" data-qb-sum="Children to fund"></div>
+              <div class="input-wrap"><input type="number" id="eduKids" data-qb-ask="How many children would you want to fund education for?" data-qb-why="The number of children covered. This is multiplied by the years and the yearly cost, so all three are needed before the education figure is anything but zero." data-qb-followup="They are grown, or we are not paying for school." data-qb-answer="Put zero. The education line drops out and nothing else in the calculation changes." min="0" max="10" data-qb-sum="Children to fund"></div>
             </div>
             <div class="field">
               <label>Years Each</label>
-              <div class="input-wrap"><input type="number" id="eduYears" min="1" max="8"><span class="input-suffix">yrs</span></div>
+              <div class="input-wrap"><input type="number" id="eduYears" data-qb-ask="How many years of schooling each?" data-qb-why="Years of education funded per child. Four is common for a degree, more for postgraduate, fewer for a partial contribution." data-qb-followup="They are different ages." data-qb-answer="Use an average across them. The page takes one figure for all the children." min="1" max="8"><span class="input-suffix">yrs</span></div>
             </div>
           </div>
           <div class="field">
             <label>Cost Per Child / Year</label>
-            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="eduCost" class="has-prefix" inputmode="numeric"></div>
+            <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="eduCost" data-qb-ask="And what would you want to put toward each child, per year?" data-qb-why="What you would want to cover annually per child. Not necessarily the full cost of the school, just the part you would want insured." data-qb-followup="What do most people put?" data-qb-answer="It depends entirely on the school and how much of it you intend to cover, so there is no useful average. Put the figure you would actually want set aside." class="has-prefix" inputmode="numeric"></div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Emergency Fund <span class="tip sm">3–6 mo</span></label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="emergFund" class="has-prefix" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="emergFund" data-qb-ask="How much of a cushion would you want left behind?" data-qb-why="Money set aside so nobody is forced into decisions in the first months. Three to six months of household expenses is the usual guide." data-qb-followup="Is that not the same as income replacement?" data-qb-answer="No. Income replacement covers the years ahead; this is cash on hand for the first few weeks, before anything else has been settled." class="has-prefix" inputmode="numeric"></div>
             </div>
             <div class="field">
               <label>Final Expenses <span class="tip">funeral</span></label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="finalExp" class="has-prefix" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="finalExp" data-qb-ask="And something for final expenses?" data-qb-why="Funeral and burial costs, and the immediate bills that arrive in the weeks after. This line applies to everybody, whatever else is on the list." data-qb-followup="What is realistic?" data-qb-answer="It varies a great deal by region and by what you would want. Worth putting something rather than nothing: for somebody with no mortgage and no children, this is the whole of this section." class="has-prefix" inputmode="numeric"></div>
             </div>
           </div>
 
@@ -888,11 +888,11 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-row align-fields">
             <div class="field">
               <label>Existing Life Insurance</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existLife" class="has-prefix" inputmode="numeric" data-qb-sum="Existing life insurance" data-qb-sum-prefix="$"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existLife" data-qb-ask="Do you have any life insurance already?" data-qb-why="Cover you already hold, including group life through work. It subtracts from the total, so leaving it out inflates the recommendation." data-qb-followup="Does the policy through work count?" data-qb-answer="Count it, but know that group life usually ends when the job does and often cannot be taken with you. Worth flagging if most of your cover sits there." class="has-prefix" inputmode="numeric" data-qb-sum="Existing life insurance" data-qb-sum-prefix="$"></div>
             </div>
             <div class="field">
               <label>Liquid Savings</label>
-              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existSavings" class="has-prefix" inputmode="numeric"></div>
+              <div class="input-wrap"><span class="input-prefix">$</span><input type="text" id="existSavings" data-qb-ask="And savings that could be used: cash, investments you could reach?" data-qb-why="Money the household could actually get at. Savings, brokerage, cash. Not the house." data-qb-followup="Should I include my retirement account?" data-qb-answer="Usually not. It is reachable, but it is the surviving spouse's retirement, and spending it on today's bills moves the problem rather than solving it." class="has-prefix" inputmode="numeric"></div>
             </div>
           </div>
 
