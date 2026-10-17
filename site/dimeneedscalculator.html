@@ -681,6 +681,17 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   <!-- The quote engine. Same Function URL quotetool.html uses; the page
        degrades to a "call us" card rather than an invented price if it is
        unreachable. -->
+  <!--
+    THE TOKEN IS IN THE URL FOR A MOMENT, so the URL must not travel.
+
+    A handoff link (QBP-191) arrives as ?h=<token> and is stripped from the
+    address bar by tidyQuery as soon as it has been read — but the page has
+    already begun fetching its own scripts and fonts by then, and every one
+    of those requests carries a Referer. strict-origin sends the origin and
+    nothing else, always, so the token is never in a header we do not
+    control. It costs nothing here: nothing on this page reads a referrer.
+  -->
+  <meta name="referrer" content="strict-origin">
   <script>window.QB_QUOTE_ENDPOINT = "https://api.quote-bot.com/quote/";</script>
   <script src="js/quotebot-consent.js"
           data-version="2026-09-28"
@@ -1940,6 +1951,66 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
    into a figure nobody intended.
 
    Nothing is submitted; the numbers are filled in and the page recalculates.  */
+/* ---------- REDEEM A HANDOFF ----------
+   The assistant collected a name, and will collect an email and a date of
+   birth once the interview lands (QBP-185). None of that belongs in a query
+   string, so the link carries a token and the values come back over HTTPS.
+   See amplify/functions/shared/handofftoken.ts.
+
+   READ FIRST, because prefillFromQuery below calls tidyQuery, which keeps
+   the attribution params and drops everything else — `h` included. That is
+   the behaviour we want and the reason this sits above it rather than
+   below.
+
+   SILENT ON FAILURE. An expired or spent token leaves the form exactly as
+   it would have been without a link at all, which is a form somebody fills
+   in. A red banner about a token would be a page explaining its own
+   plumbing to a person who just wants a number.  */
+(function redeemHandoff() {
+  var token;
+  try {
+    token = new URLSearchParams(location.search).get('h');
+  } catch (e) { return; }
+  if (!token) return;
+
+  var ENDPOINT = 'https://api.quote-bot.com/chat/';
+  var FIELDS = ['firstName', 'lastName', 'email', 'phone', 'dob', 'state'];
+
+  fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ redeem: token }),
+  })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (res) {
+      if (!res || !res.handoff) return;
+      var filled = 0;
+      FIELDS.forEach(function (f) {
+        var v = res.handoff[f];
+        if (typeof v !== 'string' || !v) return;
+        var el = document.getElementById(f);
+        if (!el) return;
+        /* A <select> can only hold a value it has an option for. Setting
+           one it does not know leaves it blank, which reads as the handoff
+           having silently dropped the field. */
+        if (el.tagName === 'SELECT'
+          && !Array.prototype.some.call(el.options, function (o) { return o.value === v; })) {
+          return;
+        }
+        el.value = v;
+        /* Through the field's own listener, so it formats and recalculates
+           the way typing would — the same rule prefillFromQuery follows. */
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        filled += 1;
+      });
+      /* The age pill and the quote read the date of birth, and neither
+         updates off an input event alone. */
+      if (filled) { try { liveUpdate(); } catch (e) {} }
+    })
+    .catch(function () { /* Offline, blocked, refused. The form still works. */ });
+})();
+
 (function prefillFromQuery() {
   var q = new URLSearchParams(location.search);
   if (![...q.keys()].length) return;
