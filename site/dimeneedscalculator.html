@@ -1977,6 +1977,17 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
     ['kids', 'eduKids'],
     ['eduyears', 'eduYears'],
     ['educost', 'eduCost'],
+
+    /* THE REST OF THE E, which is not only education.
+       calcEducation returns eduTotal + emergency + final, so these two are
+       half the category and both default to blank. A caller that fills the
+       schooling and skips these has not produced a smaller answer, it has
+       produced one with the funeral left out -- and final expenses is the
+       figure that applies to everybody, including the visitor with no
+       children and no mortgage, for whom it is the entire E. */
+    ['emergency', 'emergFund'],
+    ['final', 'finalExp'],
+
     ['existing', 'existLife'],
     ['savings', 'existSavings'],
   ];

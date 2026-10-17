@@ -33,7 +33,8 @@ assert.notEqual(j, -1, 'the prefill block is not closed');
 const SOURCE = HTML.slice(i, j + END.length);
 
 const IDS = ['debtCards', 'debtAuto', 'debtOther', 'incAnnual', 'incYears',
-  'mortBal', 'eduKids', 'eduCost', 'eduYears', 'existLife', 'existSavings'];
+  'mortBal', 'eduKids', 'eduCost', 'eduYears', 'existLife', 'existSavings',
+  'emergFund', 'finalExp'];
 
 function run(search) {
   const nodes = {};
@@ -117,6 +118,25 @@ test('education takes all three or the answer does not move', () => {
   assert.equal(all.values.eduKids, '2');
   assert.equal(all.values.eduYears, '4');
   assert.equal(all.values.eduCost, '30000');
+});
+
+test('THE E IS NOT ONLY EDUCATION', () => {
+  // calcEducation returns eduTotal + emergency + final. Both of those
+  // default to blank, so a handoff that fills the schooling and skips them
+  // has not produced a smaller answer -- it has produced one with the
+  // funeral left out.
+  const r = run('?emergency=25000&final=15000');
+  assert.equal(r.values.emergFund, '25000');
+  assert.equal(r.values.finalExp, '15000');
+});
+
+test('final expenses is the whole E for somebody with no children', () => {
+  // The visitor with no kids and no mortgage. Education contributes nothing
+  // for them by design, and if `final` is not carried the entire category
+  // is zero -- which is wrong for everybody, not just for them.
+  const r = run('?income=90000&final=15000');
+  assert.equal(r.values.finalExp, '15000');
+  assert.equal(r.values.eduKids, '');
 });
 
 test('AN EXPLICIT PER-CHILD COST BEATS THE CARD TOTAL', () => {
