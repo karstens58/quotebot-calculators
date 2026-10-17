@@ -1990,6 +1990,32 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
 
     ['existing', 'existLife'],
     ['savings', 'existSavings'],
+
+    /* ---- EVERY FIELD THE NEEDS NUMBER READS, not a chosen few ----
+       getInputs() feeds seventeen fields into gross = debt + income +
+       mortgage payoff + E, less what they already have. All seventeen are
+       reachable from here, and dime-prefill.test.mjs derives that list from
+       getInputs() itself rather than repeating it, so a new field on the
+       form is a failing test until it can be carried too.
+
+       THE ASSISTANT DOES NOT DO THIS ARITHMETIC. It collects answers and
+       hands them over; this page computes. A collector that carried only
+       the fields somebody judged important would be making the calculation
+       by choosing what to leave out, which is the same thing wearing a
+       different hat -- and leaving a field out is never neutral. Blank
+       emergency fund and final expenses silently zero half the E; blank
+       return and growth collapse income replacement to annual x years,
+       which recommends MORE cover than a discounted figure would, and we
+       sell the policy.
+
+       The three split debts arrive separately now. `debt` stays as the
+       card's unsplit total and still lands in the unspecified bucket. */
+    ['debtcards', 'debtCards'],
+    ['debtauto', 'debtAuto'],
+    ['increturn', 'incReturn'],
+    ['incgrowth', 'incGrowth'],
+    ['mortrate', 'mortRate'],
+    ['mortyears', 'mortYears'],
   ];
 
   var filled = 0;

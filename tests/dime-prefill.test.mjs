@@ -32,9 +32,25 @@ const j = HTML.indexOf(END, i);
 assert.notEqual(j, -1, 'the prefill block is not closed');
 const SOURCE = HTML.slice(i, j + END.length);
 
-const IDS = ['debtCards', 'debtAuto', 'debtOther', 'incAnnual', 'incYears',
-  'mortBal', 'eduKids', 'eduCost', 'eduYears', 'existLife', 'existSavings',
-  'emergFund', 'finalExp'];
+/**
+ * Every field the needs number reads, DERIVED FROM getInputs().
+ *
+ * Not a list kept here. getInputs() is the only place that says which
+ * fields feed `gross`, so a seventeenth-and-first field added to the form
+ * appears here on its own and the coverage test below fails until it can be
+ * carried. A hand-kept copy would agree with itself and with nothing else.
+ */
+const NEEDS_FIELDS = (() => {
+  const i = HTML.indexOf('    debt: { cards:');
+  assert.notEqual(i, -1, 'getInputs no longer looks the way this test reads it');
+  const j = HTML.indexOf('  };', i);
+  const block = HTML.slice(i, j);
+  const ids = [...block.matchAll(/parseNum\('(\w+)'\)/g)].map((m) => m[1]);
+  assert.ok(ids.length > 12, `only ${ids.length} fields found in getInputs`);
+  return [...new Set(ids)];
+})();
+
+const IDS = NEEDS_FIELDS;
 
 function run(search) {
   const nodes = {};
@@ -90,6 +106,56 @@ test('education does not invent a number of children or years', () => {
   assert.equal(r.values.eduCost, '100000');
   assert.equal(r.values.eduKids, '', 'Children to Fund must be left for the visitor');
   assert.equal(r.values.eduYears, '', 'Years Each must be left for the visitor');
+});
+
+/* --------------------------------------------- every field is reachable -- */
+
+test('EVERY FIELD THE NEEDS NUMBER READS CAN BE PREFILLED', () => {
+  /*
+   * The rule, stated once: the assistant collects answers and this page
+   * does the arithmetic. A collector that could carry only some of the
+   * inputs would be doing the calculation by choosing what to leave out,
+   * and leaving a field out is never neutral -- blank emergency fund and
+   * final expenses zero half the E, and blank return and growth collapse
+   * income replacement to annual x years, which recommends MORE cover than
+   * a discounted figure would.
+   *
+   * Derived from getInputs() and from the MAP, so neither list can quietly
+   * stop matching the other.
+   */
+  const targets = new Set(
+    [...SOURCE.matchAll(/\['[a-z]+',\s*'(\w+)'\]/g)].map((m) => m[1]),
+  );
+  const unreachable = NEEDS_FIELDS.filter((id) => !targets.has(id));
+  assert.deepEqual(unreachable, [],
+    'these fields feed the recommendation and no query key fills them, so a '
+    + 'handoff that collected them has nowhere to put them:\n  '
+    + unreachable.join('\n  '));
+});
+
+test('every prefill key points at a field that still exists', () => {
+  // The other direction: a key aimed at a renamed field fills nothing and
+  // reads as cover that is not there.
+  const known = new Set(NEEDS_FIELDS);
+  const stray = [...SOURCE.matchAll(/\['[a-z]+',\s*'(\w+)'\]/g)]
+    .map((m) => m[1]).filter((id) => !known.has(id));
+  assert.deepEqual([...new Set(stray)], []);
+});
+
+test('the three debts are reachable separately and as a total', () => {
+  const split = run('?debtcards=8000&debtauto=17000');
+  assert.equal(split.values.debtCards, '8000');
+  assert.equal(split.values.debtAuto, '17000');
+  // The card's unsplit total still lands in the unspecified bucket.
+  assert.equal(run('?debt=25000').values.debtOther, '25000');
+});
+
+test('the income assumptions are reachable rather than silently zero', () => {
+  // Blank is not neutral here: it collapses income replacement to
+  // annual x years and recommends more cover than a discounted figure.
+  const r = run('?increturn=5&incgrowth=3');
+  assert.equal(r.values.incReturn, '5');
+  assert.equal(r.values.incGrowth, '3');
 });
 
 /* ------------------------------------------- the chat's keys (QBP-183) -- */
