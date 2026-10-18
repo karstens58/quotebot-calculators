@@ -5,6 +5,11 @@
  *
  *   <script src="/js/quotebot-chat.js"
  *           data-endpoint="https://api.quote-bot.com/chat/"
+ *
+ * The endpoint is an ATTRIBUTE, never baked in here, which is what
+ * lets one file serve every site. QBP-4 moved the calculators onto
+ * api.quote-bot.com by editing their pages; this file did not change,
+ * and that is the property worth keeping.
  *           data-tool="myga"></script>
  *
  * No dependencies, no build step, one file. Same shape as quotebot-capture.js,
@@ -218,7 +223,11 @@
       '.qbc-meta{font-size:11px;color:#5b6673;margin-top:5px}',
       '.qbc-cite{font-size:11px;color:#5b6673;align-self:flex-start;max-width:85%}',
       '.qbc-hand{align-self:flex-start;margin-top:2px;font:inherit;font-size:13px;border:1px solid ' + BRAND + ';',
-      'color:' + BRAND + ';background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer}',
+      /* text-decoration and display are for the calculator link, which is an
+         <a> and not a <button>: without them it renders underlined and
+         sits on the text baseline instead of looking like its neighbour. */
+      'color:' + BRAND + ';background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;',
+      'text-decoration:none;display:inline-block}',
       '.qbc-ident{align-self:stretch;background:#f4f8fc;border:1px solid #dbe6f1;border-radius:12px;padding:12px}',
       '.qbc-ident b{display:block;font-size:13px;margin-bottom:3px}',
       '.qbc-ident p{margin:0 0 9px;font-size:12.5px;color:#41505f;line-height:1.55}',
@@ -361,7 +370,7 @@
       .replace(/^(please|pls)\s+/, '')
       .trim();
     if (!t || t.length > 40) return false;
-    return /^(agent|human|a human|real person|person|rep|representative|a person|a rep|an agent|a real person|live person|live agent|someone to talk to|talk to (an? )?(agent|human|person|someone|somebody)|speak (to|with) (an? )?(agent|human|person|someone|somebody)|(can|could) i (talk|speak) (to|with) (an? )?(agent|human|person|someone|somebody)|i want (to talk to )?(an? )?(agent|human|person)|call me|get me (an? )?(agent|human|person)|have (an? )?(agent|human|person|someone|somebody) (call|contact) me)$/.test(t);
+    return /^(agent|human|a human|real person|person|rep|representative|a person|a rep|an agent|a real person|live person|live agent|someone to talk to|talk to (an? )?(agent|human|person|someone|somebody)|speak (to|with) (an? )?(agent|human|person|someone|somebody)|(can|could) i (talk|speak) (to|with) (an? )?(agent|human|person|someone|somebody)|i want (to talk to )?(an? )?(agent|human|person)|call me|get me (an? )?(agent|human|person)|have (an? )?(agent|human|person|someone|somebody) (call|contact) me|((i (want|would like|wanna|need)|i'd like|can i|could i|how do i) ?(to )?)?(book|schedule|set ?up|make|arrange) (an? )?(appointment|call|time|meeting|consultation)( with (an? )?(agent|advisor|someone|somebody))?|(appointment|book a call|book an appointment))$/.test(t);
   }
 
   /**
@@ -377,174 +386,9 @@
    * licensed staff who know what it is; a visitor reasonably might not, and
    * several states now take a dim view of exactly that confusion.
    */
-  var GREETING = 'Hi there! Before we get started, may I ask your first name?';
+  var GREETING = 'Hi \u2014 I can explain how life, disability, long-term care and '
+    + 'annuities actually work. What are you trying to figure out?';
 
-  /** After a name. Only ever used with a name that was actually given. */
-  function thanks(name) {
-    return 'Thanks, ' + name + '! How can I help?';
-  }
-
-  /**
-   * The email ask, after the first real answer.
-   *
-   * Says what is true TODAY. When a transcript can actually be sent (QBP-46 —
-   * SES is unverified, and until it is, a send is recorded and marked as not
-   * sent), this is the one line that changes, and it should change by asking
-   * the server rather than by somebody remembering. Promising a transcript
-   * before then would be the /apply mistake: telling somebody something
-   * happened when nothing did, to the people who trusted it enough to wait.
-   */
-  /**
-   * How many real answers before the email is asked for.
-   *
-   * Two, not one. Asking straight after the first answer means somebody has
-   * had one question answered and is immediately being asked for their
-   * address, which reads as the price of the next one. A second answer is
-   * enough for them to have decided whether this is worth anything, and the
-   * ask lands as an offer rather than a toll.
-   *
-   * A name reply does not count — it is not an answer to anything.
-   */
-  var ASK_EMAIL_AFTER = 2;
-
-  var EMAIL_ASK =
-    'What\u2019s your email? That way an agent can pick up where we left off '
-    + 'instead of starting over.';
-
-  /**
-   * Words that are not names, however much they look like one.
-   *
-   * Two kinds. The first is what people actually reply to a greeting —
-   * "hi", "sure", "rather not". The second is this site's own vocabulary: a
-   * visitor on a MYGA calculator who types "annuities" has named a topic, and
-   * answering "Thanks, Annuities! How can I help?" is the sort of thing
-   * people screenshot.
-   *
-   * The list is imperfect and will stay imperfect, which is survivable
-   * because the two failures are not the same size. Missing a real name costs
-   * nothing — the conversation carries on and the name is asked for again
-   * later. Greeting somebody by a product name cannot be taken back. So when
-   * this is unsure, it refuses.
-   */
-  var NOT_NAMES = [
-    /* topics, not people */
-    'annuity', 'annuities', 'insurance', 'life', 'life insurance', 'term',
-    'term life', 'whole life', 'myga', 'iul', 'ltc', 'rates', 'rate', 'quote',
-    'quotes', 'policy', 'policies', 'coverage', 'cover', 'premium', 'premiums',
-    'retirement', 'income', 'beneficiary', 'surrender', 'help', 'info',
-    'information', 'question', 'questions', 'pricing', 'price', 'cost',
-    'money', 'claim', 'claims', 'account', 'application',
-    'hi', 'hey', 'hello', 'yo', 'sup', 'thanks', 'thank you', 'ok', 'okay',
-    'yes', 'yeah', 'yep', 'no', 'nope', 'sure', 'maybe', 'none', 'nothing',
-    'anonymous', 'nobody', 'test', 'testing', 'na', 'n a', 'skip', 'rather not',
-    'why', 'who', 'what', 'none of your business',
-    /*
-     * Checked per WORD as well as against the whole string, so these also
-     * knock out the pairs they turn up in: "yes please", "not today",
-     * "how much", "tell me", "just looking", "need help".
-     */
-    'there', 'please', 'how', 'much', 'tell', 'me', 'need', 'want', 'know',
-    'just', 'looking', 'today', 'not', 'more', 'about', 'still', 'first',
-  ];
-
-  /**
-   * Did they answer with a name, and if so what is it?
-   *
-   * Returns the name or null, and the null cases are the ones that matter.
-   * Replying "Thanks, Annuities! How can I help?" to somebody who typed a
-   * question is the kind of thing people screenshot, so this refuses anything
-   * it is not fairly sure about and the conversation simply carries on.
-   *
-   * Lives in the widget beside wantsAgent for the same reason that does: the
-   * compliance gate decides what may be ANSWERED and has to stay defensible
-   * to a regulator, and a guess at what somebody MEANT does not belong in the
-   * middle of it.
-   */
-  function readName(text) {
-    var raw = String(text || '').trim();
-    if (!raw || raw.length > 40) return null;
-    if (raw.indexOf('?') >= 0) return null;
-    if (wantsAgent(raw)) return null;
-
-    /*
-     * A pleasantry in front of the name.
-     *
-     * "Hi I'm Scott" is how a person actually answers "may I ask your first
-     * name?", and every rule below was anchored at the start of the string,
-     * so the greeting pushed the name out of reach and the whole line went to
-     * the model as a question. It came back with a paragraph about the
-     * founder of the company, read off the knowledge base, to somebody who
-     * had asked nothing.
-     *
-     * Stripped before anything else looks at the text. "Hi" on its own leaves
-     * nothing behind and is refused a line later; "hey what are your rates"
-     * leaves four words and is refused by the word count.
-     */
-    var raw2 = raw.replace(
-      /^(?:hi|hiya|hey|hello|yo|greetings|good\s+(?:morning|afternoon|evening))\b[\s,.!\u2014-]*/i, ''
-    ).trim();
-
-    /* "I'm Dana", "my name is Dana", "this is Dana", "Dana here". */
-    var lead = /^(?:i\s*a?m|i'm|my name is|name(?:'s| is)?|this is|it'?s|call me)\s+(.+)$/i;
-    var m = lead.exec(raw2);
-    var body = m ? m[1] : raw2;
-    body = body.replace(/[.,!]+$/, '').replace(/\s+here$/i, '').trim();
-    if (!body) return null;
-
-    var low = body.toLowerCase();
-    for (var i = 0; i < NOT_NAMES.length; i++) if (low === NOT_NAMES[i]) return null;
-
-    /* Nobody is called "a something". An article is the cheapest available
-       signal that this is a description rather than a name, and it catches
-       the whole family at once instead of one phrase at a time. */
-    if (/^(a|an|the|some|any|my|your)\s/i.test(low)) return null;
-
-    /* At most two words, letters only, plus the punctuation real names carry.
-       Three words is usually a sentence, and a sentence is usually a
-       question somebody forgot the mark on. */
-    var words = body.split(/\s+/);
-    if (words.length > 2) return null;
-    for (var j = 0; j < words.length; j++) {
-      if (!/^[a-z][a-z'\u2019-]*$/i.test(words[j])) return null;
-      if (words[j].length > 20) return null;
-      /*
-       * EVERY word, not the phrase.
-       *
-       * NOT_NAMES was compared against the whole string, so it caught "yes"
-       * and "rates" and let through "yes please" and "term rates" — and
-       * "Thanks, No Thanks! How can I help?" is precisely the thing this
-       * function exists to never say.
-       */
-      var w = words[j].toLowerCase();
-      for (var k = 0; k < NOT_NAMES.length; k++) if (w === NOT_NAMES[k]) return null;
-    }
-
-    /* A single letter is an initial or a stray keystroke, not a name to
-       greet somebody by. */
-    if (body.replace(/[^a-z]/gi, '').length < 2) return null;
-
-    /*
-     * Title case, with the rest LOWERED, across the separators real names
-     * carry.
-     *
-     * Two bugs live here and both were caught by tests rather than by
-     * reading. Keeping the tail as typed greets "DANA" as "DANA", which reads
-     * as the system shouting back. Lowering the tail without splitting on the
-     * hyphen turns "Mary-Jane" into "Mary-jane", which is worse than either,
-     * because it is a name somebody will see spelled wrong every turn.
-     */
-    return words
-      .map(function (w) {
-        return w.split(/([-'\u2019])/).map(function (part) {
-          /* Tested for BEING a separator rather than for being short: the
-             length guard that was here skipped the "o" of o'brien, which then
-             kept its lower case forever. */
-          if (/^[-'\u2019]$/.test(part)) return part;
-          return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-        }).join('');
-      })
-      .join(' ');
-  }
 
   /* ------------------------------------------------------------------ */
   /* The widget                                                          */
@@ -564,9 +408,9 @@
        prefill a form they are already being shown; never sent on its own. */
     context: {},
     /* The opening. `greeted` stops it being said twice if the panel is closed
-       and reopened; `named` is what they said to call them; `askedEmail`
+       and reopened; `named` is what they said to call them.
        stops the email request repeating after every answer. */
-    greeted: false, named: '', askedEmail: false, answers: 0,
+    greeted: false, named: '',
     /* NONE | QUEUED | CLAIMED | ENDED, as the server last reported it. */
     live: 'NONE',
     pollTimer: null,
@@ -1001,15 +845,17 @@
      * holds back insurance information until it has your details is doing
      * something we would not want described back to us.
      */
-    var name = (!state.named && state.messages === 1) ? readName(text) : null;
-    if (name) {
-      state.named = name;
-      bubble('qbc-them', thanks(name));
-      /* Sent with no message: a name is not a question, and answering one
-         would mean putting "Dana" to a model. */
-      ask({ firstName: name });
-      return;
-    }
+    /*
+     * NO NAME IS READ HERE AT ALL, and the judgement has left the browser.
+     *
+     * QBP-180 stopped reading message one as a name, because the greeting no
+     * longer asks a question a name would answer. QBP-181 moved the reading
+     * itself to shared/name.ts, corpus and all: the assistant now asks what
+     * to call somebody in the middle of a conversation, the same way it asks
+     * for a phone number or a state, and every one of those is read on the
+     * server. A copy here would be a second judgement to keep in step with
+     * the first, for no gain — the widget never sees the question coming.
+     */
 
     /* Typing "agent" does what pressing the button does. The message still
        goes to the server and is still answered — asking for a person is not
@@ -1061,6 +907,17 @@
       /* Somebody is coming, or already here. Said once and then polled for. */
       if (res.queued) bubble('qbc-them', res.queued);
       liveNow(res);
+      /*
+       * What the assistant made of something it had asked for: a value read
+       * back, or what was wrong with one it could not use.
+       *
+       * BEFORE the reply, because it answers what they just typed and the
+       * answer to their question follows it. Its own bubble rather than
+       * spliced onto the front of the reply — one message that opens by
+       * confirming a phone number and then explains term life is two
+       * thoughts wearing one coat.
+       */
+      if (res.slotSay) bubble('qbc-them', res.slotSay);
       if (res.reply) render(res);
       if (res.identityError) {
         var e = document.createElement('div');
@@ -1082,22 +939,19 @@
        * ask the same person for their email twice in the same panel.
        */
       if (res.askCallback) callback(res.askCallback);
-      else if (res.askIdentity) identity(res.askIdentity);
 
       /*
-       * The email ask, once, after a real answer.
+       * One small question, after the answer.
        *
-       * After rather than before, and once rather than on every turn. It is
-       * also skipped entirely when the server is already showing a form of
-       * its own — being asked for an email in a sentence and in a box at the
-       * same time reads as a system arguing with itself.
+       * Last, and never when a form is already on screen: being asked what
+       * to call you underneath a box asking for your name, email, phone and
+       * state reads as a system arguing with itself. The server will not
+       * send both — askFor stands down while anything else is outstanding —
+       * and this is the second lock, because the first one lives in a
+       * different deploy.
        */
-      if (res.reply) state.answers++;
-      if (state.answers >= ASK_EMAIL_AFTER && !state.askedEmail
-          && !res.askCallback && !res.askIdentity && !res.callbackTaken) {
-        state.askedEmail = true;
-        bubble('qbc-them', EMAIL_ASK);
-      }
+      if (res.slotAsk && !res.askCallback) bubble('qbc-them', res.slotAsk);
+
       return res;
     }).catch(function () {
       if (thinking.parentNode) {
@@ -1246,6 +1100,31 @@
      * and telling somebody "an agent can help with that" while giving them no
      * way to reach one is where a refusal turns into a dead end.
      */
+    /*
+     * THE CALCULATOR FIRST, when one would answer what they asked.
+     *
+     * A refusal about a number — "how much cover do I need", "what
+     * would that cost" — is the moment the tool that answers it should
+     * be one tap away. It goes ABOVE the agent button because it is
+     * the faster of the two answers and the one that does not need
+     * anybody to pick up a phone; the agent stays underneath because
+     * some people would rather talk to one, and because the server
+     * offers both deliberately.
+     *
+     * A plain link, not a fetch. It opens the real calculator page,
+     * which captures the lead the way it already does for every other
+     * visitor — there is no second capture path to keep in step.
+     */
+    if (res.tool && res.tool.url) {
+      var t = document.createElement('a');
+      t.className = 'qbc-hand';
+      t.href = res.tool.url;
+      t.target = '_blank';
+      t.rel = 'noopener';
+      t.textContent = 'Work it out: ' + res.tool.label;
+      el.log.appendChild(t);
+    }
+
     if (res.handoff === 'agent') {
       var b = document.createElement('button');
       b.className = 'qbc-hand';
@@ -1428,51 +1307,6 @@
     ins[0].focus();
   }
 
-  /**
-   * The name-and-email prompt.
-   *
-   * It never gates an answer. The next question is answered whether or not
-   * this is filled in — a gate converts fewer of the people who would have
-   * told us anyway, and an assistant that withholds insurance information
-   * until it has your email is doing something we would not want described
-   * back to us.
-   */
-  function identity(prompt) {
-    var box = document.createElement('div');
-    box.className = 'qbc-ident';
-    box.innerHTML = '<b></b><p></p>'
-      + '<input type="text" placeholder="First name" autocomplete="given-name">'
-      + '<input type="text" placeholder="Last name" autocomplete="family-name">'
-      + '<input type="email" placeholder="Email" autocomplete="email">'
-      + '<div class="qbc-row"><button type="button" class="qbc-yes">Send it to me</button>'
-      + '<button type="button"></button></div>';
-    box.querySelector('b').textContent = prompt.title || '';
-    box.querySelector('p').textContent = prompt.body || '';
-
-    var ins = box.querySelectorAll('input');
-    var btns = box.querySelectorAll('button');
-    /*
-     * The dismiss label is written, not concatenated. It used to be spliced
-     * into the innerHTML string above while title and body — from the same
-     * server-sent object, three lines apart — went through textContent, which
-     * is the kind of asymmetry nobody chooses on purpose. callback() below
-     * had it right all along; this is the same furniture built twice and one
-     * copy drifting. Everything the server names goes in as text.
-     */
-    btns[1].textContent = prompt.dismiss || 'No thanks';
-    btns[0].addEventListener('click', function () {
-      box.parentNode.removeChild(box);
-      ask({ identity: { firstName: ins[0].value, lastName: ins[1].value, email: ins[2].value } });
-    });
-    btns[1].addEventListener('click', function () {
-      box.parentNode.removeChild(box);
-      ask({ identityDeclined: true });
-    });
-
-    el.log.appendChild(box);
-    el.log.scrollTop = el.log.scrollHeight;
-  }
-
   /* ------------------------------------------------------------------ */
 
   return {
@@ -1492,10 +1326,7 @@
     fitPanel: fitPanel,
     watchViewport: watchViewport,
     wantsAgent: wantsAgent,
-    readName: readName,
     GREETING: GREETING,
-    EMAIL_ASK: EMAIL_ASK,
-    ASK_EMAIL_AFTER: ASK_EMAIL_AFTER,
     STATES: STATES,
     readPage: readPage,
     invitation: invitation,
