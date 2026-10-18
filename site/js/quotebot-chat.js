@@ -77,10 +77,10 @@
    * sentence moves too.
    */
   var DISCLOSURE =
-    'You are chatting with an automated assistant. It can explain how coverage works, '
-    + 'but it cannot give advice or quote rates — a licensed agent does that, and you can '
-    + 'ask for one at any point. A licensed agent may read this chat, and during business '
-    + 'hours may check in on you.';
+    'You are chatting with an automated assistant. It can explain how coverage '
+    + 'works, but it cannot give advice. It can walk you through or direct you to '
+    + 'our calculators for quotes or rates — a licensed agent is able to connect '
+    + 'during business hours, and you can ask for one at any point.';
 
   var BRAND = '#1e72b9';
 
