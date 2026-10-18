@@ -221,7 +221,30 @@
       '.qbc-them{align-self:flex-start;background:#f1f4f8}',
       '.qbc-me{align-self:flex-end;background:' + BRAND + ';color:#fff}',
       '.qbc-meta{font-size:11px;color:#5b6673;margin-top:5px}',
-      '.qbc-cite{font-size:11px;color:#5b6673;align-self:flex-start;max-width:85%}',
+      /*
+       * WHERE THIS COMES FROM, behind one tap.
+       *
+       * The citation used to be a line of transcript under every reply --
+       * "From: A (quote-bot.com); B (quote-bot.com); ..." -- as long as the
+       * answer and printed even under replies that asserted nothing. It read
+       * as noise, which is the opposite of what a citation is for.
+       *
+       * One control in the header instead, in the same place every time
+       * whether or not this particular answer earned one. Predictable beats
+       * contextual here: a consumer who learns where the sources live trusts
+       * the thing more than one who finds a bibliography appearing and
+       * vanishing under alternate sentences.
+       */
+      '.qbc-info{position:relative}',
+      '.qbc-info[hidden]{display:none}',
+      '.qbc-info.qbc-on{color:' + BRAND + '}',
+      '.qbc-sources{background:#fff;border-bottom:1px solid #e8edf2;padding:10px 14px;',
+      'font-size:11.5px;line-height:1.5;color:#41505f;max-height:34%;overflow-y:auto}',
+      '.qbc-sources[hidden]{display:none}',
+      '.qbc-sources b{display:block;font-size:10.5px;letter-spacing:.05em;',
+      'text-transform:uppercase;color:#5b6673;margin-bottom:5px}',
+      '.qbc-sources ul{margin:0;padding-left:16px}',
+      '.qbc-sources li{margin:0 0 3px}',
       '.qbc-hand{align-self:flex-start;margin-top:2px;font:inherit;font-size:13px;border:1px solid ' + BRAND + ';',
       /* text-decoration and display are for the calculator link, which is an
          <a> and not a <button>: without them it renders underlined and
@@ -301,7 +324,7 @@
 
       /* A bubble at 85% of a phone leaves a stripe of dead space; at 92% the
          text has somewhere to go. */
-      '.qbc-msg,.qbc-cite{max-width:92%}',
+      '.qbc-msg{max-width:92%}',
       '.qbc-log{padding:12px;gap:9px}',
       '}',
 
@@ -386,8 +409,7 @@
    * licensed staff who know what it is; a visitor reasonably might not, and
    * several states now take a dim view of exactly that confusion.
    */
-  var GREETING = 'Hi \u2014 I can explain how life, disability, long-term care and '
-    + 'annuities actually work. What are you trying to figure out?';
+  var GREETING = 'Hi \u2014 how can I help?';
 
 
   /* ------------------------------------------------------------------ */
@@ -411,6 +433,10 @@
        and reopened; `named` is what they said to call them.
        stops the email request repeating after every answer. */
     greeted: false, named: '',
+    /* Every page cited so far, in the order first cited, deduped by title.
+       The conversation's sources, not this reply's: somebody checking where
+       an answer came from two turns later should still find it. */
+    cites: [], sourcesOpen: false,
     /* NONE | QUEUED | CLAIMED | ENDED, as the server last reported it. */
     live: 'NONE',
     pollTimer: null,
@@ -733,8 +759,13 @@
     el.panel.setAttribute('aria-label', 'Quote Bot assistant');
     el.panel.innerHTML =
       '<div class="qbc-head"><img src="' + ICON + '" alt=""><b>Quote Bot assistant</b>'
-      + '<button type="button" aria-label="Close">&times;</button></div>'
+      /* Hidden until there is something behind it, and from then on it stays:
+         a control that comes and goes is one nobody learns. */
+      + '<button type="button" class="qbc-info" aria-label="Where this comes from" '
+      + 'aria-expanded="false" hidden>&#9432;</button>'
+      + '<button type="button" class="qbc-x" aria-label="Close">&times;</button></div>'
       + '<div class="qbc-disclosure"></div>'
+      + '<div class="qbc-sources" hidden></div>'
       + '<div class="qbc-log" role="log" aria-live="polite"></div>'
       + '<div class="qbc-foot"><textarea rows="1" aria-label="Your question" '
       + 'maxlength="' + MAX_CHARS + '" '
@@ -758,7 +789,13 @@
     el.input = el.panel.querySelector('textarea');
     el.send = el.panel.querySelector('.qbc-foot button');
 
-    el.panel.querySelector('.qbc-head button').addEventListener('click', close);
+    /* `.qbc-x`, not "the first button in the header". There are two now,
+       and the close handler landing on whichever comes first is exactly the
+       kind of thing that works until somebody adds a button. */
+    el.panel.querySelector('.qbc-x').addEventListener('click', close);
+    el.info = el.panel.querySelector('.qbc-info');
+    el.sources = el.panel.querySelector('.qbc-sources');
+    el.info.addEventListener('click', toggleSources);
     el.send.addEventListener('click', send);
     el.input.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
@@ -779,6 +816,14 @@
     if (!state.greeted) {
       state.greeted = true;
       bubble('qbc-them', GREETING);
+    }
+
+    /* The panel is built fresh on every open and the conversation is not.
+       Somebody who closes it mid-thread and comes back must still be able
+       to see where the answers came from. */
+    if (state.cites.length) {
+      el.info.hidden = false;
+      if (state.sourcesOpen) { paintSources(); el.sources.hidden = false; }
     }
 
     /* Before the focus below, so the first keyboard event is already being
@@ -1074,24 +1119,66 @@
     /* Before the close button, so the two are not confused with each other:
        one shuts a panel you can reopen, the other finishes a conversation
        with a person in it. */
-    head.insertBefore(el.endBtn, head.querySelector('button'));
+    head.insertBefore(el.endBtn, head.querySelector('.qbc-info'));
+  }
+
+  /**
+   * Fold this reply's sources into the conversation's list.
+   *
+   * NOTHING IS APPENDED TO THE TRANSCRIPT. The server sends sources only on
+   * a reply that actually answered something -- a clarifying question
+   * carries none -- and what arrives is added to a list behind the header
+   * control rather than printed under the bubble.
+   *
+   * Deduped by the title the visitor would read, because the same page
+   * answering three questions is one source, not three.
+   */
+  function noteSources(list) {
+    if (!el.info) return;
+    var added = 0;
+    for (var i = 0; list && i < list.length; i++) {
+      var t = list[i] && list[i].title;
+      if (!t) continue;
+      var seen = false;
+      for (var j = 0; j < state.cites.length; j++) {
+        if (state.cites[j] === t) { seen = true; break; }
+      }
+      if (!seen) { state.cites.push(t); added += 1; }
+    }
+    if (!state.cites.length) return;
+    el.info.hidden = false;
+    /* Repainted even when nothing was added, so an open sheet is never a
+       stale one. */
+    if (added || state.sourcesOpen) paintSources();
+  }
+
+  function paintSources() {
+    if (!el.sources) return;
+    var ul = '';
+    for (var i = 0; i < state.cites.length; i++) ul += '<li></li>';
+    el.sources.innerHTML = '<b>Where this comes from</b><ul>' + ul + '</ul>';
+    /* textContent per item rather than interpolating the title into the
+       HTML above: these strings come off a document's metadata, and a page
+       title is not markup however harmless it looks. */
+    var items = el.sources.querySelectorAll('li');
+    for (var k = 0; k < items.length && k < state.cites.length; k++) {
+      items[k].textContent = state.cites[k];
+    }
+  }
+
+  function toggleSources() {
+    state.sourcesOpen = !state.sourcesOpen;
+    if (state.sourcesOpen) paintSources();
+    el.sources.hidden = !state.sourcesOpen;
+    el.info.setAttribute('aria-expanded', state.sourcesOpen ? 'true' : 'false');
+    el.info.className = state.sourcesOpen ? 'qbc-info qbc-on' : 'qbc-info';
+    fitPanel();
   }
 
   function render(res) {
     bubble('qbc-them', res.reply);
 
-    if (res.sources && res.sources.length) {
-      var c = document.createElement('div');
-      c.className = 'qbc-cite';
-      var titles = [];
-      for (var i = 0; i < res.sources.length; i++) {
-        if (res.sources[i] && res.sources[i].title) titles.push(res.sources[i].title);
-      }
-      if (titles.length) {
-        c.textContent = 'From: ' + titles.join('; ');
-        el.log.appendChild(c);
-      }
-    }
+    noteSources(res.sources);
 
     /*
      * The handoff is a button, not a sentence.
