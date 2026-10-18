@@ -398,7 +398,7 @@
        appointment with an agent" at 49 characters. The anchored pattern is
        the rule; this is only a bound before it runs. */
     if (!t || t.length > 64) return false;
-    return /^(agent|human|a human|real person|person|rep|representative|a person|a rep|an agent|a real person|live person|live agent|someone to talk to|talk to (an? )?(agent|human|person|someone|somebody)|speak (to|with) (an? )?(agent|human|person|someone|somebody)|(can|could) i (talk|speak) (to|with) (an? )?(agent|human|person|someone|somebody)|i want (to talk to )?(an? )?(agent|human|person)|call me|get me (an? )?(agent|human|person)|have (an? )?(agent|human|person|someone|somebody) (call|contact) me|((i (want|would like|wanna|need)|i'd like|can i|could i|how do i) ?(to )?)?(book|schedule|set ?up|make|arrange) (an? )?(appointment|call|time|meeting|consultation)( with (an? )?(agent|advisor|someone|somebody))?|(appointment|book a call|book an appointment))$/.test(t);
+    return /^((agent|human|a human|real person|person|rep|representative|a person|a rep|an agent|a real person|live person|live agent|someone to talk to|talk to (an? )?(agent|human|person|someone|somebody)|speak (to|with) (an? )?(agent|human|person|someone|somebody)|(can|could) i (talk|speak) (to|with) (an? )?(agent|human|person|someone|somebody)|i want (to talk to )?(an? )?(agent|human|person)|call me|get me (an? )?(agent|human|person)|have (an? )?(agent|human|person|someone|somebody) (call|contact) me)|(((i (want|would like|wanna|need)|i'd like|can i|could i|how do i) ?(to )?)?(book|schedule|set ?up|make|arrange) (an? )?(appointment|call|time|meeting|consultation)( with (an? )?(agent|advisor|someone|somebody))?|(appointment|book a call|book an appointment)))$/.test(t);
   }
 
   /**
