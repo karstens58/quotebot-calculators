@@ -218,6 +218,12 @@
       'color:#41505f;font-size:12px;line-height:1.5;text-align:center;border-radius:10px}',
       '.qbc-end{border:1px solid #d6dde5;background:#fff;color:#8f2d24;font:inherit;',
       'font-size:12px;border-radius:8px;padding:5px 10px;cursor:pointer;margin-right:4px}',
+      /* The way back out of an ended conversation. Centred and on its own
+         row rather than inside a bubble: it is a control, not something
+         anybody said. */
+      '.qbc-restart{align-self:center;border:1px solid ' + BRAND + ';background:#fff;',
+      'color:' + BRAND + ';font:inherit;font-size:13px;border-radius:8px;',
+      'padding:7px 14px;cursor:pointer;margin:2px 0}',
       '.qbc-them{align-self:flex-start;background:#f1f4f8}',
       '.qbc-me{align-self:flex-end;background:' + BRAND + ';color:#fff}',
       '.qbc-meta{font-size:11px;color:#5b6673;margin-top:5px}',
@@ -444,6 +450,10 @@
     cites: [], sourcesOpen: false,
     /* NONE | QUEUED | CLAIMED | ENDED, as the server last reported it. */
     live: 'NONE',
+    /* Whether the one-line notice for this conversation has been shown. Said
+       once, not once per attempt: somebody typing three times into an ended
+       chat needs the way out repeated, not the sentence. */
+    noticed: false,
     pollTimer: null,
     /* The newest agent or system line already on screen, so a poll asks for
        what came after it rather than for everything every time. */
@@ -863,6 +873,9 @@
     watchViewport(false);
     if (el.panel && el.panel.parentNode) el.panel.parentNode.removeChild(el.panel);
     el.panel = null;
+    /* It lived in the log, which has just gone with the panel. Left set, the
+       next offerRestart would reach into a detached tree to tidy up. */
+    el.restartBtn = null;
     el.btn.style.display = '';
     el.btn.focus();
   }
@@ -874,6 +887,64 @@
     el.log.appendChild(d);
     el.log.scrollTop = el.log.scrollHeight;
     return d;
+  }
+
+  /**
+   * The way out of a conversation that cannot continue.
+   *
+   * ENDED is permanent and stays permanent -- this does not reopen the old
+   * conversation, it starts a new one. The closed transcript keeps its end
+   * where it was, which is the whole reason ENDED has teeth.
+   *
+   * One button at a time, kept at the bottom as the log grows, because a
+   * visitor who types again should find it under what they just typed
+   * rather than scrolled off above it.
+   */
+  function offerRestart() {
+    if (!el.log) return;
+    if (el.restartBtn && el.restartBtn.parentNode) {
+      el.restartBtn.parentNode.removeChild(el.restartBtn);
+    }
+    el.restartBtn = document.createElement('button');
+    el.restartBtn.type = 'button';
+    el.restartBtn.className = 'qbc-restart';
+    el.restartBtn.textContent = 'Start a new chat';
+    el.restartBtn.addEventListener('click', restart);
+    el.log.appendChild(el.restartBtn);
+    el.log.scrollTop = el.log.scrollHeight;
+  }
+
+  /**
+   * A new conversation, from this panel, without reloading the page.
+   *
+   * The stored session id goes first: everything else here is screen state,
+   * and leaving the id behind would send the next message straight back
+   * into the conversation they just ended.
+   */
+  function restart() {
+    set('sessionStorage', K_SESSION, '');
+    sessionId = null;
+    state.live = 'NONE';
+    state.noticed = false;
+    state.named = '';
+    state.messages = 0;
+    state.lastSeenAt = '';
+    state.cites = [];
+    state.sourcesOpen = false;
+    stopPolling();
+    showEnd(false);
+    if (el.restartBtn && el.restartBtn.parentNode) {
+      el.restartBtn.parentNode.removeChild(el.restartBtn);
+    }
+    el.restartBtn = null;
+    el.log.innerHTML = '';
+    if (el.info) el.info.hidden = true;
+    if (el.sources) { el.sources.hidden = true; el.sources.innerHTML = ''; }
+    /* Greeted afresh, because this IS a fresh conversation. The once-per
+       -visitor rule in open() is about reopening a panel, not about
+       starting again. */
+    bubble('qbc-them', GREETING);
+    el.input.focus();
   }
 
   function send() {
@@ -967,6 +1038,19 @@
        * confirming a phone number and then explains term life is two
        * thoughts wearing one coat.
        */
+      /*
+       * Something that is not an answer, because there will not be one.
+       *
+       * BEFORE the reply for the same reason slotSay is: it explains the
+       * turn. In practice a notice and a reply never arrive together --
+       * the notice exists for turns the assistant deliberately sits out
+       * (QBP-215), and those carry no reply at all.
+       */
+      if (res.notice && !state.noticed) {
+        state.noticed = true;
+        bubble('qbc-sys', res.notice);
+      }
+      if (res.canRestart) offerRestart();
       if (res.slotSay) bubble('qbc-them', res.slotSay);
       if (res.reply) render(res);
       if (res.identityError) {
