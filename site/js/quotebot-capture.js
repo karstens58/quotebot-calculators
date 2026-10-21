@@ -31,7 +31,14 @@
   var SESSION_KEY = 'qb.session';
   var SENT_KEY = 'qb.sent';
   var CLICKED_KEY = 'qb.clicked';
-  var FIRST_TOUCH_DAYS = 365;
+  /*
+   * How long a first touch keeps earning. Scott, 21 October: 365 was "far
+   * too generous" and 30 "may be too short" -- 90 covers a real life
+   * insurance consideration cycle without still paying on a click from last
+   * year. The cookie below is given the same life, so the credit and the
+   * record expire together rather than one outliving the other.
+   */
+  var FIRST_TOUCH_DAYS = 90;
   /* Long enough to swallow a double-click, short enough that a visitor who
      changes a number and recalculates is never silently dropped. */
   var DEDUPE_MS = 60 * 1000;
@@ -132,6 +139,21 @@
   /* ---------- storage helpers (never throw; private mode, ITP, etc.) ------ */
 
   function read(key) {
+    if (isAttrKey(key)) {
+      var shared = cookieGet(key);
+      if (shared) return shared;
+      /*
+       * READ-THROUGH FOR WHAT IS ALREADY OUT THERE. Every consumer carrying
+       * a first touch today has it in this origin's localStorage, and
+       * deploying a cookie would silently reset all of them -- every
+       * in-flight attribution lost on the day we improved attribution.
+       * Promoted to the cookie on the next write.
+       */
+      try {
+        var legacy = window.localStorage.getItem(key);
+        return legacy ? JSON.parse(legacy) : null;
+      } catch (e) { return null; }
+    }
     try {
       var raw = window.localStorage.getItem(key);
       return raw ? JSON.parse(raw) : null;
@@ -139,11 +161,92 @@
   }
 
   function write(key, value) {
+    if (isAttrKey(key)) { cookieSet(key, value, FIRST_TOUCH_DAYS); return; }
     try { window.localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
   }
 
   function remove(key) {
+    if (isAttrKey(key)) {
+      cookieClear(key);
+      /* The legacy copy too, or the read-through above would resurrect a
+         first touch that has just aged out. */
+      try { window.localStorage.removeItem(key); } catch (e) {}
+      return;
+    }
     try { window.localStorage.removeItem(key); } catch (e) {}
+  }
+
+  /* ---------- attribution storage: a COOKIE, and why ----------------------
+   *
+   * localStorage is scoped to ONE ORIGIN, and this business runs on four:
+   *
+   *   quote-bot.com            the main site
+   *   partners.quote-bot.com   a partner's own page
+   *   tools.quote-bot.com      these calculators
+   *   book.quote-bot.com       booking
+   *
+   * So a consumer who met us on a partner's page and then went to the main
+   * site arrived as a stranger -- their first touch WAS recorded, in a box
+   * the next host could not open, and the affiliate lost the credit. That is
+   * the whole of QBP-257.
+   *
+   * All four are subdomains of one registrable domain, so a cookie set on
+   * `.quote-bot.com` is sent to every one of them. It also closes the case
+   * that looked unsolvable: somebody who later TYPES quote-bot.com still
+   * carries their first touch, because no referrer or link parameter is
+   * involved.
+   *
+   * ONLY THE TWO ATTRIBUTION KEYS MOVE. The send queue, the session id and
+   * the sent/clicked markers are per-origin by nature -- a queued POST
+   * belongs to the page that made it -- and sharing them would be wrong
+   * rather than merely unnecessary.
+   *
+   * SAFARI CAPS A SCRIPT-SET COOKIE AT SEVEN DAYS, whatever expiry is asked
+   * for. Nothing here can change that: a Set-Cookie header would need a
+   * server, and these are static sites. The window below is honoured
+   * everywhere else, and seven days is still far better than the nothing a
+   * cross-origin localStorage gave.
+   */
+
+  var ATTR_DOMAIN = '.quote-bot.com';
+
+  /** Attribution lives on the shared domain; everything else stays local. */
+  function isAttrKey(key) { return key === FIRST_KEY || key === LAST_KEY; }
+
+  function cookieGet(key) {
+    try {
+      var all = String(document.cookie || '').split(';');
+      for (var i = 0; i < all.length; i++) {
+        var row = all[i];
+        var eq = row.indexOf('=');
+        if (eq < 0) continue;
+        if (row.slice(0, eq).trim() !== key) continue;
+        return JSON.parse(decodeURIComponent(row.slice(eq + 1).trim()));
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function cookieSet(key, value, days) {
+    try {
+      var until = new Date(Date.now() + days * 864e5).toUTCString();
+      /*
+       * Lax, not None. The cookie has to survive a top-level click from a
+       * partner page to the main site, which Lax allows; it has no business
+       * travelling on a third party's embedded request, which None would
+       * permit. Secure because every host here is https.
+       */
+      document.cookie = key + '=' + encodeURIComponent(JSON.stringify(value))
+        + ';expires=' + until
+        + ';path=/;domain=' + ATTR_DOMAIN + ';SameSite=Lax;Secure';
+    } catch (e) {}
+  }
+
+  function cookieClear(key) {
+    try {
+      document.cookie = key + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        + ';path=/;domain=' + ATTR_DOMAIN + ';SameSite=Lax;Secure';
+    } catch (e) {}
   }
 
   function uuid() {

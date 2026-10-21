@@ -29,6 +29,42 @@ export function loadCaptureApi(startHref) {
   const store = new Map();
   let href = startHref;
 
+  /*
+   * A COOKIE JAR, because attribution no longer lives in localStorage.
+   *
+   * It is a real one rather than a Map: the script writes a full cookie
+   * string with an expiry and a domain, and reads it back by parsing
+   * document.cookie. A jar that just stored the value would agree with a
+   * script that forgot the domain -- which is the entire defect QBP-257
+   * exists to fix -- so the attributes are kept and exposed for the tests
+   * to assert on.
+   */
+  const jar = new Map();
+  const cookieJar = {
+    all: () => jar,
+    serialise: () => [...jar.entries()]
+      .map(([k, v]) => `${k}=${v.value}`).join('; '),
+    set(raw) {
+      const [pair, ...rest] = String(raw).split(';');
+      const eq = pair.indexOf('=');
+      if (eq < 0) return;
+      const name = pair.slice(0, eq).trim();
+      const value = pair.slice(eq + 1).trim();
+      const attrs = {};
+      for (const a of rest) {
+        const i = a.indexOf('=');
+        if (i < 0) { attrs[a.trim().toLowerCase()] = true; continue; }
+        attrs[a.slice(0, i).trim().toLowerCase()] = a.slice(i + 1).trim();
+      }
+      /* An expiry in the past is a delete, the way a browser treats it. */
+      if (attrs.expires && Date.parse(attrs.expires) <= Date.now()) {
+        jar.delete(name);
+        return;
+      }
+      jar.set(name, { value, attrs });
+    },
+  };
+
   const win = {
     get location() { return new URL(href); },
     localStorage: {
@@ -45,6 +81,8 @@ export function loadCaptureApi(startHref) {
   };
   const doc = {
     readyState: 'loading', referrer: '',
+    get cookie() { return cookieJar.serialise(); },
+    set cookie(raw) { cookieJar.set(raw); },
     addEventListener() {}, removeEventListener() {},
     querySelectorAll: () => [], querySelector: () => null,
     getElementById: () => null,
@@ -61,5 +99,5 @@ export function loadCaptureApi(startHref) {
     'navigator', 'location', `${CAPTURE_SRC}\nreturn window.QuoteBot;`);
   const api = fn(win, doc, win.history, win.localStorage, win.navigator, win.location);
 
-  return { api, stored: store, hrefNow: () => href };
+  return { api, stored: store, cookies: cookieJar, hrefNow: () => href };
 }
