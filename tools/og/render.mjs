@@ -78,6 +78,10 @@ body{display:flex;font-family:'Jakarta',sans-serif;-webkit-font-smoothing:antial
 .eyebrow{font-size:23px;font-weight:700;letter-spacing:.17em;color:#1e4d85}
 .head{font-family:'Fraunces',Georgia,serif;font-weight:600;color:#12233b;
   line-height:1.2;margin-top:34px;display:flex;flex-direction:column;align-items:flex-start}
+/* Each array item in the head array is one printed line and has to stay one
+   printed line. Without this the browser may wrap a long one, and fitHeadline
+   below cannot tell that it did -- see the comment there. */
+.head span{white-space:nowrap}
 .head .last{font-style:italic;color:#1e4d85}
 .rule{width:182px;height:7px;background:#b45309;margin-top:52px}
 .body{font-size:30px;line-height:1.62;color:#3f5470;margin-top:38px;max-width:1240px}
@@ -108,6 +112,24 @@ body{display:flex;font-family:'Jakarta',sans-serif;-webkit-font-smoothing:antial
 // Headlines are hand-broken, so line lengths vary between cards. Start at the
 // size the original card uses and step down only as far as the longest line
 // needs, so most cards keep the same headline size and the set stays even.
+//
+// MEASURE scrollWidth, NOT getBoundingClientRect().width.
+//
+// getBoundingClientRect returns the width of the BOX the line sits in, not the
+// width the text wanted. Nothing stopped the browser wrapping a long line, and
+// once it had, the box was exactly the column width -- so an over-long line
+// measured as fitting, this returned 117px, and the card shipped with more
+// printed lines than cards.mjs declared. Silently: no warning, and the console
+// said `headline 117px` exactly as it does for a card that is fine.
+//
+// careltc-card.png shipped that way, with "use C.A.R.E. when planning" needing
+// 1546px in a 1398px column and "planning" orphaned on a line of its own, and
+// so did fiaincomerider-card.png. QBP-315.
+//
+// white-space:nowrap in the CSS above is the other half of the fix and both
+// halves are needed: nowrap alone overflows the panel instead of wrapping,
+// scrollWidth alone measures correctly but nothing prevents a wrap at a size
+// this loop never tries.
 async function fitHeadline(page) {
   return page.evaluate(() => {
     const head = document.getElementById('head');
@@ -115,7 +137,7 @@ async function fitHeadline(page) {
     for (let size = 117; size >= 74; size -= 1) {
       head.style.fontSize = size + 'px';
       const widest = Math.max(
-        ...[...head.children].map((s) => s.getBoundingClientRect().width),
+        ...[...head.children].map((s) => s.scrollWidth),
       );
       if (widest <= room) return size;
     }
