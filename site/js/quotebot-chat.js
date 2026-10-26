@@ -510,7 +510,7 @@
     el.btn = document.createElement('button');
     el.btn.className = 'qbc-btn';
     el.btn.setAttribute('aria-label', 'Open the Quote Bot assistant');
-    el.btn.innerHTML = '<img src="' + ICON + '" alt="">';
+    el.btn.innerHTML = '<img src="' + ICON + '" alt="" width="96" height="87">';
     el.btn.addEventListener('click', function () { open('button'); });
     document.body.appendChild(el.btn);
 
@@ -773,7 +773,7 @@
     el.panel.setAttribute('role', 'dialog');
     el.panel.setAttribute('aria-label', 'Quote Bot assistant');
     el.panel.innerHTML =
-      '<div class="qbc-head"><img src="' + ICON + '" alt=""><b>Quote Bot assistant</b>'
+      '<div class="qbc-head"><img src="' + ICON + '" alt="" width="96" height="87"><b>Quote Bot assistant</b>'
       /* Hidden until there is something behind it, and from then on it stays:
          a control that comes and goes is one nobody learns. */
       + '<button type="button" class="qbc-info" aria-label="Where this comes from" '
