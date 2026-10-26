@@ -252,3 +252,33 @@ test('THE BEACON USES A CONTENT TYPE A BROWSER WILL ACTUALLY SEND', () => {
     'a beacon sending application/json is dropped by the browser before it '
     + 'reaches the endpoint');
 });
+
+test('STAFF ARE MARKED, AND THE TAG SENDS IT -- QBP-331', () => {
+  /*
+   * GA4's "exclude internal traffic by IP" does nothing more than stamp
+   * traffic_type=internal onto each event; a data filter then drops
+   * anything carrying the stamp. So the stamp is the mechanism, and an
+   * IP list is only one way to set it.
+   *
+   * We set it from a cookie the admin console writes, because an IP list
+   * excludes a BUILDING and this team works from anywhere -- the address
+   * captured the night this was built was not even the office. An IP
+   * list would also rot silently the day the ISP rotated it, and nothing
+   * would say so: you would simply start counting yourselves again.
+   *
+   * Three ways this breaks, all of them quiet:
+   *   the flag stops being read, and staff are counted as audience;
+   *   the parameter stops being sent, same result;
+   *   it is sent as something other than 'internal', which GA4's own
+   *   filter does not match -- so it looks configured and filters nothing.
+   */
+  const js = fs.readFileSync(path.join(ROOT, BEACON_FILE), 'utf8');
+
+  assert.match(js, /qb_staff/,
+    'the gate no longer reads the staff flag, so staff are counted as audience');
+  assert.match(js, /traffic_type:\s*staffFlag\(\)/,
+    'the tag no longer sends traffic_type, so nothing is filtered');
+  assert.match(js, /\?\s*'internal'\s*:\s*undefined/,
+    "the flag must be 'internal' or absent — GA4's built-in filter matches "
+    + 'that exact value, and any other creates a bucket nobody filters on');
+});

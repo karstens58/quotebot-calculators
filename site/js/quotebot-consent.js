@@ -53,6 +53,20 @@
    * ONE SWITCH, as on the marketing site: no id and no src means no tag,
    * no banner, and nothing stored.
    */
+  /**
+   * 'internal' when this browser has signed into the admin console.
+   *
+   * Returns undefined rather than a value when it has not, because an
+   * absent parameter is what GA4 expects for ordinary traffic -- sending
+   * traffic_type with some other value would create a second bucket
+   * nobody filters on.
+   */
+  function staffFlag() {
+    try {
+      return /(^|; )qb_staff=1(;|$)/.test(document.cookie) ? 'internal' : undefined;
+    } catch (e) { return undefined; }
+  }
+
   var GA_ID = attr('analytics-id', null);
   var TAG_SRC = attr('analytics-src', null)
     || (GA_ID ? 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID : null);
@@ -70,6 +84,22 @@
         window.gtag = gtag;
         gtag('js', new Date());
         gtag('config', GA_ID, {
+          /*
+           * STAFF ARE NOT AUDIENCE -- QBP-331.
+           *
+           * GA4's "exclude internal traffic by IP" does nothing more
+           * than stamp traffic_type=internal onto each event and let a
+           * data filter drop anything carrying it. The IP rule is one
+           * way to set that stamp; the admin console setting a cookie
+           * is another, and a better one for a team that works from
+           * anywhere -- an IP list excludes a building, and most of
+           * this team is not in it.
+           *
+           * The cookie is written on .quote-bot.com by the console, and
+           * these pages are a subdomain of it, so it is readable here
+           * too. Absent, this is undefined and nothing is sent.
+           */
+          traffic_type: staffFlag(),
           /*
            * BELT AND BRACES. Both are off on the property itself. Setting
            * them here too means that if somebody turns one back on in the
