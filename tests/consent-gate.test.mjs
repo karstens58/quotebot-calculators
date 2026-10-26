@@ -208,3 +208,47 @@ test('the partials name no host of their own', () => {
       `tools/${f} hardcodes a host — it should carry {{SITE}}`);
   }
 });
+
+const BEACON_FILE = 'site/js/quotebot-consent.js';
+test('THE BEACON USES A CONTENT TYPE A BROWSER WILL ACTUALLY SEND', () => {
+  /*
+   * QBP-326. The consent beacon said 'application/json' and not one
+   * choice was ever recorded, in any browser.
+   *
+   * The endpoint is on api.quote-bot.com and the pages are not, so every
+   * one of these is cross-origin. application/json is not a CORS-safelisted
+   * content type, so it requires a preflight — and a beacon cannot be
+   * preflighted. The browser queues it, sendBeacon returns TRUE, and the
+   * request is then dropped with no error, no console warning and no
+   * network entry to find.
+   *
+   * WHY THIS NEEDS A TEST AND NOT A COMMENT: every layer reported success.
+   * The banner closed, the choice was stored and honoured, the endpoint
+   * was correct and answered a plain fetch properly, and the recording
+   * call is deliberately written to swallow failures — "the server copy is
+   * evidence, and is allowed to fail". That is right for a network blip
+   * and it is exactly what hid this. Nothing anywhere could have gone red.
+   *
+   * Only the three safelisted types can be used here. Reverting to JSON
+   * looks tidier and silently stops the evidence log for everybody.
+   */
+  const js = fs.readFileSync(path.join(ROOT, BEACON_FILE), 'utf8');
+
+  const beacon = /navigator\.sendBeacon\([^)]*type:\s*TYPE[^)]*\)/.test(js)
+    || /navigator\.sendBeacon\([^)]*text\/plain[^)]*\)/.test(js);
+  assert.ok(beacon,
+    'the consent beacon no longer sends a text/plain Blob — if it is back on '
+    + 'application/json the browser will drop it and record nothing');
+
+  /* The declared type itself, wherever it is bound. */
+  const type = /TYPE\s*=\s*'([^']+)'/.exec(js)?.[1] ?? '';
+  const SAFELISTED = ['text/plain', 'application/x-www-form-urlencoded',
+    'multipart/form-data'];
+  assert.ok(SAFELISTED.some((t) => type.startsWith(t)),
+    `the beacon content type is "${type}", which is not CORS-safelisted, so `
+    + 'it needs a preflight and a beacon cannot be preflighted');
+
+  assert.doesNotMatch(js, /sendBeacon\([^)]*application\/json/,
+    'a beacon sending application/json is dropped by the browser before it '
+    + 'reaches the endpoint');
+});

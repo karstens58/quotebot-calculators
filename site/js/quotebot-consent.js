@@ -235,13 +235,41 @@
         sourceUrl: location.href,
         gpc: gpc,
       });
+      /*
+       * TEXT/PLAIN, AND THE CONTENT TYPE IS THE WHOLE BUG -- QBP-326.
+       *
+       * This said 'application/json' and not one consent was ever
+       * recorded. The endpoint is on api.quote-bot.com and the page is on
+       * quote-bot.com, so every one of these is a cross-origin request --
+       * and application/json is NOT a CORS-safelisted content type, so it
+       * requires a preflight. A beacon cannot be preflighted: the browser
+       * queues it, sendBeacon returns true, and it is then dropped with no
+       * error, no console warning and no network entry to find.
+       *
+       * Every layer reported success. The banner closed, the choice was
+       * stored and honoured, sendBeacon returned true, the endpoint was
+       * correct and answered 400/200 correctly to a plain fetch -- and the
+       * table stayed empty. It was read as a Safari and Firefox problem
+       * because those were the two browsers tried; it fails in all of them.
+       *
+       * text/plain IS safelisted, so there is no preflight and the beacon
+       * goes. The body is still JSON and the handler still parses it as
+       * JSON -- nothing server-side reads the content type. Verified by
+       * sending both forms at the same moment from the same page: the
+       * text/plain one arrived, the application/json one vanished.
+       *
+       * The fetch fallback matches it. That path does work with JSON,
+       * because fetch CAN preflight, but there is no reason for the two
+       * to disagree and a preflight is a wasted round trip on a banner.
+       */
+      var TYPE = 'text/plain;charset=UTF-8';
       /* sendBeacon survives the page being closed a moment later, which is
          exactly when someone clicks "reject" and leaves. */
       if (navigator.sendBeacon) {
-        navigator.sendBeacon(CFG.endpoint, new Blob([body], { type: 'application/json' }));
+        navigator.sendBeacon(CFG.endpoint, new Blob([body], { type: TYPE }));
       } else {
         fetch(CFG.endpoint, {
-          method: 'POST', headers: { 'content-type': 'application/json' },
+          method: 'POST', headers: { 'content-type': TYPE },
           body: body, keepalive: true,
         }).catch(function () { /* evidence only */ });
       }
