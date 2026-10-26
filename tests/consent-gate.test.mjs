@@ -45,14 +45,113 @@ test('the gate loads before the capture script that reads it', () => {
   }
 });
 
-test('the gate ships dark — no analytics tag configured', () => {
-  /* Turning it on is adding data-analytics-src. That is the same single edit
-     the site makes in consent.mjs, and it is the moment the policy pages
-     change too. */
+/*
+ * THE GATE IS NO LONGER DARK — QBP-324.
+ *
+ * This used to assert the opposite: that no page configured an analytics
+ * tag, because none did, and its comment said turning it on was the moment
+ * the policy pages change too. They changed in the same commit as this.
+ *
+ * What replaces it is the harder half. "No tag anywhere" is one condition.
+ * "The same tag, on every page, matching the other site" is three, and the
+ * ways it comes apart are all quiet ones: twelve pages measured and the
+ * thirteenth not, or a typo in an id that produces a tag which loads
+ * perfectly and reports to nothing.
+ */
+
+const ID = /^G-[A-Z0-9]{8,}$/;
+
+test('EVERY page configures analytics, and all of them the same one', () => {
+  const ids = new Map();
   for (const f of withCapture) {
     const html = fs.readFileSync(path.join(ROOT, 'site', f), 'utf8');
-    assert.doesNotMatch(html, /data-analytics-src="[^"]+"/,
-      `${f} configures an analytics tag — the privacy and cookie policies have to say so in the same release`);
+    const m = /data-analytics-id="([^"]*)"/.exec(html);
+    assert.ok(m, `${f} configures no analytics id, so this page alone measures nothing`);
+    assert.match(m[1], ID,
+      `${f} has id "${m[1]}", which is not a GA4 measurement id — the tag would `
+      + 'load and report to nothing');
+    ids.set(m[1], (ids.get(m[1]) ?? 0) + 1);
+  }
+  assert.equal(ids.size, 1,
+    `the pages report to ${ids.size} different streams: ${[...ids.keys()].join(', ')}`);
+});
+
+test('THE ID MATCHES THE MARKETING SITE, or the session breaks at the hop', () => {
+  /*
+   * The two sites share a stream on purpose. The calculators are a
+   * subdomain of quote-bot.com, so the _ga cookie is already shared; what
+   * makes a visitor who reads a guide and then opens a calculator ONE
+   * visit rather than two is that both pages report to the same property.
+   *
+   * A drifted id does not break anything visibly. Both sites measure, both
+   * dashboards fill, and the journey between them is simply never joined —
+   * which is the one question the whole arrangement was set up to answer.
+   *
+   * SKIPPED when the sibling repo is not checked out, as the other
+   * cross-repo tests here are: CI for this repo clones only this repo.
+   */
+  const sibling = path.join(ROOT, '..', 'quotebot-web', 'qb-site-src', 'consent.mjs');
+  if (!fs.existsSync(sibling)) {
+    console.log('  (quotebot-web is not checked out beside this repo — skipped)');
+    return;
+  }
+  const theirs = /GA4_MEASUREMENT_ID\s*=\s*'([^']+)'/
+    .exec(fs.readFileSync(sibling, 'utf8'))?.[1];
+  assert.ok(theirs, 'quotebot-web no longer exports GA4_MEASUREMENT_ID');
+
+  const mine = /data-analytics-id="([^"]*)"/
+    .exec(fs.readFileSync(path.join(ROOT, 'site', withCapture[0]), 'utf8'))?.[1];
+  assert.equal(mine, theirs,
+    `the calculators report to ${mine} and quote-bot.com reports to ${theirs}, `
+    + 'so a visit that crosses between them counts as two');
+});
+
+test('the gate knows how to start the tag it is given', () => {
+  /*
+   * gtag.js on its own does nothing. Loading it without the dataLayer
+   * bootstrap gives a script tag, no error, and no measurement — the
+   * failure that looks exactly like success, and the reason the id is
+   * passed rather than a bare src.
+   */
+  const js = fs.readFileSync(path.join(ROOT, 'site/js/quotebot-consent.js'), 'utf8');
+  assert.match(js, /analytics-id/,
+    'the gate ignores data-analytics-id, so every page configures nothing');
+  assert.match(js, /dataLayer\.push\(arguments\)/,
+    'the gtag shim must push the Arguments object — an array loads cleanly '
+    + 'and measures nothing');
+  assert.match(js, /allow_google_signals:\s*false/,
+    'the tag does not disable Google Signals, which privacy policy section 8 '
+    + 'relies on being off');
+});
+
+test('THE FOOTER CONSENT LINK REACHES SOMETHING', () => {
+  /*
+   * Every page has had a "Consent Preferences" button calling
+   * window.qbConsentReopen() in its footer, and the function did not
+   * exist. The onclick guards itself with `&&`, so the button did nothing
+   * and said nothing — harmless while there was no banner to reopen, and a
+   * dead control the day there is one. Withdrawing has to be as easy as
+   * agreeing, and the policy now promises exactly this button.
+   */
+  const js = fs.readFileSync(path.join(ROOT, 'site/js/quotebot-consent.js'), 'utf8');
+  const callers = withCapture.filter((f) =>
+    fs.readFileSync(path.join(ROOT, 'site', f), 'utf8').includes('qbConsentReopen'));
+  assert.ok(callers.length >= 13,
+    `only ${callers.length} pages offer a way to change your mind`);
+  assert.match(js, /window\.qbConsentReopen\s*=/,
+    'the footer calls window.qbConsentReopen on every page and nothing defines it');
+});
+
+test('the banner points at a cookie policy that exists', () => {
+  /* This script runs on the tools subdomain and the policy lives on the
+     marketing site. A root-relative href here is a 404 inside the one
+     dialog whose whole purpose is to be read before answering. */
+  const js = fs.readFileSync(path.join(ROOT, 'site/js/quotebot-consent.js'), 'utf8');
+  const hrefs = [...js.matchAll(/href="([^"]*cookie-policy[^"]*)"/g)].map((m) => m[1]);
+  assert.ok(hrefs.length, 'the banner no longer links to the cookie policy');
+  for (const h of hrefs) {
+    assert.match(h, /^https:\/\/quote-bot\.com\//,
+      `the banner links to ${h}, which does not exist on this host`);
   }
 });
 

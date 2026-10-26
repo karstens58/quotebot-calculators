@@ -32,12 +32,57 @@
     version: attr('version', null),
     endpoint: attr('endpoint', null),
     text: attr('text', null),
-    /* An analytics tag src. Absent means nothing to gate and so no banner —
-       the same single switch consent.mjs is on the marketing site. */
-    tags: attr('analytics-src', null)
-      ? [{ category: 'analytics', src: attr('analytics-src', null) }]
-      : [],
+    /* Filled in below, once the GA4 bootstrap it needs has been written. */
+    tags: [],
   };
+
+  /*
+   * THE ANALYTICS TAG, AND WHY IT IS BUILT HERE RATHER THAN PASSED IN.
+   *
+   * This gate is configured by data- attributes, because it is a plain
+   * script on thirteen static pages with no build step behind it. An
+   * attribute can carry a URL; it cannot carry a function. And gtag.js on
+   * its own does nothing -- loading it without the dataLayer bootstrap
+   * that follows gives you a script tag and no measurement, which is the
+   * failure that looks exactly like success.
+   *
+   * So the page supplies `data-analytics-id` and this builds both halves.
+   * `data-analytics-src` is still honoured for a tag that is not GA4 and
+   * needs no bootstrap of its own.
+   *
+   * ONE SWITCH, as on the marketing site: no id and no src means no tag,
+   * no banner, and nothing stored.
+   */
+  var GA_ID = attr('analytics-id', null);
+  var TAG_SRC = attr('analytics-src', null)
+    || (GA_ID ? 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID : null);
+
+  if (TAG_SRC) {
+    CFG.tags = [{
+      category: 'analytics',
+      src: TAG_SRC,
+      init: GA_ID ? function () {
+        window.dataLayer = window.dataLayer || [];
+        /* gtag.js reads the Arguments object itself, so this pushes
+           `arguments` rather than an array. A rest parameter spread into
+           an array loads cleanly and measures nothing. */
+        function gtag() { window.dataLayer.push(arguments); }
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', GA_ID, {
+          /*
+           * BELT AND BRACES. Both are off on the property itself. Setting
+           * them here too means that if somebody turns one back on in the
+           * Analytics console a year from now, this tag still does not
+           * send it -- and the privacy policy's "we do not sell or share"
+           * does not quietly stop being true without a deploy.
+           */
+          allow_google_signals: false,
+          allow_ad_personalization_signals: false,
+        });
+      } : null,
+    }];
+  }
   var KEY = 'qb_consent';
   /* Bump when the wording changes. A stored choice made under older wording is
      honoured but re-asked, because consent is to what was shown. */
@@ -213,6 +258,31 @@
   window.qbConsentId = function () { return (read() || {}).id || null; };
   window.qbConsentAllows = allowed;
 
+  /**
+   * Re-open the banner so somebody can change their mind.
+   *
+   * THE FOOTER HAS BEEN CALLING THIS ON ALL THIRTEEN PAGES AND IT DID NOT
+   * EXIST. `onclick="window.qbConsentReopen && window.qbConsentReopen()"`
+   * guards itself, so the button did nothing and said nothing -- harmless
+   * while there was no banner to reopen, and a dead control on the day
+   * there is one.
+   *
+   * It does not clear the stored choice first. Somebody who opens the
+   * panel and closes it again without pressing anything has not withdrawn
+   * anything, and treating a glance as a revocation would silently turn
+   * analytics off for a person who meant to leave it on.
+   */
+  window.qbConsentReopen = function () {
+    if (document.querySelector('.consent-bar')) return;
+    show();
+    var panel = document.querySelector('.consent-manage-panel');
+    var box = document.getElementById('consent-analytics');
+    /* Opened deliberately rather than collapsed: somebody who came here
+       came to change a setting, not to be asked the headline question. */
+    if (panel) panel.hidden = false;
+    if (box) box.checked = allowed('analytics');
+  };
+
   /* ---- the banner ------------------------------------------------------- */
 
   function dismiss(el) { el.remove(); document.body.classList.remove('has-consent-bar'); }
@@ -227,7 +297,11 @@
     bar.innerHTML =
       '<div class="consent-inner">'
       + '<div class="consent-copy"><strong>Your choice about cookies</strong>'
-      + '<p>' + text + ' <a href="/cookie-policy/">Cookie Policy</a></p></div>'
+      /* ABSOLUTE, because this script runs on tools.quote-bot.com and the
+         policy lives on quote-bot.com. A root-relative path here is a 404
+         inside the one dialog whose whole job is to be read. */
+      + '<p>' + text + ' <a href="https://quote-bot.com/cookie-policy/">'
+      + 'Cookie Policy</a></p></div>'
       + '<div class="consent-actions">'
       + '<button type="button" class="consent-btn consent-manage" data-a="manage">Manage</button>'
       + '<button type="button" class="consent-btn consent-reject" data-a="reject">Reject all</button>'
