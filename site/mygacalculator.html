@@ -768,7 +768,6 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   .term-empty { font-size: 13px; color: #6b7a8d; padding: 14px 0; }
   .rate-status { font-size: 12.5px; line-height: 1.45; }
   .rate-status.ok { color: #4a5a6b; }
-  .rate-status.stale { color: #8a5a00; font-weight: 600; }
   .rate-status.manual { color: #b3261e; font-weight: 600; }
   .rate-asof { font-size: 11.5px; color: #6b7a8d; margin-top: 6px; }
 </style>
@@ -1150,7 +1149,9 @@ let CARRIER_RATES_BY_TERM = {};   /* { term: { carrierName: rate } }       */
 let CARRIER_INFO = {};            /* { carrierName: { amBestRating, logoUrl } } */
 let BEST_TERM = null;
 
-/* 'live' | 'stale' | 'manual' — manual means no carrier rates may be shown. */
+/* 'live' | 'manual' — manual means no carrier rates may be shown. The old
+   'stale' value is gone with the consumer warning it drove (QBP-338); every
+   other reader of this only ever asked whether it was 'manual'. */
 let rateMode = 'manual';
 /* displayName -> underlying carrier name, so logos and ratings still resolve
    when a carrier sells two products at the same term. */
@@ -1626,13 +1627,16 @@ function describeBand(payload) {
 function applyRates(payload) {
   const rows = payload.rates || [];
   if (!rows.length) {
-    enterManualMode(payload.withheld
-      ? 'We have not confirmed our carrier rates recently enough to show them. Enter a rate below to see how it would grow, and contact us for current figures.'
-      : 'We have no published rates for that state yet. Enter a rate below to see how it would grow.');
+    /* The only reason to be here now is that we publish nothing for this
+       state. There used to be a second reason -- rates withheld for being
+       unverified past 45 days -- and on 25 October that emptied this page
+       for every state at once. It is gone (QBP-338): age no longer hides a
+       figure from the person who came to see it. */
+    enterManualMode('We have no published rates for that state yet. Enter a rate below to see how it would grow.');
     return;
   }
 
-  rateMode = payload.stale ? 'stale' : 'live';
+  rateMode = 'live';
   rateEffectiveDate = payload.effectiveDate;
   rateVerifiedDate = payload.verifiedDate || null;
   rateSource = payload.source || null;
@@ -1688,16 +1692,30 @@ function applyRates(payload) {
   const asOf = document.getElementById('rateAsOf');
   if (asOf) asOf.textContent = asOfText;
 
+  /*
+   * ONE MESSAGE, AND IT IS NOT A WARNING -- QBP-338.
+   *
+   * There were two. Past fourteen days the visitor was told we had last
+   * checked on such a date, that the rates may have changed, and to confirm
+   * before relying on them. Scott, 26 October: that belongs in front of him,
+   * not a customer -- they can do nothing with it except leave, and the page
+   * already tells them a licensed agent confirms the rate before anything is
+   * bought.
+   *
+   * WHAT IS LEFT IS STILL HONEST, and that is the part worth not eroding
+   * further. The dates stay, stated plainly: in effect since X, checked Y.
+   * That is provenance rather than alarm, and it means no figure here is
+   * presented as fresher than it is. If a future change drops the checked
+   * date to tidy the line up, it has crossed from removing a warning to
+   * hiding the evidence, which is a different thing.
+   *
+   * The warning is not gone, it moved: the rates page in the admin console
+   * and the alert to Scott are QBP-339.
+   */
   const bandNote = describeBand(payload);
-  if (payload.stale) {
-    setRateStatus('We last checked these rates on ' + (rateVerifiedDate || rateEffectiveDate)
-      + ', so they may have changed since. Confirm current figures with us before relying on them.'
-      + bandNote, 'stale');
-  } else {
-    setRateStatus('Rates in effect since ' + rateEffectiveDate
-      + (rateVerifiedDate ? ', checked ' + rateVerifiedDate : '')
-      + (payload.state ? ', for ' + payload.state : '') + '.' + bandNote, 'ok');
-  }
+  setRateStatus('Rates in effect since ' + rateEffectiveDate
+    + (rateVerifiedDate ? ', checked ' + rateVerifiedDate : '')
+    + (payload.state ? ', for ' + payload.state : '') + '.' + bandNote, 'ok');
 
   buildTermGrid();
 }
