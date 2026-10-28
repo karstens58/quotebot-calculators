@@ -1573,7 +1573,36 @@ function setRateStatus(text, cls) {
   el.className = 'rate-status ' + (cls || '');
 }
 
-function enterManualMode(message) {
+/**
+ * Show or hide the box a visitor can type their own rate into — QBP-367.
+ *
+ * ONE FUNCTION, because hiding the wrapper and disabling the input are two
+ * halves of the same decision and a screen that did one without the other
+ * would be typeable while invisible, or visible and dead.
+ *
+ * THE RULE: it appears only after a lookup has been tried and produced
+ * nothing. Scott, 28 October -- a state takes a few seconds to answer, and
+ * through that window the box used to sit there editable, so somebody could
+ * type a rate and have it silently discarded when the real ones landed.
+ * Before a state is chosen we have not looked yet, so there is nothing to
+ * fall back FROM.
+ */
+function offerManualRate(on) {
+  const wrap = document.getElementById('manualRateWrap');
+  const input = document.getElementById('manualRateInput');
+  if (wrap) wrap.style.display = on ? '' : 'none';
+  /* Disabled as well as hidden. display:none is a styling decision and the
+     next person to restyle this panel should not be able to hand the
+     visitor a live field by accident. */
+  if (input) input.disabled = !on;
+}
+
+/**
+ * @param message  what the screen says instead of carrier rates
+ * @param offer    may the visitor type their own rate? False only before a
+ *                 state has been chosen, where no lookup has happened yet.
+ */
+function enterManualMode(message, offer) {
   rateMode = 'manual';
   rateEffectiveDate = null;
   rateVerifiedDate = null;
@@ -1588,7 +1617,7 @@ function enterManualMode(message) {
   BEST_TERM = null;
   if (!selectedTerm) selectedTerm = 5;
 
-  document.getElementById('manualRateWrap').style.display = '';
+  offerManualRate(offer !== false);
   const card = document.querySelector('.carrier-card');
   if (card) card.style.display = 'none';
   const asOf = document.getElementById('rateAsOf');
@@ -1617,10 +1646,21 @@ function describeBand(payload) {
       ? ' Showing rates for deposits under ' + money(at) + ' — enter your amount above to see the rate for a larger deposit.'
       : ' Enter your deposit amount above to see the rate for your band.';
   }
-  const mins = banded.filter(r => r.bandMin != null).map(r => r.bandMin);
-  if (mins.length) return ' Rates shown are for deposits of ' + money(Math.min.apply(null, mins)) + ' and over.';
-  const maxes = banded.filter(r => r.bandMax != null).map(r => r.bandMax);
-  if (maxes.length) return ' Rates shown are for deposits under ' + money(Math.min.apply(null, maxes)) + '.';
+  /*
+   * AND NOTHING WHEN THE VISITOR ALREADY KNOWS -- QBP-367.
+   *
+   * The two branches that used to live here read "Rates shown are for
+   * deposits of $75,000 and over" and its mirror. Both only fire AFTER a
+   * deposit has been typed, and both describe the band that the visitor's
+   * own number selected. Telling somebody what they just told us is not a
+   * disclosure; on a page where they are deciding whether to go on, it reads
+   * as a condition they might not meet.
+   *
+   * What survives above is the opposite kind of sentence: it fires when no
+   * deposit has been entered, and it says a LARGER one would earn more. That
+   * is a nudge toward a better rate, so removing it would cost conversions
+   * rather than save them.
+   */
   return '';
 }
 
@@ -1682,7 +1722,7 @@ function applyRates(payload) {
   const disp = document.getElementById('carrierDisplayName');
   if (disp) disp.textContent = selectedCarrier;
 
-  document.getElementById('manualRateWrap').style.display = 'none';
+  offerManualRate(false);
   const card = document.querySelector('.carrier-card');
   if (card) card.style.display = '';
 
@@ -1712,27 +1752,66 @@ function applyRates(payload) {
    * The warning is not gone, it moved: the rates page in the admin console
    * and the alert to Scott are QBP-339.
    */
-  const bandNote = describeBand(payload);
-  setRateStatus('Rates in effect since ' + rateEffectiveDate
-    + (rateVerifiedDate ? ', checked ' + rateVerifiedDate : '')
-    + (payload.state ? ', for ' + payload.state : '') + '.' + bandNote, 'ok');
+  /*
+   * QUIET ON SUCCESS -- QBP-367.
+   *
+   * This line used to read "Rates in effect since X, checked Y, for CO."
+   * above the first number the visitor sees. Scott, 28 October: it causes
+   * pause and may keep people from moving forward.
+   *
+   * THE PROVENANCE HAS NOT GONE, and that distinction is the whole of why
+   * this is allowed. The note above about QBP-338 warns that dropping the
+   * dates would cross from removing a warning to hiding the evidence. It
+   * would -- if this were the only place they appeared. It is not: the
+   * results carry "Rates as published X. Carrier rates change frequently --
+   * contact us to confirm before you apply", printed against the figures
+   * themselves, which is where a date belongs. What went is a second copy on
+   * the input form, shown before the visitor has seen a single rate.
+   *
+   * So the status says nothing once rates land, unless there is something
+   * actionable: a larger deposit earning a better rate.
+   */
+  setRateStatus(describeBand(payload).trim(), 'ok');
 
   buildTermGrid();
 }
 
 async function loadRates(state) {
   if (!state) {
-    enterManualMode('Choose your state above to see current rates, or enter a rate to illustrate.');
+    /* NOT offered here. Nothing has been looked up, so there is nothing to
+       fall back from -- and the old copy invited a rate before the visitor
+       had even picked a state. */
+    enterManualMode('Choose your state above to see current rates.', false);
     setRateStatus('Choose your state to see current rates.', '');
     return;
   }
   setRateStatus('Looking up rates for ' + state + '…', '');
+  /*
+   * DECLARED OUT HERE, AND THAT IS A FIX RATHER THAN A TIDY -- QBP-368.
+   *
+   * This was `const url` inside the try below, and the catch logs it. A
+   * const is block-scoped, so the catch's first line threw a ReferenceError
+   * of its own, the real error was never reported, and enterManualMode()
+   * underneath it never ran. Every failed lookup left the visitor sitting on
+   * "Looking up rates for CO…" with no fallback and no way to know it had
+   * stopped -- which is the precise thing the comment inside that catch says
+   * must not happen.
+   *
+   * Found by driving a 500 at the page rather than by reading it: the source
+   * looks correct, and it is correct right up to the line that reports the
+   * failure.
+   */
+  var url = '(not built)';
+  /* Withdrawn for the duration. A previous state that came back empty will
+     have left the box on screen, and this is exactly the window Scott
+     described: typing into it achieves nothing except losing the typing. */
+  offerManualRate(false);
   try {
     /* The deposit decides which band applies — most carriers quote one rate
        at $100,000 and up and a lower one below it. Send it so the visitor is
        shown the rate they can actually get, not the headline one. */
     const premium = numVal('premium') || 0;
-    const url = QB_RATES_ENDPOINT + '?productType=ANNUITY_MYGA&state=' + encodeURIComponent(state)
+    url = QB_RATES_ENDPOINT + '?productType=ANNUITY_MYGA&state=' + encodeURIComponent(state)
       + (premium > 0 ? '&premium=' + encodeURIComponent(premium) : '');
     /* A rate lookup that never returns leaves the visitor watching a spinner
        with no way to know it has failed, which is worse than a clear failure:
