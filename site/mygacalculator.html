@@ -270,7 +270,7 @@ a { text-decoration: none; color: inherit; }
 .carrier-rank-row.mine { border-color: var(--accent); background: var(--accent-light); }
 .carrier-rank-num { font-family: 'Fraunces', serif; font-weight: 700; font-size: 12px; color: var(--gray-mid); text-align: center; }
 .carrier-rank-row.top .carrier-rank-num { color: var(--gold-mid); }
-.carrier-logo { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 10.5px; color: #fff; flex-shrink: 0; }
+.carrier-logo { width: 58px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 10.5px; color: #fff; letter-spacing: 0.02em; flex: none; }  /* Same footprint as .carrier-logo-img -- QBP-369. A 28px circle beside 58px     logo boxes left the carrier names on different left edges, so a row with no     logo read as a row that had gone wrong. */
 .carrier-logo-img { width: 58px; height: 26px; border-radius: 6px; background: var(--white); border: 1px solid var(--border); padding: 4px 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .carrier-logo-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .carrier-rank-name { font-size: 12.5px; font-weight: 600; color: var(--gray-dark); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -1508,7 +1508,8 @@ function renderCompareList() {
       const isRated = !!rating && !/^not\s*rated$/i.test(rating);
       const logoSrc = meta.logo || info.logoUrl;
       const logoHTML = logoSrc
-        ? `<div class="carrier-logo-img"><img src="${logoSrc}" alt="${c.name} logo"></div>`
+        ? `<div class="carrier-logo-img"><img src="${logoSrc}" alt=""`
+          + ` data-initials="${escAttr(meta.initials)}" data-color="${escAttr(meta.color)}"></div>`
         : `<div class="carrier-logo" style="background:${meta.color};">${meta.initials}</div>`;
       return `
       <div class="carrier-rank-row ${isTop ? 'top' : ''} ${isMine ? 'mine' : ''}" onclick="event.stopPropagation(); selectCarrier('${c.name}')">
@@ -1554,6 +1555,61 @@ function renderCompareList() {
     </div>`;
   }).join('');
   document.getElementById('compareList').innerHTML = html;
+  wireLogoFallbacks(document.getElementById('compareList'));
+}
+
+/** Attribute-safe, because these end up inside a quoted HTML attribute. */
+function escAttr(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * A LOGO THAT DOES NOT LOAD BECOMES THE CIRCLE -- QBP-369.
+ *
+ * The row used to decide once: a logo address meant an <img>, no address
+ * meant the initials circle, and it never looked again. So an address that
+ * was present but did not resolve produced a broken <img>, and what a
+ * visitor saw was then up to their browser -- Chrome draws its torn-page
+ * icon, others render the alt text clipped to fifty-eight pixels. Scott saw
+ * both on the same row in two browsers on 28 October and read it as a
+ * sizing fault, which is exactly how it looks.
+ *
+ * It is not a sizing fault. The box is 58x26 with object-fit: contain, so
+ * any shape fits and nothing can crop. It was a broken image.
+ *
+ * "NO LOGO" AND "A LOGO AT AN ADDRESS THAT DOES NOT RESOLVE" ARE THE SAME
+ * THING TO A VISITOR, so they now look the same: deliberate rather than
+ * broken, on a page where somebody is being asked for half a million
+ * dollars.
+ *
+ * It also makes QBP-366 safe to carry out. Retiring the hardcoded logo
+ * table moves every carrier onto its catalogue record, and any one not yet
+ * uploaded degrades to a circle instead of a broken image on a live page.
+ *
+ * Wired here rather than with an inline onerror: a handler in the markup is
+ * a string inside a string inside a template literal, and the first person
+ * to put an apostrophe in a carrier name finds out the hard way.
+ */
+function wireLogoFallbacks(root) {
+  if (!root) return;
+  root.querySelectorAll('.carrier-logo-img img').forEach(function (img) {
+    const swap = function () {
+      const box = img.closest('.carrier-logo-img');
+      if (!box) return;
+      const circle = document.createElement('div');
+      circle.className = 'carrier-logo';
+      circle.style.background = img.dataset.color || '#8a9ab5';
+      circle.textContent = img.dataset.initials || '';
+      box.replaceWith(circle);
+    };
+    /* Already failed before this ran -- a cached 404 resolves before the
+       handler is attached, which is the common case rather than the edge
+       one. complete && !naturalWidth is the only way to ask. */
+    if (img.complete && !img.naturalWidth) swap();
+    else img.addEventListener('error', swap, { once: true });
+  });
 }
 
 /* ============================================================================
