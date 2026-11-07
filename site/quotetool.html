@@ -987,6 +987,26 @@ let QUOTES = [];        // computed rows
    quote. Empty is an ordinary state -- renderBest falls back to price and
    shows no reasons rather than inventing any. */
 let FEATURED = [];
+
+/*
+ * WHAT THE THREE CARDS ACTUALLY SAID, and whether the premiums were filed
+ * or modelled -- QBP-533.
+ *
+ * Both exist so the RECORD of this quote can say what the SCREEN said.
+ * lead-capture stores the quote list as an Illustration, which is the
+ * evidence of what was displayed, and until now it stored the list alone:
+ * no note of which three were drawn as cards, and no note of where the
+ * numbers came from. So the page we later text somebody a link to could
+ * recover the cheapest row by price and nothing else -- it could not know
+ * which carrier was Our Pick, because that comes from the engine's
+ * separate `featured` list and was never written down.
+ *
+ * Recorded as the SLOT's claim rather than the badge on screen. A curated
+ * carrier may show the admin's own words instead of "Our Pick", and those
+ * are decoration; what the record needs is which claim the card made.
+ */
+let SHOWN = [];
+let ESTIMATES = true;
 /* Set per quote: was this result set narrowed by Health Analyzer answers. */
 let FILTERED_BY_HEALTH = false;
 /*
@@ -1754,7 +1774,7 @@ async function recalc(){
   var endpoint = window.QB_QUOTE_ENDPOINT || '';
   if (!/^https?:\/\//i.test(endpoint)){
     setQuoteNotice('Quote service is not configured on this page, so no premiums can be shown.', 'error');
-    QUOTES = []; FEATURED = []; renderBest(); renderList();
+    QUOTES = []; FEATURED = []; SHOWN = []; renderBest(); renderList();
     return;
   }
 
@@ -1814,6 +1834,12 @@ async function recalc(){
       };
     }
 
+    /* The engine's own answer, not a guess from the tool. Its comment:
+       "the calculators use this to decide whether to show the estimate
+       caveat, and it is what gets written to Illustration." It was being
+       dropped here, so every quote-tool illustration was filed as an
+       estimate -- including the ones priced from Compulife's filed rates. */
+    ESTIMATES = json.premiumsAreEstimates !== false;
     QUOTES = (json.quotes || []).map(toRow);
     FEATURED = (json.featured || []).map(function(f){
       return Object.assign(toRow(f), {
@@ -1866,6 +1892,7 @@ async function recalc(){
     console.error('[quotetool] the quote request failed', err);
     QUOTES = [];
     FEATURED = [];
+    ESTIMATES = true;
     setQuoteNotice('We could not reach the quote service just now. Rather than show an estimate that might be wrong, we would rather have someone call you with real numbers.', 'error');
     showTalkToUs();
   }
@@ -1896,7 +1923,11 @@ function renderBest(){
      left-hand card makes, so it is not left resting on the engine's ordering
      staying the way it is today. */
   const cheapest = cheapestQuote(QUOTES);
-  if (!cheapest){ row.innerHTML = ''; return; }
+  if (!cheapest){ row.innerHTML = ''; SHOWN = []; return; }
+
+  /* The record of what this function draws, rebuilt every time it runs so
+     it cannot describe a previous render -- QBP-533. */
+  SHOWN = [{ row: cheapest, label: 'Most Affordable' }];
 
   const cardHTML = (cfg) => `
     <div class="best-card ${cfg.cardClass}">
@@ -1993,6 +2024,13 @@ function renderBest(){
      * that never happened. A label is not a rationale.
      */
     const tag = String(f.badge || '').trim();
+    /*
+     * THE CLAIM, NOT THE WORDING. `tag` is the admin's own badge and is
+     * decoration; "Another Option" is what an uncurated card says, and
+     * calling it Our Pick in the record would endorse a carrier nobody
+     * chose -- the same thing the `mid` below refuses to do with bullets.
+     */
+    SHOWN.push({ row: f, label: curated ? slot.badgeText : 'Another Option' });
     cards.push(fromRow(f, {
       cardClass: curated ? slot.cardClass : 'agentless',
       badgeClass: curated ? slot.badgeClass : 'agentless',
@@ -2102,6 +2140,41 @@ document.getElementById('showMoreBtn').addEventListener('click', () => {
 /* Runs after recalc(), so QUOTES holds what the visitor is about to see.    */
 /* The premiums sent here are what was DISPLAYED, which is what you want on  */
 /* file if a quoted price is ever disputed.                                  */
+/*
+ * The quote list, with the three cards marked -- QBP-533.
+ *
+ * The full list, because the visitor could see all of it and the
+ * Illustration is the record of what was displayed. The three cards are
+ * marked rather than sent separately, so the stored shape stays one array
+ * and anything already reading it is unaffected.
+ *
+ * A featured row is rebuilt by toRow() from the engine's own `featured`
+ * list, so it is a DIFFERENT OBJECT from the matching row in QUOTES and
+ * cannot be found by identity. Matched on carrier and premium instead,
+ * and appended when it matches nothing -- a card that was on the screen
+ * has to be in the record of what was on the screen.
+ */
+function shownResults(){
+  var out = QUOTES.map(function(q){
+    return { carrier: q.name, product: q.prodResolved, rating: q.rating,
+             monthlyPremium: q.monthly, annualPremium: q.annual, label: '' };
+  });
+  var find = function(r){
+    for (var i = 0; i < out.length; i++){
+      if (out[i].carrier === r.name && out[i].monthlyPremium === r.monthly) return out[i];
+    }
+    return null;
+  };
+  SHOWN.forEach(function(s){
+    var hit = find(s.row);
+    if (hit){ hit.label = s.label; return; }
+    out.push({ carrier: s.row.name, product: s.row.prodResolved,
+               rating: s.row.rating, monthlyPremium: s.row.monthly,
+               annualPremium: s.row.annual, label: s.label });
+  });
+  return out;
+}
+
 function qbCaptureLead(){
   if (!window.QuoteBot) return;
   try {
@@ -2122,10 +2195,8 @@ function qbCaptureLead(){
         faceAmount: inp.coverage, termYears: inp.term,
         coverage: inp.cat, coverageName: inp.catName
       },
-      results: QUOTES.map(function(q){
-        return { carrier: q.name, product: q.prodResolved, rating: q.rating,
-                 monthlyPremium: q.monthly, annualPremium: q.annual };
-      }),
+      premiumsAreEstimates: ESTIMATES,
+      results: shownResults(),
       consentText: note ? note.textContent.replace(/\s+/g, ' ').trim() : null
     });
   } catch (e) { /* capture must never break the quote */ }
