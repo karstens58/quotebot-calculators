@@ -2203,9 +2203,35 @@ function qbCaptureLead(){
 }
 
 // MAIN: reveal results
-document.getElementById('quoteBtn').addEventListener('click', () => {
-  recalc();
-  qbCaptureLead();
+document.getElementById('quoteBtn').addEventListener('click', async () => {
+  /*
+   * AWAITED, AND THE WHOLE RECORD DEPENDED ON IT.
+   *
+   * recalc() is async -- it fetches the prices from the engine. This
+   * handler called it and then called qbCaptureLead() on the very next
+   * line, synchronously, so capture ALWAYS ran before the prices came
+   * back. The comment over qbCaptureLead has said since it was written
+   * that it "runs after recalc(), so QUOTES holds what the visitor is
+   * about to see". It did not.
+   *
+   * What that cost: on a first run QUOTES was still empty, so the
+   * Illustration -- the record of what was displayed, kept precisely so
+   * a disputed premium can be answered -- was written with no premiums
+   * in it. On a re-run it held the PREVIOUS run's figures, which is
+   * worse: a record that is confidently wrong rather than visibly
+   * empty. Every "Quote Tool" quote on every lead reads 0 offers, and
+   * nothing anywhere reported it.
+   *
+   * FINALLY, NOT JUST AWAIT. A lead must never be lost because pricing
+   * failed -- the consent and the routing matter whether or not the
+   * engine answered. If recalc throws, capture still runs, with
+   * whatever is there to send.
+   */
+  try {
+    await recalc();
+  } finally {
+    qbCaptureLead();
+  }
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('resultsContent').classList.add('show');
   document.querySelector('.quote-grid').classList.add('results-mode');
