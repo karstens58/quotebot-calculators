@@ -79,7 +79,8 @@ test('three cards, with the cheapest on the left', () => {
   const first = html.slice(0, html.indexOf('best-card', 20));
   assert.ok(html.indexOf('American General') < html.indexOf('Banner Life'),
     'the cheapest carrier is not on the left');
-  assert.deepEqual(badges(html), ['Most Affordable', 'Our Pick', 'Also Consider']);
+  assert.deepEqual(badges(html),
+    ['Most Affordable', 'Our Recommendation', 'Also Consider']);
 });
 
 test('the chosen carriers show the words written about them', () => {
@@ -99,7 +100,11 @@ test('AN UNCHOSEN CARD CLAIMS NOTHING', () => {
     feat(QUOTES[2], [], false),
   ]);
   assert.deepEqual(badges(html), ['Most Affordable', 'Another Option', 'Another Option']);
+  /* Both wordings. The slot was renamed on 7 November and a check for
+     the old word alone would have gone quietly green on a card that
+     had started claiming the new one. */
   assert.ok(!html.includes('Our Pick'));
+  assert.ok(!html.includes('Our Recommendation'));
   assert.ok(!html.includes('<li>'), 'a card nobody chose carried bullet points');
 });
 
@@ -175,7 +180,8 @@ test('no tag falls back to the wording for that position', () => {
     feat(QUOTES[0], ['x'], true, ''),
     feat(QUOTES[2], ['y'], true, '   '),
   ]);
-  assert.deepEqual(badges(html), ['Most Affordable', 'Our Pick', 'Also Consider']);
+  assert.deepEqual(badges(html),
+    ['Most Affordable', 'Our Recommendation', 'Also Consider']);
 });
 
 test('one carrier can have a tag while the other falls back', () => {
@@ -228,7 +234,8 @@ test('a missing badge field is treated as no tag, not as undefined', () => {
     Object.assign({}, QUOTES[2], { bullets: ['y'], curated: true }),
   ];
   const html = run(QUOTES, noBadge);
-  assert.deepEqual(badges(html), ['Most Affordable', 'Our Pick', 'Also Consider']);
+  assert.deepEqual(badges(html),
+    ['Most Affordable', 'Our Recommendation', 'Also Consider']);
   assert.ok(!html.includes('undefined'));
 });
 
