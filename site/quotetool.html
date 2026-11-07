@@ -1800,6 +1800,21 @@ async function recalc(){
         healthClass: inp.health,
         state: inp.state,
         toolKey: 'quote',
+        /*
+         * THE SESSION, SO THE QUOTE CAN BE KEPT -- QBP-534.
+         *
+         * The engine files a QuoteRequest and its priced rows against
+         * this, and the capture a second later claims that row instead
+         * of writing a second one with no prices in it. Without it the
+         * engine has nobody to attach the quote to and keeps nothing,
+         * which is why every Quote Tool quote read 0 offers.
+         *
+         * Read from the capture script rather than generated here, so
+         * the price and the capture cannot disagree about which visit
+         * this is.
+         */
+        sessionId: (window.QuoteBot && typeof window.QuoteBot.sessionId === 'function')
+          ? window.QuoteBot.sessionId() : undefined,
         /* Omitted entirely until answered. An absent key is Compulife's own
            default -- every analyzer group is off unless switched on. */
         ...(sentHealth ? { health: sentHealth } : {})

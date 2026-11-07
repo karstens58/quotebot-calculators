@@ -899,6 +899,22 @@
     attribution: resolveAttribution,
 
     /**
+     * This visitor's session id -- QBP-534.
+     *
+     * EXPOSED SO A PRICING CALL CAN CARRY IT. A calculator prices and
+     * then captures, both on one button press, about a second apart; at
+     * the moment of pricing the contact does not exist yet. Sending this
+     * with the price lets the engine file the quote against the session,
+     * and lead-capture claim it a moment later instead of writing a
+     * second, empty one.
+     *
+     * The same value this script already sends on every capture, so the
+     * two halves of one submission agree by construction rather than by
+     * two places computing it the same way.
+     */
+    sessionId: sessionId,
+
+    /**
      * Re-run the link pass. Call this after rendering links into the page;
      * the click handler is a safety net, not a substitute.
      * @returns {number} how many links were rewritten
