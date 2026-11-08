@@ -975,8 +975,38 @@ function rateFor(carrier, inp){
   const monthly = annual / ANNUAL_DIVISOR;
   return { annual, monthly };
 }
-const fmtMo = n => '$' + n.toFixed(2);
-const fmtYr = n => '$' + Math.round(n).toLocaleString();
+/*
+ * MONEY, WITH CENTS ONLY WHEN THERE ARE CENTS -- Scott, 8 November:
+ * "if there is 1,000.01 vs 1,000.00 we should show the .01."
+ *
+ * These were '$' + n.toFixed(2) and '$' + Math.round(n): the monthly
+ * always padded to .00, the annual always rounded to the dollar. The
+ * quote page, the rate card and the quote email all mirrored them,
+ * because matching this screen is their whole job -- so the four
+ * surfaces move together or not at all. They move together.
+ *
+ * ROUNDED TO THE CENT BEFORE ASKING. An annual built by multiplying a
+ * monthly by twelve arrives as 1594.9999999999998, which is not a whole
+ * number and is not $1,594.99 either.
+ *
+ * AND toLocaleString ON BOTH. fmtMo had no thousands separator, so a
+ * $10M policy priced at $1234.56 a month printed without the comma
+ * every other surface puts in.
+ *
+ * SELF-CONTAINED ON PURPOSE: the card tests slice these lines out of
+ * this file and eval them, so a helper declared above would be a
+ * reference to nothing in the harness.
+ */
+const fmtMo = n => {
+  const cents = Math.round(n * 100) % 100 !== 0;
+  return '$' + n.toLocaleString('en-US', {
+    minimumFractionDigits: cents ? 2 : 0,
+    maximumFractionDigits: cents ? 2 : 0,
+  });
+};
+/* The same rule. Two names because the call sites say which figure
+   they are printing, and that is worth keeping readable. */
+const fmtYr = fmtMo;
 const ratingRank = r => ({ 'A+':4, 'A':3, 'A-':2, 'B++':1, 'Unknown':0 }[r] ?? 0);
 
 /* ---------- STATE ---------- */

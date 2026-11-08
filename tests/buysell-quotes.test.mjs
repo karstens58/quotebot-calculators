@@ -29,8 +29,10 @@ function cut(start, endMarker, { keepEnd = true } = {}) {
 const source = [
   cut('const esc = s =>', '\n'),
   cut('const fmtUSD =', '\n'),
-  cut('const fmtMo =', '\n'),
-  cut('const fmtYr =', '\n'),
+  /* Ends on the fmtYr alias rather than on a newline or on the next
+     declaration: fmtMo is a block now, so either of those cuts it in
+     half and every test in this file dies on a syntax error. */
+  cut('const fmtMo =', 'const fmtYr = fmtMo;'),
   cut('function cheapestOf(rows){', '\n}'),
   cut('function quoteNotice(kind, icon, html){', '\n}'),
   cut('const CALL_US =', "</a>';"),

@@ -31,7 +31,10 @@ function cut(start, endMarker, { keepEnd = true } = {}) {
 const source = [
   cut('const esc = s =>', "'\"':'&quot;'}[c]));"),
   cut('const fmtUSD =', '\n'),
-  cut('const fmtMo =', "const fmtYr = n => '$' + Math.round(n).toLocaleString();"),
+  /* Ends on the fmtYr alias rather than on a newline or on the next
+     declaration: fmtMo is a block now, so either of those cuts it in
+     half and every test in this file dies on a syntax error. */
+  cut('const fmtMo =', 'const fmtYr = fmtMo;'),
   cut('function firstName(p){', '\n'),
   cut('function fullName(p){', '\n'),
   cut('function cheapestOf(rows){', '\n}'),
