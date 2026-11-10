@@ -1437,6 +1437,46 @@ function requestQuotes(){
   quoteTimer = setTimeout(function(){ sendQuote(body, seq); }, 500);
 }
 
+/**
+ * The one priced quote the engine KEEPS -- QBP-534, applied here at last.
+ *
+ * Every quote this page sends while somebody types is anonymous: no
+ * session, so quote-engine persists nothing. That is the right default and
+ * the engine says so -- "somebody who answers the analyzer out of
+ * curiosity and leaves has left nothing behind."
+ *
+ * But it meant NOTHING was ever kept. The engine files a QuoteRequest and
+ * its priced rows only when it has a contact or a session to attach them
+ * to, and this page sent neither, so a D.I.M.E. lead has never had a
+ * single QuoteResult behind it. Downstream: withOffers matches nothing,
+ * every card comes back with no resultId, the quote page draws cards with
+ * no Select button, and the automated quote email refuses the whole send
+ * rather than post fewer cards than the page shows.
+ *
+ * So the session goes on ONE call, made when they press Calculate -- which
+ * is the moment the engine's own model describes: "a calculator prices and
+ * then captures, both on the same button press, about a second apart."
+ *
+ * NOT ON EVERY KEYSTROKE, and that is deliberate. This page re-quotes on
+ * every edit; attaching the session to all of them would file a
+ * QuoteRequest per edit, leave a pile of unclaimed rows behind every
+ * visitor, and push past the twenty rows lead-capture reads when it goes
+ * looking for the one to claim.
+ */
+async function keepQuote(){
+  const body = quoteBody();
+  if (!body) return;
+  const sid = (window.QuoteBot && typeof window.QuoteBot.sessionId === 'function')
+    ? window.QuoteBot.sessionId() : '';
+  if (!sid) return;
+  body.sessionId = sid;
+  /* The debounced typing quote is superseded by this one -- letting it
+     land afterwards would write a stale render over a fresh one. */
+  if (quoteTimer) clearTimeout(quoteTimer);
+  lastQuoteKey = JSON.stringify(body);
+  await sendQuote(body, ++quoteSeq);
+}
+
 async function sendQuote(body, seq){
   const endpoint = window.QB_QUOTE_ENDPOINT || '';
   if (!/^https?:\/\//i.test(endpoint)){
@@ -1904,9 +1944,16 @@ document.getElementById('phone').addEventListener('input', e=>{
 });
 
 // main calculate
-document.getElementById('calcBtn').addEventListener('click', ()=>{
+document.getElementById('calcBtn').addEventListener('click', async ()=>{
   render();
-  qbCaptureLead();
+  /*
+   * AWAITED, AND IN A FINALLY -- the shape quotetool.html uses and
+   * capture-waits-for-the-prices.test.mjs argues for. Awaited because
+   * capture reads what the quote produced; in a finally because "a lead
+   * lost because Compulife was briefly down is a worse outcome than a
+   * record with no premiums in it."
+   */
+  try { await keepQuote(); } finally { qbCaptureLead(); }
   shown = true;
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('resultsContent').classList.add('show');

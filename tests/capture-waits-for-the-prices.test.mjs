@@ -142,6 +142,64 @@ test('myga captures after its figures exist, and still captures when they do not
     + 'cannot be of what was shown');
 });
 
+test('dime awaits its kept quote before capturing, and captures when it fails', () => {
+  const src = strip(readFileSync(`${SITE}dimeneedscalculator.html`, 'utf8'));
+  const at = src.indexOf("getElementById('calcBtn').addEventListener");
+  assert.notEqual(at, -1, 'the calculate button no longer has a handler');
+  const handler = src.slice(at, at + 600);
+  assert.match(handler, /await\s+keepQuote\s*\(/,
+    'calculate captures without waiting for the quote the engine keeps');
+  assert.match(handler, /finally\s*\{[\s\S]{0,80}qbCaptureLead\s*\(/,
+    'a failed price run would now cost the lead as well as the figures');
+});
+
+/*
+ * A QUOTE NOBODY CAN ATTACH TO ANYTHING IS NOT KEPT -- QBP-534.
+ *
+ * quote-engine persists a QuoteRequest and its priced rows only when the
+ * post carries a contact or a session: "without it the engine has nobody
+ * to attach the quote to and keeps nothing, which is why every Quote Tool
+ * quote on every lead read 0 offers."
+ *
+ * That was fixed for quotetool in November and not for the pages beside
+ * it, so their leads have never had a single QuoteResult behind them --
+ * which is invisible until something strict reads it. The quote email is
+ * strict: no resultId means no Select button, and it refuses the whole
+ * send rather than post fewer cards than the page shows.
+ */
+const PRICES_WITHOUT_KEEPING = [
+  'crosspurchasebuysellcalculator.html',
+  'keypersoncalculator.html',
+];
+
+test('A PAGE THAT PRICES AND CAPTURES SENDS A SESSION, SO THE QUOTE IS KEPT', () => {
+  const guilty = [];
+  for (const page of PAGES) {
+    const src = strip(readFileSync(SITE + page, 'utf8'));
+    if (!src.includes('QB_QUOTE_ENDPOINT')) continue;   // does not price
+    if (!src.includes('qbCaptureLead')) continue;       // does not capture
+    /* THE KEY IN THE BODY, not a mention of the helper. The first
+       version of this matched /QuoteBot\.sessionId/, which is satisfied
+       by the `typeof window.QuoteBot.sessionId === 'function'` guard
+       alone -- so a page could stop sending the session entirely and
+       still pass. Caught by a mutation that did exactly that. */
+    if (/sessionId\s*[:=][^=]/.test(src)) continue;
+    if (PRICES_WITHOUT_KEEPING.includes(page)) continue;
+    guilty.push(page);
+  }
+  assert.deepEqual(guilty, [], 'these pages price through the engine and '
+    + 'capture a lead, but send no session, so nothing they quoted is ever '
+    + 'kept:\n  ' + guilty.join('\n  '));
+});
+
+test('the priced-but-not-kept list has no stale names on it', () => {
+  for (const page of PRICES_WITHOUT_KEEPING) {
+    const src = strip(readFileSync(SITE + page, 'utf8'));
+    assert.ok(!/sessionId\s*[:=][^=]/.test(src),
+      `${page} sends a session now -- take it off PRICES_WITHOUT_KEEPING`);
+  }
+});
+
 /*
  * KNOWN DEBT -- QBP-551, and THE LIST ONLY SHRINKS.
  *
