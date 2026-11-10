@@ -1028,11 +1028,11 @@ let FEATURED = [];
  * no note of which three were drawn as cards, and no note of where the
  * numbers came from. So the page we later text somebody a link to could
  * recover the cheapest row by price and nothing else -- it could not know
- * which carrier was Our Pick, because that comes from the engine's
+ * which carrier was Our Recommendation, because that comes from the engine's
  * separate `featured` list and was never written down.
  *
  * Recorded as the SLOT's claim rather than the badge on screen. A curated
- * carrier may show the admin's own words instead of "Our Pick", and those
+ * carrier may show the admin's own words instead of "Our Recommendation", and those
  * are decoration; what the record needs is which claim the card made.
  */
 let SHOWN = [];
@@ -2072,7 +2072,7 @@ function renderBest(){
     /*
      * THE CLAIM, NOT THE WORDING. `tag` is the admin's own badge and is
      * decoration; "Another Option" is what an uncurated card says, and
-     * calling it Our Pick in the record would endorse a carrier nobody
+     * calling it Our Recommendation in the record would endorse a carrier nobody
      * chose -- the same thing the `mid` below refuses to do with bullets.
      */
     SHOWN.push({ row: f, label: curated ? slot.badgeText : 'Another Option' });
@@ -2201,8 +2201,9 @@ document.getElementById('showMoreBtn').addEventListener('click', () => {
  */
 function shownResults(){
   var out = QUOTES.map(function(q){
-    return { carrier: q.name, product: q.prodResolved, rating: q.rating,
-             monthlyPremium: q.monthly, annualPremium: q.annual, label: '' };
+    return { carrierId: q.id, carrier: q.name, product: q.prodResolved,
+             rating: q.rating, monthlyPremium: q.monthly,
+             annualPremium: q.annual, label: '' };
   });
   var find = function(r){
     for (var i = 0; i < out.length; i++){
@@ -2213,9 +2214,10 @@ function shownResults(){
   SHOWN.forEach(function(s){
     var hit = find(s.row);
     if (hit){ hit.label = s.label; return; }
-    out.push({ carrier: s.row.name, product: s.row.prodResolved,
-               rating: s.row.rating, monthlyPremium: s.row.monthly,
-               annualPremium: s.row.annual, label: s.label });
+    out.push({ carrierId: s.row.id, carrier: s.row.name,
+               product: s.row.prodResolved, rating: s.row.rating,
+               monthlyPremium: s.row.monthly, annualPremium: s.row.annual,
+               label: s.label });
   });
   return out;
 }

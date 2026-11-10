@@ -40,6 +40,11 @@ const source = [
   cut('const CALL_US =', "</a>';"),
   cut('function renderPremiumNote(){', '\n}'),
   cut('function renderQuoteCards(){', "\n  done(cards.join(''));\n}"),
+  cut('function shownResults(){', '\n}'),
+  /* A real binding rather than the global a bare assignment would create
+     inside new Function -- otherwise SHOWN leaks between tests and the
+     one that runs second reads the first one's cards. */
+  'let SHOWN = [];',
 ].join('\n');
 
 /*
@@ -52,8 +57,10 @@ const PARAMS = ['document', 'currentInp', 'QUOTE_STATE', 'QUOTES', 'FEATURED',
 function run(state) {
   const nodes = { quoteCards: { innerHTML: '' }, quoteNote: { innerHTML: '' } };
   const doc = { getElementById: (id) => nodes[id] ?? null };
-  const fn = new Function(...PARAMS, `${source}\n return renderQuoteCards();`);
-  fn(doc,
+  const fn = new Function(...PARAMS,
+    `${source}\n renderQuoteCards(); return shownResults();`);
+  let recorded;
+  recorded = fn(doc,
     state.currentInp === undefined ? INP : state.currentInp,
     state.QUOTE_STATE ?? 'ok',
     state.QUOTES ?? [],
@@ -61,7 +68,8 @@ function run(state) {
     state.selectedTerm ?? 20,
     state.PREMIUMS_ARE_ESTIMATES ?? false,
     () => (state.coverage ?? 500000));
-  return { cards: nodes.quoteCards.innerHTML, note: nodes.quoteNote.innerHTML };
+  return { cards: nodes.quoteCards.innerHTML, note: nodes.quoteNote.innerHTML,
+           recorded };
 }
 
 const badges = (html) =>
@@ -222,8 +230,77 @@ test('quotes are coalesced, and a stale reply cannot overwrite a fresh one', () 
 
 test('the lead record carries the premiums that were on the screen', () => {
   const cap = cut('function qbCaptureLead(){', '\n}');
-  assert.match(cap, /monthlyPremium: q\.monthly/);
+  assert.match(cap, /quotes: shownResults\(\)/,
+    'the capture is building its own list again instead of reading the one '
+    + 'the renderer wrote');
   assert.match(cap, /premiumsAreEstimates: PREMIUMS_ARE_ESTIMATES/);
+});
+
+test('the record says which three were drawn, and what each was called', () => {
+  const { cards, recorded } = run({ QUOTES, FEATURED: [
+    Object.assign({}, QUOTES[0], { curated: true, bullets: ['No medical exam'], badge: '' }),
+    Object.assign({}, QUOTES[2], { curated: true, bullets: ['A+ rated'], badge: '' }),
+  ] });
+  /* Every row stays on the record -- the full list is the evidence of what
+     was available -- and exactly the drawn three carry a label. */
+  assert.equal(recorded.length, QUOTES.length);
+  const labelled = recorded.filter((r) => r.label);
+  assert.equal(labelled.length, 3);
+  /* DERIVED FROM THE RENDERER, not restated beside it: the labels on the
+     record are read back out of the cards the renderer actually drew. */
+  assert.deepEqual(labelled.map((r) => r.label).sort(), badges(cards).slice().sort());
+  for (const r of labelled) {
+    assert.ok(cards.includes(r.carrier), `${r.carrier} is on the record but not on a card`);
+  }
+  assert.ok(recorded.every((r) => r.carrierId),
+    'a row went to the record with no carrier id, so nothing downstream can '
+    + 'build a Select button or find the logo');
+});
+
+test('an uncurated card records Another Option, not the endorsement', () => {
+  const { recorded } = run({ QUOTES, FEATURED: [
+    Object.assign({}, QUOTES[0], { curated: false, bullets: [], badge: '' }),
+  ] });
+  const labels = recorded.filter((r) => r.label).map((r) => r.label);
+  assert.ok(labels.includes('Another Option'));
+  assert.ok(!labels.includes('Our Recommendation'),
+    'the record is endorsing a carrier nobody chose');
+});
+
+/*
+ * TWO RENDERS IN ONE SCOPE, and that is the whole point of this harness.
+ *
+ * `run` builds a fresh Function every call, so SHOWN is re-initialised
+ * between them and a test written on top of it cannot tell a cleared array
+ * from one that was never dirty. The first version of the test below passed
+ * with `SHOWN = []` deleted from the calculator, which is to say it proved
+ * nothing. This renders cards, then renders a notice, in the same scope.
+ */
+function runThen(secondState) {
+  const nodes = { quoteCards: { innerHTML: '' }, quoteNote: { innerHTML: '' } };
+  const doc = { getElementById: (id) => nodes[id] ?? null };
+  const fn = new Function(...PARAMS, 'nextState',
+    `${source}
+     renderQuoteCards();
+     if (nextState.QUOTE_STATE !== undefined) QUOTE_STATE = nextState.QUOTE_STATE;
+     if (nextState.currentInp !== undefined) currentInp = nextState.currentInp;
+     if (nextState.QUOTES !== undefined) QUOTES = nextState.QUOTES;
+     renderQuoteCards();
+     return shownResults();`);
+  return fn(doc, INP, 'ok', QUOTES, [
+    Object.assign({}, QUOTES[0], { curated: true, bullets: ['x'], badge: '' }),
+    Object.assign({}, QUOTES[2], { curated: true, bullets: ['y'], badge: '' }),
+  ], 20, false, () => 500000, secondState);
+}
+
+test('a notice instead of cards records nothing from the render before it', () => {
+  for (const next of [{ QUOTE_STATE: 'loading' }, { QUOTE_STATE: 'error' },
+    { currentInp: null }, { QUOTES: [] }]) {
+    const recorded = runThen(next);
+    assert.equal(recorded.filter((r) => r.label).length, 0,
+      `${JSON.stringify(next)} drew no cards but the record still describes `
+      + 'the render before it');
+  }
 });
 
 test('the three slots are named the way the quote tool names them', () => {

@@ -1308,6 +1308,7 @@ function effectiveCoverage(){ return coverageOverride != null ? coverageOverride
 
 let QUOTES = [];                   // the engine's rows: the only source of a price
 let FEATURED = [];                 // the admin's picks, cheapest already excluded
+let SHOWN = [];                    // what renderQuoteCards actually drew -- QBP-543
 let PREMIUMS_ARE_ESTIMATES = true; // until a response says otherwise
 let QUOTE_STATE = 'idle';          // idle | loading | ok | empty | error
 
@@ -1512,6 +1513,14 @@ function renderPremiumNote(){
 function renderQuoteCards(){
   const host = document.getElementById('quoteCards');
   if (!host) return;
+
+  /* The record of what this function draws, emptied every time it runs so
+     it cannot describe a previous render. Cleared HERE rather than beside
+     the cheapest guard the way quotetool does it, because this function
+     has five earlier returns -- no inputs, no date of birth, loading,
+     error, nothing quoted -- and each one puts a notice on the screen
+     instead of cards. SHOWN has to say so. */
+  SHOWN = [];
   const cvg = effectiveCoverage();
 
   const done = (html) => { host.innerHTML = html; renderPremiumNote(); };
@@ -1584,6 +1593,7 @@ function renderQuoteCards(){
     prod: r.prodResolved, coverage: r.coverage, rating: r.rating
   }, extra));
 
+  SHOWN.push({ row: cheapest, label: 'Most Affordable' });
   const cards = [ fromRow(cheapest, {
     cardClass: '', badgeClass: 'affordable', badgeText: 'Most Affordable',
     mid: `<div class="trophy">\u{1F3C6} Lowest Price</div>
@@ -1637,6 +1647,12 @@ function renderQuoteCards(){
      * nobody chose would describe a decision that never happened.
      */
     const tag = String(f.badge || '').trim();
+    /* The slot's claim, never `tag`. The carrier's own badge is decoration
+       and belongs on the card; writing it into the record would make the
+       record say the agency endorsed a carrier in words nobody chose for
+       that purpose -- and "Another Option" is what an uncurated card
+       claims. quotetool.html says the same thing at its own push. */
+    SHOWN.push({ row: f, label: curated ? slot.badgeText : 'Another Option' });
     cards.push(fromRow(f, {
       cardClass: curated ? slot.cardClass : 'agentless',
       badgeClass: curated ? slot.badgeClass : 'agentless',
@@ -1887,6 +1903,44 @@ document.getElementById('calcBtn').addEventListener('click', ()=>{
 });
 
 /* ---- Quote Bot lead capture ------------------------------------------ */
+/**
+ * Every row the engine returned, with a label on the ones that were drawn.
+ *
+ * NOT JUST THE THREE. The full list is the evidence of what was available
+ * at that moment, which is what answers a disputed price; the labels are
+ * what say which three were on the screen and what each was called. One
+ * array, written by the renderer, read here -- so the screen and the
+ * record cannot disagree.
+ *
+ * Matched on carrier and premium rather than identity, because FEATURED
+ * rows are rebuilt by toRow and are not the same objects as QUOTES rows.
+ * A drawn card that matches nothing is appended rather than dropped: a
+ * card that was on the screen has to be in the record of what was on the
+ * screen.
+ */
+function shownResults(){
+  var out = QUOTES.map(function(q){
+    return { carrierId: q.id, carrier: q.name, product: q.prodResolved,
+             rating: q.rating, monthlyPremium: q.monthly,
+             annualPremium: q.annual, label: '' };
+  });
+  var find = function(r){
+    for (var i = 0; i < out.length; i++){
+      if (out[i].carrier === r.name && out[i].monthlyPremium === r.monthly) return out[i];
+    }
+    return null;
+  };
+  SHOWN.forEach(function(s){
+    var hit = find(s.row);
+    if (hit){ hit.label = s.label; return; }
+    out.push({ carrierId: s.row.id, carrier: s.row.name,
+               product: s.row.prodResolved, rating: s.row.rating,
+               monthlyPremium: s.row.monthly, annualPremium: s.row.annual,
+               label: s.label });
+  });
+  return out;
+}
+
 function qbCaptureLead(){
   if (!window.QuoteBot) return;
   try {
@@ -1909,10 +1963,7 @@ function qbCaptureLead(){
         totalCoverageNeed: currentCoverage || null,
         quotedCoverage: (typeof effectiveCoverage === 'function' ? effectiveCoverage() : null),
         termYears: selectedTerm,
-        quotes: QUOTES.map(function(q){
-          return { carrier: q.name, product: q.prodResolved, rating: q.rating,
-                   monthlyPremium: q.monthly, annualPremium: q.annual };
-        })
+        quotes: shownResults()
       },
       consentText: C('#qb-consent')
     });
