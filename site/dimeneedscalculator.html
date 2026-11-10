@@ -1316,7 +1316,49 @@ let currentInp = null;       // last computed inputs, set by render()
  * subtly wrong. An illustration is a record of what was on the screen, so
  * the screen's own figures go on it.
  */
-let currentBreakdown = null; // {debt, income, mortgage, education, offset, gross}
+let currentBreakdown = null; // { parts:[{letter,name,detail,amount}], offset, gross }
+
+/**
+ * The line under each category, composed from what they actually entered.
+ *
+ * "$90,000 a year for 8 years" is checkable; "Lump sum to replace
+ * earnings" -- which is the page's own standing description -- is not.
+ * The approved email draws the first kind, so the figures that make it up
+ * are composed here, where the inputs are, rather than reassembled in the
+ * backend from a breakdown that carries only totals.
+ *
+ * IT NAMES ONLY WHAT IS THERE. A debt line reading "credit cards, auto
+ * and other balances" over a figure that is one car loan describes a
+ * situation the visitor did not describe, and the whole value of the line
+ * is that somebody can check it against what they typed.
+ */
+function detailLines(inp){
+  const and = (list) => list.length < 2 ? (list[0] || '')
+    : list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1];
+
+  const debts = [
+    inp.debt.cards > 0 ? 'credit cards' : null,
+    inp.debt.auto  > 0 ? 'auto loans'   : null,
+    inp.debt.other > 0 ? 'other balances' : null,
+  ].filter(Boolean);
+
+  const eduBits = [
+    inp.edu.kids > 0 && inp.edu.cost > 0
+      ? (inp.edu.kids === 1 ? 'one child' : inp.edu.kids + ' children') : null,
+    inp.extra.emergency > 0 ? 'emergency fund' : null,
+    inp.extra.final > 0 ? 'final costs' : null,
+  ].filter(Boolean);
+
+  return {
+    D: debts.length ? 'Wiping out ' + and(debts) : '',
+    I: inp.inc.annual > 0
+      ? fmt$(inp.inc.annual) + ' a year for ' + inp.inc.years
+        + (inp.inc.years === 1 ? ' year' : ' years')
+      : '',
+    M: inp.mort.bal > 0 ? 'The balance left on the loan' : '',
+    E: eduBits.length ? and(eduBits).replace(/^./, (c) => c.toUpperCase()) : '',
+  };
+}
 function effectiveCoverage(){ return coverageOverride != null ? coverageOverride : currentCoverage; }
 
 let QUOTES = [];                   // the engine's rows: the only source of a price
@@ -1733,15 +1775,30 @@ function render(){
   const name = (inp.firstName + ' ' + inp.lastName).trim() || 'Your';
   currentInp = inp;
   currentCoverage = Math.max(0, Math.round(net/1000)*1000);
-  currentBreakdown = { debt: dc.total, income: ic.total, mortgage: mc.payoff,
-                       education: ec.total, offset: offset, gross: gross };
-
   const cats = [
     { k:'d', letter:'D', name:'Debt', desc:'Wipe out outstanding balances', amt:dc.total, detail:detailDebt(inp.debt, dc), col:'var(--cat-d)' },
     { k:'i', letter:'I', name:'Income Replacement', desc:'Lump sum to replace earnings', amt:ic.total, detail:detailIncome(inp.inc, ic), col:'var(--cat-i)' },
     { k:'m', letter:'M', name:'Mortgage Payoff', desc:'Retire the home loan', amt:mc.payoff, detail:detailMortgage(inp.mort, mc), col:'var(--cat-m)' },
     { k:'e', letter:'E', name:'Education & Everything Else', desc:'Schooling, emergency fund, final costs', amt:ec.total, detail:detailEducation(inp.edu, ec), col:'var(--cat-e)' }
   ];
+
+  /*
+   * THE RECORD OF THE STACKED MATH -- QBP-543, and it is built from
+   * `cats` rather than from the four totals again, so the email cannot
+   * call a category something the screen did not call it, or put them in
+   * a different order.
+   *
+   * Below `cats` on purpose: it reads from it.
+   */
+  const lines = detailLines(inp);
+  currentBreakdown = {
+    parts: cats.map(function(c){
+      return { letter: c.letter, name: c.name,
+               detail: lines[c.letter] || null, amount: c.amt };
+    }),
+    offset: offset,
+    gross: gross,
+  };
 
   // composition segments
   const segs = cats.map(c=>`<div class="comp-seg ${c.k}" style="width:${gross>0?(c.amt/gross*100):0}%"><title>${c.name}: ${fmt$(c.amt)}</title></div>`).join('');

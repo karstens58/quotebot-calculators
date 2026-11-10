@@ -338,16 +338,64 @@ test('the record carries the four category totals, not just the need', () => {
    * stops being recorded fails this rather than quietly leaving the stacked
    * math to be recomputed -- badly -- somewhere downstream.
    */
-  const render = cut('function render(){', '\n  currentBreakdown =');
-  for (const part of ['dc.total', 'ic.total', 'mc.payoff', 'ec.total']) {
-    assert.ok(render.includes(part), `render() no longer computes ${part}`);
-  }
   const cap = cut('function qbCaptureLead(){', '\n}');
   assert.match(cap, /breakdown: currentBreakdown/,
     'the lead record has stopped carrying the four category totals, so the '
     + 'stacked math has to be recomputed from the inputs somewhere else');
-  const set = cut('  currentBreakdown = {', '};');
-  for (const k of ['debt:', 'income:', 'mortgage:', 'education:', 'offset:', 'gross:']) {
-    assert.ok(set.includes(k), `currentBreakdown no longer carries ${k}`);
-  }
+  /* BUILT FROM `cats`, which is what the screen draws, so the record
+     cannot name a category something the page did not or reorder them. */
+  /*
+   * RUN, NOT READ. The first version of this asserted the source text
+   * contained "detail:", which `detail: null` satisfies -- so the record
+   * could stop carrying the lines altogether and the test still passed. A
+   * mutation caught it. This evaluates the real assignment.
+   */
+  const set = cut('  currentBreakdown = {', '\n  };');
+  const build = new Function('cats', 'lines', 'offset', 'gross',
+    `let currentBreakdown;\n${set}\n return currentBreakdown;`);
+  const got = build(
+    [{ letter: 'D', name: 'Debt', amt: 34500 },
+      { letter: 'I', name: 'Income Replacement', amt: 720000 }],
+    { D: 'Wiping out auto loans', I: '$90,000 a year for 8 years' },
+    290000, 1187500);
+  assert.deepEqual(got.parts, [
+    { letter: 'D', name: 'Debt', detail: 'Wiping out auto loans', amount: 34500 },
+    { letter: 'I', name: 'Income Replacement',
+      detail: '$90,000 a year for 8 years', amount: 720000 },
+  ]);
+  assert.equal(got.offset, 290000);
+  assert.equal(got.gross, 1187500);
+  /* A category with nothing to say carries null, not an empty string --
+     the email draws no line rather than an empty one. */
+  assert.equal(build([{ letter: 'M', name: 'Mortgage Payoff', amt: 0 }],
+    { M: '' }, 0, 0).parts[0].detail, null);
+});
+
+test('a category line names only what the visitor actually entered', () => {
+  /*
+   * "Wiping out credit cards, auto loans and other balances" over a figure
+   * that is one car loan describes a situation nobody described, and the
+   * whole value of the line is that it can be checked against what they
+   * typed.
+   */
+  const fn = new Function('fmt$', `${cut('function detailLines(inp){', '\n}')}\n return detailLines;`)(
+    (n) => '$' + Number(n).toLocaleString('en-US'));
+  const base = { debt: { cards: 0, auto: 0, other: 0 },
+    inc: { annual: 0, years: 1 }, mort: { bal: 0 },
+    edu: { kids: 0, years: 1, cost: 0 }, extra: { emergency: 0, final: 0 } };
+
+  assert.equal(fn({ ...base, debt: { cards: 0, auto: 9000, other: 0 } }).D,
+    'Wiping out auto loans');
+  assert.equal(fn({ ...base, debt: { cards: 1, auto: 1, other: 1 } }).D,
+    'Wiping out credit cards, auto loans and other balances');
+  /* Nothing entered says nothing, rather than a sentence about zero. */
+  assert.equal(fn(base).D, '');
+  assert.equal(fn(base).M, '');
+  assert.equal(fn({ ...base, inc: { annual: 90000, years: 8 } }).I,
+    '$90,000 a year for 8 years');
+  assert.equal(fn({ ...base, inc: { annual: 90000, years: 1 } }).I,
+    '$90,000 a year for 1 year');
+  assert.equal(fn({ ...base, edu: { kids: 1, years: 4, cost: 20000 },
+    extra: { emergency: 25000, final: 15000 } }).E,
+    'One child, emergency fund and final costs');
 });
