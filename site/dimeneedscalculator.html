@@ -1304,6 +1304,19 @@ let selectedTerm = 20;       // results-page control (the input panel has no ter
 let currentCoverage = 0;     // rounded recommended need, set by render()
 let coverageOverride = null; // user-entered coverage; null = use recommendation
 let currentInp = null;       // last computed inputs, set by render()
+/*
+ * The four category totals AS THE SCREEN SHOWED THEM -- QBP-543.
+ *
+ * The record already carried the need; it did not carry its parts, so any
+ * surface wanting to draw the stacked math had to recompute all four from
+ * the seventeen inputs. That means a second implementation of this page's
+ * arithmetic living somewhere else and drifting from this one -- and
+ * calcEducation alone returns eduTotal + emergency + final, which is not
+ * obvious from the field names and is exactly what a reimplementation gets
+ * subtly wrong. An illustration is a record of what was on the screen, so
+ * the screen's own figures go on it.
+ */
+let currentBreakdown = null; // {debt, income, mortgage, education, offset, gross}
 function effectiveCoverage(){ return coverageOverride != null ? coverageOverride : currentCoverage; }
 
 let QUOTES = [];                   // the engine's rows: the only source of a price
@@ -1680,6 +1693,8 @@ function render(){
   const name = (inp.firstName + ' ' + inp.lastName).trim() || 'Your';
   currentInp = inp;
   currentCoverage = Math.max(0, Math.round(net/1000)*1000);
+  currentBreakdown = { debt: dc.total, income: ic.total, mortgage: mc.payoff,
+                       education: ec.total, offset: offset, gross: gross };
 
   const cats = [
     { k:'d', letter:'D', name:'Debt', desc:'Wipe out outstanding balances', amt:dc.total, detail:detailDebt(inp.debt, dc), col:'var(--cat-d)' },
@@ -1961,6 +1976,7 @@ function qbCaptureLead(){
       premiumsAreEstimates: PREMIUMS_ARE_ESTIMATES,
       results: {
         totalCoverageNeed: currentCoverage || null,
+        breakdown: currentBreakdown,
         quotedCoverage: (typeof effectiveCoverage === 'function' ? effectiveCoverage() : null),
         termYears: selectedTerm,
         quotes: shownResults()

@@ -331,3 +331,23 @@ test('no calculator in site/ is still using the old slot wording', () => {
       `${f} still has a slot named "Our Pick"`);
   }
 });
+
+test('the record carries the four category totals, not just the need', () => {
+  /*
+   * Read off render() itself rather than restated here, so a category that
+   * stops being recorded fails this rather than quietly leaving the stacked
+   * math to be recomputed -- badly -- somewhere downstream.
+   */
+  const render = cut('function render(){', '\n  currentBreakdown =');
+  for (const part of ['dc.total', 'ic.total', 'mc.payoff', 'ec.total']) {
+    assert.ok(render.includes(part), `render() no longer computes ${part}`);
+  }
+  const cap = cut('function qbCaptureLead(){', '\n}');
+  assert.match(cap, /breakdown: currentBreakdown/,
+    'the lead record has stopped carrying the four category totals, so the '
+    + 'stacked math has to be recomputed from the inputs somewhere else');
+  const set = cut('  currentBreakdown = {', '};');
+  for (const k of ['debt:', 'income:', 'mortgage:', 'education:', 'offset:', 'gross:']) {
+    assert.ok(set.includes(k), `currentBreakdown no longer carries ${k}`);
+  }
+});
