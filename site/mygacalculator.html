@@ -1370,6 +1370,114 @@ function qbHasJointOwner(){
   return !(jf === g('cf-fname') && jl === g('cf-lname'));
 }
 
+/**
+ * What the screen showed, as a record -- QBP-548.
+ *
+ * This page has never written an illustration: qbCaptureLead sent
+ * `results: null`, and lead-capture/handler.ts creates nothing when it is
+ * null. So there was no record anywhere of the term somebody picked, the
+ * carrier, the rate, the value at maturity, or the ladder they compared --
+ * and `inputs` carried identity fields only, which is a deposit with no
+ * rate and no term attached to it.
+ *
+ * THE LADDER IS BEST-PER-TERM, NOT THE SELECTED CARRIER'S.
+ * MYGA_RATES is already "best rate per term"; compareData is the SELECTED
+ * carrier's rate at every term, which is a different ladder answering a
+ * different question. The email draws the first. Both go on the record,
+ * named so nothing downstream has to guess which it is holding.
+ *
+ * TIES ARE BROKEN HERE AND RECORDED, not left to Object.keys order plus a
+ * sort that treats equals as equal. Two carriers at the same rate would
+ * otherwise be whichever the engine happened to return first that minute,
+ * and the email names one of them in writing. Rate descending, then carrier
+ * name ascending.
+ *
+ * A TERM WITH NO CARRIER IS RECORDED AS SUCH rather than omitted, because a
+ * surface cannot tell an absent term from an unrecorded one.
+ */
+function shownResults(){
+  var premium = numVal('premium') || 0;
+  var guaranteed = rateMode !== 'manual';
+
+  /* The rating as the ranked list showed it, including showing none.
+     renderCompareList: "Not Rated is itself a claim about a company, and
+     guessing it is worse than leaving it out." A record that stores null
+     and a surface that prints "Not Rated" would undo that in one line. */
+  var ratingOf = function(productName){
+    var base = CARRIER_BASE[productName] || productName;
+    var info = CARRIER_INFO[base] || {};
+    var r = info.amBestRating || null;
+    return (r && !/^not\s*rated$/i.test(r)) ? r : null;
+  };
+
+  var rankedAt = function(term){
+    var map = CARRIER_RATES_BY_TERM[term] || {};
+    return Object.keys(map)
+      .map(function(name){
+        return { carrier: name, rate: map[name], amBestRating: ratingOf(name) };
+      })
+      .sort(function(a, b){
+        if (b.rate !== a.rate) return b.rate - a.rate;
+        return a.carrier < b.carrier ? -1 : a.carrier > b.carrier ? 1 : 0;
+      });
+  };
+
+  var at = function(term, rate){ return premium * Math.pow(1 + rate / 100, term); };
+
+  /* Best carrier at each term -- what the email draws. In manual mode there
+     are no carriers to rank, so the ladder is the rate they typed and says
+     so rather than naming nobody. */
+  var ladder = MYGA_RATES.map(function(r){
+    var ranked = guaranteed ? rankedAt(r.term) : [];
+    var top = ranked[0] || null;
+    return {
+      term: r.term,
+      bestRate: top ? top.rate : (guaranteed ? null : manualRate),
+      bestCarrier: top ? top.carrier : null,
+      amBestRating: top ? top.amBestRating : null,
+      maturityValue: top ? at(r.term, top.rate)
+                         : (guaranteed ? null : at(r.term, manualRate)),
+      /* Nothing quoting this length in this state. Said, not omitted. */
+      noCarrier: guaranteed && !top
+    };
+  });
+
+  var selectedRate = getCarrierRate(selectedTerm, selectedCarrier);
+  return {
+    /* THE RUN */
+    selectedTerm: selectedTerm,
+    selectedCarrier: guaranteed ? selectedCarrier : null,
+    selectedRate: selectedRate,
+    selectedAmBestRating: guaranteed && selectedCarrier ? ratingOf(selectedCarrier) : null,
+    maturityValue: premium > 0 ? at(selectedTerm, selectedRate) : null,
+    interestEarned: premium > 0 ? at(selectedTerm, selectedRate) - premium : null,
+    deposit: premium || null,
+    state: (document.getElementById('cf-state') || {}).value || null,
+    funding: selectedFunding,
+    qualified: selectedQual,
+
+    /* WHERE THE RATE CAME FROM. The page already refuses to say
+       "Guaranteed" over a rate the visitor typed; the record has to carry
+       the same distinction or an email could present somebody's own guess
+       back to them as a carrier's offer. */
+    rateMode: rateMode,
+    guaranteed: guaranteed,
+    rateEffectiveDate: rateEffectiveDate,
+    rateVerifiedDate: rateVerifiedDate,
+    rateSource: rateSource,
+
+    /* THE LADDERS, named so nothing has to guess which is which. */
+    bestByTerm: ladder,
+    selectedCarrierByTerm: compareData.map(function(c){
+      return { term: c.term, rate: c.rate, maturityValue: c.mv };
+    }),
+    carriersByTerm: guaranteed
+      ? MYGA_RATES.reduce(function(acc, r){ acc[r.term] = rankedAt(r.term); return acc; }, {})
+      : {},
+    tieBreak: 'rate desc, then carrier name asc'
+  };
+}
+
 function qbCaptureLead(){
   if (!window.QuoteBot) return;
   try {
@@ -1399,7 +1507,7 @@ function qbCaptureLead(){
         jointFirstName: V('cf-joint-fname'), jointLastName: V('cf-joint-lname'),
         jointDateOfBirth: V('cf-joint-dob')
       },
-      results: null,
+      results: shownResults(),
       consentText: C('#qb-consent')
     });
   } catch (e) { /* capture must never break the calculator */ }
@@ -1411,58 +1519,77 @@ function runCalc(preserveExpansion) {
     if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
-  qbCaptureLead();
-  const premium = numVal('premium') || 0;
-  const currentRate = getCarrierRate(selectedTerm, selectedCarrier);
-  const rate = currentRate / 100;
-  const term = selectedTerm;
 
-  const fundingLabels = { cash: 'cash savings', cd: 'a maturing CD', brokerage: 'a brokerage account', ira: 'an IRA transfer', '1035': 'an existing annuity exchange' };
-  const maturityValue = premium * Math.pow(1 + rate, term);
-  const totalInterest = maturityValue - premium;
-  const growthPct = premium > 0 ? (totalInterest / premium) * 100 : 0;
+  /*
+   * TRY/FINALLY, THE SHAPE quotetool.html ALREADY USES -- QBP-548.
+   *
+   * qbCaptureLead ran as the FIRST statement of this function, before a
+   * single figure existed, which is the structural reason it could only
+   * ever send `results: null`. Moving it to the end would record what was
+   * shown but would lose the contact whenever the arithmetic threw, and
+   * capture-waits-for-the-prices.test.mjs already settled that trade for
+   * the quote tool: "a lead lost because Compulife was briefly down is a
+   * worse outcome than a record with no premiums in it."
+   *
+   * So the figures are computed first and capture runs in the finally. It
+   * records what the screen showed, and it still records when the screen
+   * never got drawn.
+   */
+  try {
+    const premium = numVal('premium') || 0;
+    const currentRate = getCarrierRate(selectedTerm, selectedCarrier);
+    const rate = currentRate / 100;
+    const term = selectedTerm;
 
-  /* headline */
-  document.getElementById('resTermYears').textContent = term;
-  document.getElementById('resRate').textContent = currentRate.toFixed(2) + '%';
-  const carrierPhrase = selectedCarrier ? ` with ${selectedCarrier}` : '';
-  document.getElementById('resSummarySub').textContent = `${fmt0(premium)} funded via ${fundingLabels[selectedFunding]}${carrierPhrase}, growing tax-deferred with zero market risk.`;
-  document.getElementById('headlineVal').textContent = fmt0(maturityValue);
-  document.getElementById('headlineSub').textContent = selectedCarrier
-    ? `At the end of your ${term}-year term with ${selectedCarrier}, assuming interest is credited annually and left to compound. No market exposure — this value is contractually guaranteed by the issuing carrier.`
-    : `At the end of a ${term}-year term at ${currentRate.toFixed(2)}%, assuming interest is credited annually and left to compound. This is an illustration at a rate you entered, not an offer from any carrier.`;
+    const fundingLabels = { cash: 'cash savings', cd: 'a maturing CD', brokerage: 'a brokerage account', ira: 'an IRA transfer', '1035': 'an existing annuity exchange' };
+    const maturityValue = premium * Math.pow(1 + rate, term);
+    const totalInterest = maturityValue - premium;
+    const growthPct = premium > 0 ? (totalInterest / premium) * 100 : 0;
 
-  document.getElementById('metricInterest').textContent = fmt0(totalInterest);
-  document.getElementById('metricRate').textContent = currentRate.toFixed(2) + '%';
-  document.getElementById('metricGrowthPct').textContent = growthPct.toFixed(1) + '%';
+    /* headline */
+    document.getElementById('resTermYears').textContent = term;
+    document.getElementById('resRate').textContent = currentRate.toFixed(2) + '%';
+    const carrierPhrase = selectedCarrier ? ` with ${selectedCarrier}` : '';
+    document.getElementById('resSummarySub').textContent = `${fmt0(premium)} funded via ${fundingLabels[selectedFunding]}${carrierPhrase}, growing tax-deferred with zero market risk.`;
+    document.getElementById('headlineVal').textContent = fmt0(maturityValue);
+    document.getElementById('headlineSub').textContent = selectedCarrier
+      ? `At the end of your ${term}-year term with ${selectedCarrier}, assuming interest is credited annually and left to compound. No market exposure — this value is contractually guaranteed by the issuing carrier.`
+      : `At the end of a ${term}-year term at ${currentRate.toFixed(2)}%, assuming interest is credited annually and left to compound. This is an illustration at a rate you entered, not an offer from any carrier.`;
 
-  /* "Guaranteed" is a claim about a carrier's contract. In manual mode the
-     rate came from the visitor, so nothing on screen is guaranteed by anyone
-     and the wording must stop saying it is. */
-  const guaranteed = rateMode !== 'manual';
-  document.getElementById('resGuaranteedWord').textContent = guaranteed ? 'Guaranteed' : 'Illustrated';
-  document.getElementById('metricRateLabel').textContent = guaranteed ? 'Guaranteed Rate' : 'Illustrated Rate';
-  document.getElementById('metricRateSub').textContent = guaranteed ? 'Locked for the entire term' : 'The rate you entered';
-  document.getElementById('headlineLabel').textContent = guaranteed ? 'Guaranteed Maturity Value' : 'Projected Maturity Value';
+    document.getElementById('metricInterest').textContent = fmt0(totalInterest);
+    document.getElementById('metricRate').textContent = currentRate.toFixed(2) + '%';
+    document.getElementById('metricGrowthPct').textContent = growthPct.toFixed(1) + '%';
 
-  /* compare all terms — build year-by-year rows for every term at the selected carrier's rate, cache for expand/collapse */
-  compareData = MYGA_RATES.map(r => {
-    const carrierRate = getCarrierRate(r.term, selectedCarrier);
-    let termRows = [];
-    let b = premium;
-    for (let y = 1; y <= r.term; y++) {
-      const interest = b * (carrierRate / 100);
-      b += interest;
-      termRows.push({ year: y, interest, bal: b });
-    }
-    return { term: r.term, rate: carrierRate, mv: b, rows: termRows };
-  });
-  if (!preserveExpansion) expandedTerms = new Set([selectedTerm]);
-  renderCompareList();
+    /* "Guaranteed" is a claim about a carrier's contract. In manual mode the
+       rate came from the visitor, so nothing on screen is guaranteed by anyone
+       and the wording must stop saying it is. */
+    const guaranteed = rateMode !== 'manual';
+    document.getElementById('resGuaranteedWord').textContent = guaranteed ? 'Guaranteed' : 'Illustrated';
+    document.getElementById('metricRateLabel').textContent = guaranteed ? 'Guaranteed Rate' : 'Illustrated Rate';
+    document.getElementById('metricRateSub').textContent = guaranteed ? 'Locked for the entire term' : 'The rate you entered';
+    document.getElementById('headlineLabel').textContent = guaranteed ? 'Guaranteed Maturity Value' : 'Projected Maturity Value';
 
-  document.getElementById('resultsLocked').style.display = 'none';
-  document.getElementById('resultsArea').classList.add('visible');
-  document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    /* compare all terms — build year-by-year rows for every term at the selected carrier's rate, cache for expand/collapse */
+    compareData = MYGA_RATES.map(r => {
+      const carrierRate = getCarrierRate(r.term, selectedCarrier);
+      let termRows = [];
+      let b = premium;
+      for (let y = 1; y <= r.term; y++) {
+        const interest = b * (carrierRate / 100);
+        b += interest;
+        termRows.push({ year: y, interest, bal: b });
+      }
+      return { term: r.term, rate: carrierRate, mv: b, rows: termRows };
+    });
+    if (!preserveExpansion) expandedTerms = new Set([selectedTerm]);
+    renderCompareList();
+
+    document.getElementById('resultsLocked').style.display = 'none';
+    document.getElementById('resultsArea').classList.add('visible');
+    document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } finally {
+    qbCaptureLead();
+  }
 }
 
 /* ── COMPARE-ALL-TERMS: EXPANDABLE ROWS ──────────────────────────────────── */

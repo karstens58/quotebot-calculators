@@ -114,6 +114,80 @@ test('AND CAPTURES EVEN WHEN PRICING FAILS', () => {
     'a failed price run would now cost the lead as well as the figures');
 });
 
+test('myga captures after its figures exist, and still captures when they do not', () => {
+  /*
+   * THE SYNCHRONOUS SIBLING OF THE BUG THIS FILE WAS WRITTEN FOR -- QBP-548.
+   *
+   * The guard above looks for an un-awaited ASYNC call before capture.
+   * mygacalculator's runCalc is synchronous, and it called qbCaptureLead as
+   * its very first statement -- before a single figure was computed, in the
+   * same function that then computed them all. So capture could only ever
+   * send `results: null`, the handler creates no Illustration when results
+   * are null, and this page has never recorded what anybody was shown.
+   *
+   * Nothing here reported it, because "capture happens after the prices
+   * arrive" was only ever checked against `await`.
+   */
+  const src = strip(readFileSync(`${SITE}mygacalculator.html`, 'utf8'));
+  const at = src.indexOf('function runCalc(');
+  assert.notEqual(at, -1, 'runCalc is gone from mygacalculator.html');
+  const fn = src.slice(at, src.indexOf('\n}\n', at));
+  assert.match(fn, /finally\s*\{[\s\S]{0,80}qbCaptureLead\s*\(/,
+    'runCalc no longer captures in a finally: either it records nothing when '
+    + 'the arithmetic throws, or it has gone back to capturing before the '
+    + 'figures exist');
+  const before = fn.slice(0, fn.indexOf('qbCaptureLead'));
+  assert.match(before, /maturityValue/,
+    'qbCaptureLead runs before the maturity value is computed, so the record '
+    + 'cannot be of what was shown');
+});
+
+/*
+ * KNOWN DEBT -- QBP-551, and THE LIST ONLY SHRINKS.
+ *
+ * The sweep below was written for mygacalculator and found five more pages
+ * doing the same thing. They are named here rather than quietly excluded,
+ * and each needs its own read of what is worth recording -- QBP-548 is the
+ * pattern, not a diff to copy. Deleting a name from this list is the work;
+ * adding one is the bug.
+ */
+const RECORDS_NOTHING_YET = [
+  'careltccalculator.html',
+  'incomefloorcalculator.html',
+  'ltcannuitytaxillustration.html',
+  'retirementdistributioncalculator.html',
+  'sequenceofreturnscalculator.html',
+];
+
+test('NO PAGE FILES A LEAD WITH NO RECORD OF WHAT IT SHOWED', () => {
+  /*
+   * `results: null` is how a calculator says "I have nothing to report",
+   * and lead-capture/handler.ts believes it: no Illustration is created at
+   * all. Six pages shipped that way and nobody noticed for as long as they
+   * have existed, so this is a sweep rather than a note on one file.
+   */
+  const guilty = [];
+  for (const page of PAGES) {
+    const src = strip(readFileSync(SITE + page, 'utf8'));
+    if (!src.includes('qbCaptureLead')) continue;
+    if (!/results\s*:\s*null/.test(src)) continue;
+    if (RECORDS_NOTHING_YET.includes(page)) continue;
+    guilty.push(page);
+  }
+  assert.deepEqual(guilty, [], 'these pages capture a lead and record nothing '
+    + 'about what the visitor was shown:\n  ' + guilty.join('\n  '));
+});
+
+test('the known-debt list has no stale names on it', () => {
+  /* A page that has been fixed and left on the list turns the allowance
+     into cover for the next one. */
+  for (const page of RECORDS_NOTHING_YET) {
+    const src = strip(readFileSync(SITE + page, 'utf8'));
+    assert.match(src, /results\s*:\s*null/,
+      `${page} records what it shows now -- take it off RECORDS_NOTHING_YET`);
+  }
+});
+
 test('control: the reader can see an un-awaited async call when there is one', () => {
   /*
    * Proves the guard above compares rather than agreeing with itself.
