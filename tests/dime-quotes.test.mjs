@@ -16,7 +16,7 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const HTML = readFileSync(new URL('../site/dimeneedscalculator.html', import.meta.url), 'utf8');
 
@@ -63,6 +63,9 @@ function run(state) {
     () => (state.coverage ?? 500000));
   return { cards: nodes.quoteCards.innerHTML, note: nodes.quoteNote.innerHTML };
 }
+
+const badges = (html) =>
+  [...html.matchAll(/class="best-badge [^"]*">([^<]*)</g)].map((m) => m[1]);
 
 const INP = { dob: '1978-04-02', state: 'CO', gender: 'Male', tobacco: 'No',
   uwClass: 'Preferred' };
@@ -129,7 +132,7 @@ test('a carrier nobody curated gets no badge of endorsement and no reasons', () 
   assert.ok(!cards.includes('made up'),
     'bullets are showing under a carrier nobody chose');
   assert.ok(cards.includes('Another Option'));
-  assert.ok(!cards.includes('Our Pick'));
+  assert.ok(!cards.includes('Our Recommendation'));
 });
 
 test("a curated carrier's own tag beats the slot's wording", () => {
@@ -221,4 +224,33 @@ test('the lead record carries the premiums that were on the screen', () => {
   const cap = cut('function qbCaptureLead(){', '\n}');
   assert.match(cap, /monthlyPremium: q\.monthly/);
   assert.match(cap, /premiumsAreEstimates: PREMIUMS_ARE_ESTIMATES/);
+});
+
+test('the three slots are named the way the quote tool names them', () => {
+  /*
+   * POSITIVE, AND THAT IS THE POINT. The only label assertion this file had
+   * was that an uncurated card does NOT say the slot's wording -- which is
+   * true whatever the slot is called, so QBP-537 renamed quotetool's middle
+   * slot to "Our Recommendation" and left this calculator saying "Our Pick"
+   * with the suite green. The same card was called two different things
+   * depending on which tool somebody used.
+   */
+  const { cards } = run({ QUOTES, FEATURED: [
+    Object.assign({}, QUOTES[0], { curated: true, bullets: ['No medical exam'], badge: '' }),
+    Object.assign({}, QUOTES[2], { curated: true, bullets: ['A+ rated'], badge: '' }),
+  ] });
+  assert.deepEqual(badges(cards),
+    ['Most Affordable', 'Our Recommendation', 'Also Consider']);
+});
+
+test('no calculator in site/ is still using the old slot wording', () => {
+  /* The rename was applied by hand, file by file, and missed one. This is
+     what notices the next time that happens. */
+  const dir = new URL('../site/', import.meta.url);
+  for (const f of readdirSync(dir)) {
+    if (!f.endsWith('.html')) continue;
+    const text = readFileSync(new URL(f, dir), 'utf8');
+    assert.ok(!/badgeText:\s*'Our Pick'/.test(text),
+      `${f} still has a slot named "Our Pick"`);
+  }
 });
