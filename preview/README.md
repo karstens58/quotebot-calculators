@@ -27,7 +27,7 @@ the run in step 2 is what fixes it. Do it before the push, not after.
 
 ## What is here, and why
 
-### assurityquotetool.html
+### agentlessquote.html
 
 The **Agent-less** Assurity term tool -- named that way wherever it
 is listed, because Assurity let the whole thing finish online and a later
@@ -42,3 +42,11 @@ for the same reason: an honest error beats a confident wrong number.
 
 It goes back to `site/` when QBP-557 lands and the numbers come from
 Assurity's `/quotes` endpoint.
+
+**The file name is deliberately carrier-neutral.** The URL names the flow,
+not the carrier: if another carrier ever supports a full online finish it
+joins this page rather than needing its own address, and a public URL does
+not carry a carrier's trade name. Assurity stays visible on the page as the
+issuing carrier, which is where it belongs. Note that the `<title>` still
+names Assurity -- correct while it is the only carrier here, and the thing
+to change first if a second one arrives.
