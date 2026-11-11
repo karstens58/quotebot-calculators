@@ -302,7 +302,7 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .term-select { display: block; width: calc(100% - 32px); margin: 16px; padding: 10px; border: 1.5px solid var(--green); border-radius: 8px; background: #fff; color: var(--green); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all var(--transition); }
 .term-select:hover { background: var(--green); color: #fff; }
 
-.legal-strip { background: var(--primary-dark); margin-top: 48px; padding: 36px 32px 0; }
+.legal-strip { background: var(--primary-dark); margin-top: 48px; padding: 40px 32px 0; }
 .legal-strip-inner { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 13px; }
 .legal-strip + footer { margin-top: 0; }
 .legal-strip .legal-head { font-size: 12.5px; font-weight: 700; color: rgba(255,255,255,0.82); letter-spacing: 0.03em; }
@@ -310,7 +310,7 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 /* The band steps in with the footer below it -- chrome.css takes footer
    padding to 20px here, and a strip still at 32 would put the Assurity
    wording 12px inside the copyright line directly under it. */
-@media (max-width: 760px) { .legal-strip { padding: 28px 20px 0; } }
+@media (max-width: 760px) { .legal-strip { padding: 32px 20px 0; } }
 
 @media (max-width: 980px) {
   .cov-body { grid-template-columns: 1fr; gap: 28px; }
