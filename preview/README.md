@@ -29,7 +29,9 @@ the run in step 2 is what fixes it. Do it before the push, not after.
 
 ### assurityquotetool.html
 
-The agent-less Assurity term tool. Built and styled; **its rates are an
+The **Agent-less** Assurity term tool -- named that way wherever it
+is listed, because Assurity let the whole thing finish online and a later
+agent-assisted variant would be a different page, not a different mode. Built and styled; **its rates are an
 illustrative table, not Assurity's.**
 
 That is why it is here rather than in `site/`. A public page showing a
