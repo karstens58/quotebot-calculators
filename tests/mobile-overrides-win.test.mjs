@@ -189,7 +189,9 @@ test('NO MOBILE OVERRIDE IS OUTRANKED BY THE RULE IT OVERRIDES', () => {
  * been fixed and left here, so the list cannot quietly go stale.
  */
 const WIDE_ON_PHONES = [
-  'dimeneedscalculator.html: table.detail { min-width: 440px } with no mobile override that wins',
+  /* The DIME rules moved to css/dime-calculator.css in QBP-544 so the
+     quote page could share them. Same debt, same table, new home. */
+  'css/dime-calculator.css: table.detail { min-width: 440px } with no mobile override that wins',
   'fiaincomeridercalculator.html: table.sched { min-width: 520px } with no mobile override that wins',
   'ltcannuitytaxillustration.html: table.year-table { min-width: 470px } with no mobile override that wins',
   'retirementdistributioncalculator.html: table.dist-table { min-width: 560px } with no mobile override that wins',
