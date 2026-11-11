@@ -1531,7 +1531,43 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   if (!token) return;
 
   var ENDPOINT = 'https://api.quote-bot.com/chat/';
-  var FIELDS = ['firstName', 'lastName', 'email', 'phone', 'dob', 'state'];
+
+  /* Identity and underwriting, which the premium depends on even though
+     the needs number does not. */
+  var IDENTITY = ['firstName', 'lastName', 'email', 'phone', 'dob', 'state',
+    'uwClass'];
+
+  /*
+   * THE SEVENTEEN THE NUMBER IS BUILT FROM -- QBP-545, for the quote
+   * page's Edit button. All of them or none: a handoff carrying a chosen
+   * few would be making the calculation by deciding what to leave out,
+   * and leaving a field out is never neutral here. Blank emergency fund
+   * and final expenses silently zero half the E; blank return and growth
+   * collapse income replacement to annual x years, which recommends MORE
+   * cover than a discounted figure would.
+   *
+   * The same list prefillFromQuery can reach, which is the point --
+   * dime-prefill.test.mjs derives it from getInputs() rather than
+   * repeating it, so a new field on the form fails until it is carried
+   * here too.
+   */
+  var FIGURES = ['debtCards', 'debtAuto', 'debtOther',
+    'incAnnual', 'incYears', 'incReturn', 'incGrowth',
+    'mortBal', 'mortRate', 'mortYears',
+    'eduKids', 'eduYears', 'eduCost',
+    'emergFund', 'finalExp',
+    'existLife', 'existSavings'];
+
+  var FIELDS = IDENTITY.concat(FIGURES);
+
+  /*
+   * THE TWO ANSWERS THAT ARE NOT FIELDS. Sex and tobacco are segmented
+   * buttons, not inputs, so `el.value` reaches neither -- getInputs reads
+   * them as `#genderSeg .active`. A handoff that filled every box and
+   * left these on their defaults would quote a male non-smoker's rates
+   * under somebody else's name, with the form looking complete.
+   */
+  var SEGMENTS = { gender: 'genderSeg', tobacco: 'tobaccoSeg' };
 
   fetch(ENDPOINT, {
     method: 'POST',
@@ -1561,9 +1597,36 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
         el.dispatchEvent(new Event('change', { bubbles: true }));
         filled += 1;
       });
+      Object.keys(SEGMENTS).forEach(function (key) {
+        var want = res.handoff[key];
+        if (typeof want !== 'string' || !want) return;
+        var seg = document.getElementById(SEGMENTS[key]);
+        if (!seg) return;
+        var hit = null;
+        Array.prototype.forEach.call(seg.querySelectorAll('button'), function (b) {
+          if (b.dataset.val === want) hit = b;
+        });
+        /* A value this control has no button for is dropped, exactly as a
+           <select> value with no option is above. */
+        if (!hit) return;
+        /* CLICKED, NOT CLASS-TOGGLED. The page's own handler is what moves
+           the active mark and calls liveUpdate; a class set from outside
+           leaves the control looking right and the number stale. */
+        if (!hit.classList.contains('active')) hit.click();
+        filled += 1;
+      });
+
       /* The age pill and the quote read the date of birth, and neither
          updates off an input event alone. */
       if (filled) { try { liveUpdate(); } catch (e) {} }
+
+      /*
+       * NOTHING IS SUBMITTED. The figures are in and the totals have
+       * moved; pressing Calculate is theirs. prefillFromQuery has said
+       * the same since QBP-183, and it matters more here: Calculate runs
+       * a quote and files a capture, and doing that because somebody
+       * clicked Edit would put a lead in the system they never asked for.
+       */
     })
     .catch(function () { /* Offline, blocked, refused. The form still works. */ });
 })();
