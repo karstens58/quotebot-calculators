@@ -1,0 +1,68 @@
+# Response headers for tools.quote-bot.com.
+#
+# Added 14 November 2026. securityheaders.com graded this host F, and five of
+# the six it looks for were genuinely absent -- there was no customHttp.yml at
+# all. The sixth is deliberate and is explained at the bottom.
+#
+# READ THE 403 BEFORE TRUSTING THE GRADE, THOUGH. That scan never reached the
+# site: CloudFront answered it 403 and the report says so in the raw headers
+# ("Scan was blocked"). The Amplify firewall on this app refuses the scanner.
+# So the F was measuring a refusal, not a configuration -- and adding these
+# headers will not by itself change that grade. A real browser gets 200 and
+# the headers below; a blocked scanner gets 403 and no headers at all.
+
+customHeaders:
+  - pattern: '**'
+    headers:
+      # A year, subdomains included. Everything under quote-bot.com is served
+      # over TLS through CloudFront already, so this breaks nothing and
+      # removes the first plaintext request an interceptor would need.
+      #
+      # NOT `preload`: that is a submission to a browser-vendor list which is
+      # slow and awkward to reverse, and it would apply to every subdomain.
+      - key: 'Strict-Transport-Security'
+        value: 'max-age=31536000; includeSubDomains'
+
+      # SAMEORIGIN rather than DENY. Nothing frames these pages today --
+      # checked across quotebot-web, marketing, booking and affiliates on 14
+      # November, and there is not one iframe pointing here -- but a
+      # calculator embedded in a marketing page is a plausible thing to want,
+      # and SAMEORIGIN leaves that door open while still stopping a stranger
+      # framing the site to harvest clicks.
+      - key: 'X-Frame-Options'
+        value: 'SAMEORIGIN'
+
+      # Stops a browser second-guessing Content-Type, which is how a file
+      # served as text gets executed as a script.
+      - key: 'X-Content-Type-Options'
+        value: 'nosniff'
+
+      # These pages carry a coverage amount, a date of birth and a state in
+      # the form. Send the full URL only to ourselves; to anyone else, the
+      # origin and nothing more.
+      - key: 'Referrer-Policy'
+        value: 'strict-origin-when-cross-origin'
+
+      # None of these calculators use a camera, a microphone or location.
+      - key: 'Permissions-Policy'
+        value: 'camera=(), microphone=(), geolocation=(), payment=()'
+
+      # NO Content-Security-Policy, AND THAT IS A DECISION RATHER THAN THE
+      # ONE THEY FORGOT.
+      #
+      # These pages carry 389 inline event handlers -- onclick, onmouseenter,
+      # onchange and the rest, counted on 14 November -- and they load
+      # scripts from cdnjs.cloudflare.com. A CSP strict enough to be worth
+      # having blocks every one of those handlers, and the site breaks in a
+      # way that looks like nothing at all until somebody presses a button.
+      #
+      # The alternative, `script-src 'self' 'unsafe-inline'`, permits exactly
+      # the injection the header exists to stop. It would turn the F into an
+      # A on a scanner and buy nothing real, which is worse than no header:
+      # it is a control that reports success.
+      #
+      # THE ACTUAL FIX is to move those handlers to addEventListener, page by
+      # page, and then add the policy. That is a real piece of work and it is
+      # tracked, not forgotten. admin.quote-bot.com already runs
+      # `script-src 'self'` with no inline anything, which is what this
+      # should look like when it is done.
