@@ -335,7 +335,20 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .price-note { margin-top: 9px; font-size: 11.5px; line-height: 1.45; color: var(--gray-dark); text-align: center; max-width: 250px; }
 .price-note[hidden], .price-problem[hidden] { display: none; }
 .price-problem { margin-top: 9px; padding: 8px 12px; border-radius: var(--radius); background: #fdecec; border: 1px solid rgba(220,38,38,0.3); font-size: 11.5px; line-height: 1.5; color: var(--red); text-align: center; max-width: 250px; }
-.price-estimate { margin-top: 10px; padding: 8px 12px; border-radius: var(--radius); background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); font-size: 11.5px; line-height: 1.5; color: var(--gold); text-align: center; max-width: 250px; }
+/* The waiting state. It replaced an "estimate only" warning under a number
+   nobody had quoted -- there is no figure here to disclaim now, only a trip
+   to the carrier that takes about a second. */
+.price-pending { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--gray-mid); }
+.price-pending[hidden] { display: none; }
+.price-dots { display: inline-flex; gap: 3px; }
+.price-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); display: block; animation: priceDot 1s infinite ease-in-out; }
+.price-dots i:nth-child(2) { animation-delay: 0.15s; }
+.price-dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes priceDot { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+/* A price that is still arriving is greyed rather than replaced, so the box
+   does not change height and nothing jumps. */
+.price-amt.waiting { color: var(--gray-light); }
+@media (prefers-reduced-motion: reduce) { .price-dots i { animation: none; opacity: 0.7; } }
 .price-toggle { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--gray-mid); }
 .price-toggle span { cursor: pointer; transition: color var(--transition); }
 .price-toggle span.active { color: var(--primary); font-weight: 700; }
@@ -397,6 +410,12 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .rider-seg button { padding: 6px 14px; border: none; background: #fff; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--gray-mid); cursor: pointer; }
 .rider-seg button.active { background: var(--accent); color: #fff; }
 .rider-seg button + button { border-left: 1.5px solid var(--border); }
+/* What is left on the row once Apply has folded the fields away: the figure
+   that was applied, and a way back to it. */
+.rider-applied { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--gray-dark); padding-left: 1px; }
+.rider-applied[hidden] { display: none; }
+.rider-applied b { font-weight: 700; color: var(--primary); }
+.rider-edit { border: none; background: none; padding: 0; font-family: inherit; font-size: 12px; font-weight: 700; color: var(--accent); cursor: pointer; text-decoration: underline; }
 .rider-apply { align-self: flex-start; padding: 9px 22px; border: none; border-radius: 8px; background: var(--green); color: #fff; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity var(--transition); }
 .rider-apply:disabled { opacity: 0.5; cursor: default; }
 .rider-why { font-size: 11px; color: var(--gray-mid); line-height: 1.45; }
@@ -818,7 +837,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
                   <div class="price-toggle"><span class="active" id="ptMonthly">Monthly</span> | <span id="ptYearly">Yearly</span></div>
                   <p class="price-note" id="priceClass" hidden></p>
                   <p class="price-problem" id="priceProblem" hidden></p>
-                  <p class="price-estimate" id="priceEstimate">Estimate only &mdash; not a price from Assurity. Your premium is set by the carrier when you apply.</p>
+                  <p class="price-pending" id="pricePending" hidden><span class="price-dots" aria-hidden="true"><i></i><i></i><i></i></span>Pricing with Assurity</p>
                 </div>
               </div>
               <button class="cta-btn cov-continue" type="button">Continue Application</button>
@@ -894,11 +913,23 @@ stateSel.appendChild(Object.assign(document.createElement('option'),
   { value: '', textContent: 'Select your state', disabled: true, selected: true }));
 STATES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; stateSel.appendChild(o); });
 
-/* ---------- RATE ENGINE (Assurity, illustrative) ---------- */
+/* ---------- COVERAGE ---------- */
 const COV_STOPS = [275000,300000,325000,350000,400000,450000,500000,550000,600000,650000,700000,750000,800000];
-// monthly rate per $1,000 of coverage, calibrated to default profile (age 48 / Male / Non-tobacco / Standard)
-const PER1000 = { 10:0.13486, 15:0.16878, 20:0.22186, 30:0.36454 };
-const HEALTH_FACTOR = { 'Preferred Plus':0.68, 'Preferred':0.80, 'Standard Plus':0.91, 'Standard':1.0 };
+
+/*
+ * THERE IS NO RATE ENGINE IN THIS PAGE ANY MORE, and that is the change.
+ *
+ * It used to hold one: a per-thousand curve with a health factor, a tobacco
+ * multiplier and a gender factor, calibrated by hand to look plausible. It
+ * was labelled an estimate, which was honest, and it still meant the first
+ * thing a visitor saw was a number nobody had quoted -- replaced a second
+ * later by Assurity's, which is worse than showing nothing at all, because
+ * the two were different and both looked like a price.
+ *
+ * So the only number this page can display is one Assurity sent. Until it
+ * arrives there is no figure to label, which is why the estimate warning
+ * went with the engine rather than being switched off and left to rot.
+ */
 
 /*
  * TRUE UNTIL A CARRIER HAS ANSWERED, and that default is the point.
@@ -915,7 +946,13 @@ const HEALTH_FACTOR = { 'Preferred Plus':0.68, 'Preferred':0.80, 'Standard Plus'
  * carrier answer may set it false, so a refusal, an outage or a state we
  * cannot price all leave the label up without anyone handling those cases.
  */
-let premiumIsEstimate = true;
+/*
+ * WHAT THE PRICE BOX IS DOING. 'pricing' while a carrier answer is in
+ * flight, 'priced' once one has arrived for exactly what is on screen,
+ * 'failed' when one cannot be had, 'idle' before there is enough to ask
+ * with. A number is shown in exactly one of these.
+ */
+let priceState = 'idle';
 /* The carrier's last answer for exactly what is on screen, or null. */
 let currentQuote = null;
 let currentUnderwriting = null;
@@ -946,15 +983,6 @@ function getInputs(){
     duration: parseInt(document.getElementById('duration').value),
   };
 }
-function profileFactor(){
-  const inp = getInputs();
-  const ageF = Math.pow(1.072, inp.age - 48);
-  const healthF = HEALTH_FACTOR[inp.health] || 1;
-  const tobaccoF = inp.tobacco === 'Yes' ? 2.6 : 1.0;
-  const genderF = inp.gender === 'Female' ? 0.86 : 1.0;
-  return ageF * healthF * tobaccoF * genderF;
-}
-function monthlyFor(term, coverage){ return PER1000[term] * (coverage/1000) * profileFactor(); }
 const fmt2 = n => '$' + n.toFixed(2);
 const fmtCov = n => '$' + n.toLocaleString();
 const stopLabel = v => '$' + (v/1000) + 'K';
@@ -979,11 +1007,19 @@ function renderPrice(){
    * sum of the rounded parts rather than a factor applied to the annual. So
    * each is read from them, not derived from the other.
    */
-  const val = currentQuote
-    ? (billing === 'monthly' ? currentQuote.total.Monthly : currentQuote.total.Annual)
-    : (billing === 'monthly' ? monthlyFor(selectedTerm, cov) : monthlyFor(selectedTerm, cov) * 12);
-  document.getElementById('priceAmt').textContent = fmt2(val);
-  document.getElementById('priceEstimate').hidden = !premiumIsEstimate;
+  const amt = document.getElementById('priceAmt');
+  if (currentQuote){
+    amt.textContent = fmt2(billing === 'monthly'
+      ? currentQuote.total.Monthly : currentQuote.total.Annual);
+    amt.classList.remove('waiting');
+  } else {
+    /* NO NUMBER AT ALL until they have sent one. The page holds nothing it
+       could put here, which is the point -- an invented figure replaced a
+       second later by theirs is two prices for one policy. */
+    amt.textContent = priceState === 'failed' ? '\u2014' : '\u00a0';
+    amt.classList.toggle('waiting', priceState === 'pricing');
+  }
+  document.getElementById('pricePending').hidden = priceState !== 'pricing';
 
   const why = document.getElementById('priceProblem');
   why.hidden = !quoteProblem;
@@ -1010,13 +1046,13 @@ function renderTermCards(){
       <div class="term-card-head">${t} Year Term</div>
       <div class="term-row"><div class="lbl">Policy Term</div><div class="val">${t} Years</div></div>
       <div class="term-row"><div class="lbl">Base Coverage</div><div class="val">${fmtCov(cov)}</div></div>
-      <div class="term-row total"><div class="lbl">Total</div><div class="val">${fmt2(monthlyFor(t, cov))}/mo</div></div>
+      <div class="term-row total"><div class="lbl">Total</div><div class="val">${termPrice(t)}</div></div>
       <button class="term-select" type="button" data-term="${t}">Select</button>
     </div>`).join('');
   document.querySelectorAll('.term-select').forEach(b => b.addEventListener('click', () => {
     selectedTerm = parseInt(b.dataset.term);
     document.getElementById('termLength').value = selectedTerm;
-    renderPrice(); renderTermCards(); loadPanel(); pricePresently();
+    renderPrice(); renderTermCards(); loadPanel(); priceImmediately();
     document.querySelector('.cov-card').scrollIntoView({ behavior:'smooth', block:'start' });
   }));
 }
@@ -1166,7 +1202,19 @@ function fieldsHtml(r){
   }
 
   parts.push(`<button type="button" class="rider-apply" data-apply="${esc(r.lookup)}">Apply</button>`);
-  return `<div class="rider-fields" id="fields-${esc(r.lookup)}" hidden>${parts.join('')}</div>`;
+  /*
+   * The fields fold away once they have been applied, because a rider that
+   * is settled is a line of fact, not a form. Five riders left open at once
+   * push the one somebody is reading off the screen.
+   *
+   * What stays is the figure that was applied and a way back to it --
+   * collapsing a panel that cannot be reopened is just losing it.
+   */
+  return `<div class="rider-fields" id="fields-${esc(r.lookup)}" hidden>${parts.join('')}</div>`
+    + `<div class="rider-applied" id="applied-${esc(r.lookup)}" hidden>
+         <span id="appliedText-${esc(r.lookup)}"></span>
+         <button type="button" class="rider-edit" data-edit="${esc(r.lookup)}">Change</button>
+       </div>`;
 }
 
 function noteHtml(d, stateName){
@@ -1275,12 +1323,13 @@ if (canHover){
 
 /* ---------- PRICING (Assurity's own, via quote-engine) ---------- */
 /*
- * THE PRICE ON THIS PAGE IS THE CARRIER'S OR IT IS MARKED AN ESTIMATE.
- * There is no third state. `premiumIsEstimate` starts true, only a carrier
- * answer clears it, and ANY change to the ask puts it straight back --
- * because Assurity's premium for $500,000 is not their premium for $550,000,
- * and leaving the old number up while the slider moves is the most
- * believable wrong number this page could show.
+ * THE ONLY NUMBER THIS PAGE CAN SHOW IS ONE ASSURITY SENT. There is no
+ * fallback to fall back to any more. Until an answer arrives the box is
+ * empty and says it is pricing; if one cannot be had it shows a dash and
+ * why. ANY change to the ask empties it again, because their premium for
+ * $500,000 is not their premium for $550,000 and leaving the old figure up
+ * while the slider moves is the most believable wrong number this page
+ * could show.
  */
 const PRICED = new Map();          // the whole ask -> the carrier's answer
 let priceSeq = 0;
@@ -1319,21 +1368,49 @@ function buildAsk(){
   };
 }
 
-/* Anything that changes the ask makes the price on screen wrong. Called from
-   every input that feeds buildAsk, so the estimate label comes back the
-   instant a figure stops describing what is on screen. */
-function invalidatePrice(){
-  premiumIsEstimate = true;
+/*
+ * Anything that changes the ask makes the figure on screen wrong, so it goes
+ * immediately -- and the spinner goes up in the same breath, because the gap
+ * between "that number is stale" and "a new one is coming" is where a blank
+ * box looks like a broken page.
+ */
+/* Clear the figure and come to rest. Nothing further is coming. */
+function stopPricing(state){
+  currentQuote = null;
+  currentUnderwriting = null;
   quoteProblem = null;
+  priceState = state;
+  renderPrice();
+}
+
+function invalidatePrice(){
+  currentQuote = null;
+  currentUnderwriting = null;
+  quoteProblem = null;
+  /*
+   * 'pricing' when a request is actually about to go, 'idle' when there is
+   * not yet enough to ask with. Only the two functions below call this, and
+   * both follow it with a request -- so the spinner can never be left
+   * turning over something nobody is going to ask.
+   */
+  priceState = buildAsk() ? 'pricing' : 'idle';
   renderPrice();
 }
 
 async function priceNow(){
   const ask = buildAsk();
-  if (!ask) return invalidatePrice();
+  /* Not an error -- a state or a date of birth has not been given yet, so
+     there is nothing to ask and nothing is coming. */
+  if (!ask) return stopPricing('idle');
 
   const endpoint = window.QB_QUOTE_ENDPOINT || '';
-  if (!/^https?:\/\//i.test(endpoint)) return invalidatePrice();
+  /*
+   * THIS ONE USED TO GO THROUGH invalidatePrice, WHICH TURNED THE SPINNER
+   * ON. With no endpoint configured nothing was ever going to be asked, so
+   * the dots ran over an empty box for as long as the page was open. It is
+   * a failure, and it says so.
+   */
+  if (!/^https?:\/\//i.test(endpoint)) return stopPricing('failed');
 
   const key = JSON.stringify(ask);
   /* An exact repeat costs nothing. Somebody who moves the slider up and
@@ -1341,10 +1418,12 @@ async function priceNow(){
      and should not spend a carrier request to learn it twice. */
   if (PRICED.has(key)){
     applyQuote(PRICED.get(key));
+    priceOtherTerms(ask);
     return;
   }
 
   const seq = ++priceSeq;
+  if (priceState !== 'pricing'){ priceState = 'pricing'; renderPrice(); }
   try {
     const res = await fetch(endpoint.replace(/\/$/, '') + '/assurity-quote', {
       method: 'POST',
@@ -1364,7 +1443,8 @@ async function priceNow(){
       quoteProblem = res.status === 403
         ? null
         : (data.problems?.[0]?.message || data.refusals?.[0] || null);
-      premiumIsEstimate = true;
+      priceState = 'failed';
+      currentQuote = null;
       PRICED.delete(key);
       renderPrice();
       return;
@@ -1372,29 +1452,86 @@ async function priceNow(){
 
     PRICED.set(key, data);
     applyQuote(data);
+    priceOtherTerms(ask);
   } catch (err) {
     if (seq !== priceSeq) return;
-    premiumIsEstimate = true;
+    priceState = 'failed';
+    currentQuote = null;
     quoteProblem = null;
     renderPrice();
   }
+}
+
+/*
+ * THE OTHER THREE TERM CARDS, PRICED AFTER THE ONE ON SCREEN.
+ *
+ * Assurity price ONE TERM PER REQUEST -- the term rides on the Base
+ * coverage -- so there is no equivalent of Compulife's single request
+ * returning a whole table. Four terms are four calls.
+ *
+ * So they go second, never in the way: the term the visitor is actually
+ * looking at is asked for on its own and rendered the moment it lands, and
+ * the comparison cards fill in behind it. A card with no price yet shows a
+ * dash rather than a guess, and an exact repeat is served from the same
+ * cache as everything else, so moving the slider back and forth costs
+ * nothing.
+ */
+const TERM_YEARS = [10, 15, 20, 30];
+function priceOtherTerms(ask){
+  for (const years of TERM_YEARS){
+    if (years === selectedTerm) continue;
+    const other = { ...ask, term: TERM_PERIODS[years] };
+    const key = JSON.stringify(other);
+    if (PRICED.has(key)) continue;
+    const endpoint = (window.QB_QUOTE_ENDPOINT || '').replace(/\/$/, '');
+    fetch(endpoint + '/assurity-quote', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: key,
+    }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (!d?.quote) return;
+      PRICED.set(key, d);
+      renderTermCards();
+    }).catch(() => {});
+  }
+}
+
+/** The carrier's monthly figure for one term, or a dash. */
+function termPrice(years){
+  const ask = buildAsk();
+  if (!ask) return '\u2014';
+  const held = PRICED.get(JSON.stringify({ ...ask, term: TERM_PERIODS[years] }));
+  return held ? fmt2(held.quote.total.Monthly) + '/mo' : '\u2014';
 }
 
 function applyQuote(data){
   currentQuote = data.quote;
   currentUnderwriting = data.underwriting ?? null;
   quoteProblem = null;
-  premiumIsEstimate = false;
+  priceState = 'priced';
   renderPrice();
   renderTermCards();
 }
 
-/* Debounced, because a slider produces a position every few pixels and only
-   the one it stops on is worth asking about. Apply does not wait. */
+/*
+ * TWO SPEEDS, AND THE DIFFERENCE IS WHETHER A PERSON HAS FINISHED DECIDING.
+ *
+ * A slider produces a position every few pixels and only the one it stops on
+ * is worth a carrier request, so that waits. Choosing a term, a state, a
+ * health class or pressing Apply is a finished decision, and making someone
+ * wait out a debounce they did not cause is half a second of nothing for no
+ * reason -- which is most of what "it takes a moment to show" was.
+ *
+ * Both put the spinner up straight away. Only the request is deferred.
+ */
 function pricePresently(){
   invalidatePrice();
   clearTimeout(priceTimer);
-  priceTimer = setTimeout(priceNow, 500);
+  priceTimer = setTimeout(priceNow, 450);
+}
+
+function priceImmediately(){
+  invalidatePrice();
+  clearTimeout(priceTimer);
+  priceNow();
 }
 
 riderPanel.addEventListener('click', (e) => {
@@ -1420,39 +1557,56 @@ riderPanel.addEventListener('click', (e) => {
   const fieldsOf = (l) => document.getElementById('fields-' + l);
 
   if (btn.dataset.val === 'yes'){
-    chosenRiders.add(lookup);
     const fields = fieldsOf(lookup);
     if (fields){
-      /* Fields to fill in, so nothing is priced until Apply -- an amount of
-         "whatever the minimum happened to be" is not what they asked for. */
+      /*
+       * SWITCHING IT ON DOES NOT ADD IT TO THE QUOTE. Apply does.
+       *
+       * The fields open and the price is left exactly as it is, because it
+       * is still the right price for what has actually been applied. An
+       * earlier version added the rider here and blanked the premium, which
+       * left a spinner running over an empty box until somebody pressed a
+       * button nobody had told them about -- and an amount of "whatever the
+       * minimum happened to be" is not what they asked for either.
+       */
       fields.hidden = false;
-      invalidatePrice();
+      document.getElementById('applied-' + lookup).hidden = true;
     } else {
+      chosenRiders.add(lookup);
       /* An on-or-off rider: there is nothing to fill in, so switching it on
          IS the apply. Making somebody press a button under an empty panel
          would be ceremony. */
-      pricePresently();
+      priceImmediately();
     }
     /* ONE DISABILITY RIDER PER POLICY -- Assurity's rule, not ours, and it
        arrives with the panel rather than being typed here. Turning this one
        on turns the other one off, visibly, instead of letting an applicant
        pick a pair the carrier will not write. */
+    let droppedOne = false;
     (tg.dataset.exclusive || '').split(' ').filter(Boolean).forEach((other) => {
-      chosenRiders.delete(other);
+      droppedOne = chosenRiders.delete(other) || droppedOne;
       const o = document.querySelector(`.rider-toggle[data-rider="${other}"]`);
       if (!o) return;
       o.querySelectorAll('button').forEach((b) =>
         b.classList.toggle('active', b.dataset.val === 'no'));
       const of = fieldsOf(other);
       if (of) of.hidden = true;
+      const oa = document.getElementById('applied-' + other);
+      if (oa) oa.hidden = true;
     });
+    /* The dropped rider WAS in the quote, so the price has changed even
+       though nothing has been applied yet. */
+    if (droppedOne) priceImmediately();
   } else {
-    chosenRiders.delete(lookup);
+    const wasInTheQuote = chosenRiders.delete(lookup);
     const fields = fieldsOf(lookup);
     if (fields) fields.hidden = true;
-    /* Removing a rider needs no Apply: there is nothing left to confirm,
-       and the price is wrong until it is re-asked. */
-    pricePresently();
+    const applied = document.getElementById('applied-' + lookup);
+    if (applied) applied.hidden = true;
+    /* Only if it was actually in the quote. Switching off a rider that was
+       opened and never applied changes nothing about the price, and asking
+       the carrier to tell us so is a request for no reason. */
+    if (wasInTheQuote) priceImmediately();
   }
 });
 
@@ -1504,6 +1658,13 @@ riderPanel.addEventListener('click', (e) => {
     return;
   }
 
+  const edit = e.target.closest('.rider-edit');
+  if (edit){
+    document.getElementById('fields-' + edit.dataset.edit).hidden = false;
+    document.getElementById('applied-' + edit.dataset.edit).hidden = true;
+    return;
+  }
+
   const apply = e.target.closest('.rider-apply');
   if (!apply) return;
   const lookup = apply.dataset.apply;
@@ -1539,10 +1700,24 @@ riderPanel.addEventListener('click', (e) => {
   }
   if (!ok) return;
 
-  /* Apply does not wait out the debounce. It is a deliberate press. */
-  clearTimeout(priceTimer);
-  invalidatePrice();
-  priceNow();
+  /*
+   * FOLDED AWAY ONLY ONCE IT IS VALID. An Apply that was refused for a
+   * missing income leaves the fields open with the bad one marked, because
+   * collapsing a panel somebody still has to fix is how a form loses
+   * someone.
+   */
+  chosenRiders.add(lookup);
+
+  const summary = [];
+  if (amountField) summary.push(money0(riderAmounts.get(lookup)));
+  if (incomeField) summary.push(money0(occupation.grossMonthlyIncome) + '/mo income');
+  document.getElementById('appliedText-' + lookup).innerHTML =
+    summary.map((v) => `<b>${esc(v)}</b>`).join(' &middot; ');
+  fields.hidden = true;
+  document.getElementById('applied-' + lookup).hidden = false;
+
+  /* Apply does not wait out the debounce either. It is a deliberate press. */
+  priceImmediately();
 });
 function renderWelcome(){
   const inp = getInputs();
@@ -1570,7 +1745,7 @@ document.querySelectorAll('.inputs-panel .seg').forEach(seg => {
     if (e.target.tagName !== 'BUTTON') return;
     seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
-    if (shown()) { renderAll(); pricePresently(); }
+    if (shown()) { renderAll(); priceImmediately(); }
   });
 });
 document.getElementById('dob').addEventListener('change', () => {
@@ -1583,14 +1758,14 @@ document.getElementById('dob').addEventListener('change', () => {
   const years = computeAge(dobValue);
   agePill.hidden = !dobValue || !Number.isFinite(years) || years <= 0;
   agePill.textContent = agePill.hidden ? '' : 'Age ' + years;
-  if (shown()) { renderAll(); pricePresently(); }
+  if (shown()) { renderAll(); priceImmediately(); }
 });
 // left-panel coverage formatting
 document.getElementById('coverage').addEventListener('input', e => {
   const n = e.target.value.replace(/[^0-9]/g,'');
   e.target.value = n ? parseInt(n).toLocaleString() : '';
 });
-['state','health'].forEach(id => document.getElementById(id).addEventListener('change', () => { if (shown()) { renderAll(); loadPanel(); pricePresently(); } }));
+['state','health'].forEach(id => document.getElementById(id).addEventListener('change', () => { if (shown()) { renderAll(); loadPanel(); priceImmediately(); } }));
 ['firstName'].forEach(id => document.getElementById(id).addEventListener('input', () => { if (shown()) renderWelcome(); }));
 
 // coverage slider
@@ -1612,7 +1787,7 @@ document.getElementById('covAmount').addEventListener('input', e => {
 // term length select (card)
 document.getElementById('termLength').addEventListener('change', e => {
   selectedTerm = parseInt(e.target.value);
-  renderPrice(); renderTermCards(); loadPanel(); pricePresently();
+  renderPrice(); renderTermCards(); loadPanel(); priceImmediately();
 });
 // monthly/yearly toggle
 document.getElementById('ptMonthly').addEventListener('click', () => { billing='monthly'; renderPrice(); });
@@ -1626,9 +1801,9 @@ document.getElementById('quoteBtn').addEventListener('click', () => {
   renderRiders();          // the empty state, until the carrier answers
   loadPanel();
   renderAll();
-  /* Price the policy itself straight away. Riders come later, through
-     Apply; the base premium is what they came for. */
-  pricePresently();
+  /* Price the policy itself straight away -- no debounce, nobody is still
+     deciding. The premium is what they came for. */
+  priceImmediately();
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('resultsContent').classList.add('show');
   document.querySelector('.quote-grid').classList.add('results-mode');

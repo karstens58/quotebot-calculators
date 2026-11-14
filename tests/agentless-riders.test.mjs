@@ -32,7 +32,7 @@ function cut(start, endMarker) {
    The end marker is the last line of that handler; if it moves, this throws
    rather than silently testing half a feature. */
 const source = cut('/* ---------- RIDERS (from the carrier',
-  '  clearTimeout(priceTimer);\n  invalidatePrice();\n  priceNow();\n});');
+  '  priceImmediately();\n});');
 
 /* ---- the carrier's answer, shaped as quote-engine returns it ------------ */
 
@@ -148,6 +148,13 @@ function sandbox({ state = 'Colorado', term = 20, pointer = 'fine' } = {}) {
     if (html === builtFrom) return;
     builtFrom = html;
     notes.clear(); helps.clear(); toggles.clear();
+    /* The field panels and their applied summaries, which the toggle
+       handler looks up by id. Without them every rider looked like an
+       on-or-off one and the toggle took the wrong branch entirely. */
+    for (const m of html.matchAll(/id="(fields|applied)-([^"]+)"/g)) {
+      const e = el(); e.hidden = true;
+      notes.set(`${m[1]}-${m[2]}`, e);
+    }
     for (const m of html.matchAll(/data-note="([^"]*)"/g)) {
       const lookup = m[1];
       const item = el(); item.sel = '.rider-item';
@@ -186,7 +193,10 @@ function sandbox({ state = 'Colorado', term = 20, pointer = 'fine' } = {}) {
   const asked = [];
   let respond = async () => ({ ok: true, status: 200, headers: new Map(),
     json: async () => ({ panel: PANEL }) });
-  const fetchImpl = (url) => { asked.push(String(url)); return respond(String(url)); };
+  const fetchImpl = (url, init) => {
+    asked.push({ url: String(url), body: init?.body ? JSON.parse(init.body) : null });
+    return respond(String(url));
+  };
 
   const window = {
     QB_QUOTE_ENDPOINT: 'https://engine.example/quote/',
@@ -201,17 +211,20 @@ function sandbox({ state = 'Colorado', term = 20, pointer = 'fine' } = {}) {
   const priced = [];
   const body = `
     let selectedTerm = TERM;
-    let premiumIsEstimate = true, currentQuote = null, currentUnderwriting = null;
+    let priceState = 'idle', currentQuote = null, currentUnderwriting = null;
     let sliderIndex = 6;
     const COV_STOPS = [275000,300000,325000,350000,400000,450000,500000,550000,600000,650000,700000,750000,800000];
     function getInputs(){ return { state: WHERE.state, age: 48, gender: 'Male',
       health: 'Standard', tobacco: 'No' }; }
-    function renderPrice(){ RECORD.push(['renderPrice', premiumIsEstimate]); }
+    function renderPrice(){ RECORD.push(['renderPrice', priceState]); }
+    /* The page's own currency formatter, which termPrice uses. */
+    const fmt2 = (n) => '$' + Number(n).toFixed(2);
     function renderTermCards(){}
     ${source}
     return { loadPanel, renderRiders, chosenRiders, riderAmounts, occupation,
-             buildAsk, settleAmount, priceNow, PRICED,
-             state: () => ({ premiumIsEstimate, currentQuote, currentUnderwriting }),
+             buildAsk, settleAmount, priceNow, priceImmediately, pricePresently, PRICED,
+             termPrice,
+             state: () => ({ priceState, currentQuote, currentUnderwriting }),
              read: () => panel };
   `;
   const api = new Function('document', 'window', 'fetch', 'console', 'WHERE', 'TERM',
@@ -259,7 +272,7 @@ test('THE RIDERS AND THEIR WORDS COME FROM THE CARRIER, NOT FROM THIS FILE', asy
   await s.loadPanel();
 
   assert.equal(s.asked.length, 1);
-  assert.match(s.asked[0], /\/assurity-panel\?state=CO&term=TwentyYears$/,
+  assert.match(s.asked[0].url, /\/assurity-panel\?state=CO&term=TwentyYears$/,
     'the route was asked for the wrong state or term');
 
   const escaped = (v) => v.replace(/&/g, '&amp;').replace(/'/g, '&#39;');
@@ -393,11 +406,14 @@ test('ONE DISABILITY RIDER PER POLICY — TURNING ONE ON TURNS THE OTHER OFF', a
   const s = sandbox();
   await s.loadPanel();
 
+  /* Both of these carry fields, so each joins the quote only when applied
+     -- which is what the page does for real. */
   s.click('MonthlyDisabilityIncome', 'yes');
+  s.chosenRiders.add('MonthlyDisabilityIncome');
   assert.ok(s.chosenRiders.has('MonthlyDisabilityIncome'));
 
   const toggles = s.click('AccidentOnlyDisabilityIncome', 'yes');
-  assert.ok(s.chosenRiders.has('AccidentOnlyDisabilityIncome'));
+  s.chosenRiders.add('AccidentOnlyDisabilityIncome');
   assert.ok(!s.chosenRiders.has('MonthlyDisabilityIncome'),
     'the applicant now holds two disability riders Assurity will not write together');
 
@@ -410,8 +426,11 @@ test('a rider with no exclusions leaves the others alone', async () => {
   const s = sandbox();
   await s.loadPanel();
   s.click('MonthlyDisabilityIncome', 'yes');
+  s.chosenRiders.add('MonthlyDisabilityIncome');
   s.click('Child', 'yes');
-  assert.deepEqual([...s.chosenRiders].sort(), ['Child', 'MonthlyDisabilityIncome']);
+  s.chosenRiders.add('Child');
+  assert.deepEqual([...s.chosenRiders].sort(), ['Child', 'MonthlyDisabilityIncome'],
+    'switching on an unrelated rider dropped one that was already applied');
 });
 
 /* ---- answers arriving out of order ------------------------------------- */
@@ -439,13 +458,13 @@ test('A SLOW ANSWER FOR ONE STATE CANNOT LAND ON TOP OF A NEWER ONE', async () =
   await slow;
   assert.equal(s.read().state, 'FL',
     "Colorado's late answer overwrote the state the visitor had moved to");
-  assert.deepEqual(s.asked.map((u) => /state=([A-Z]{2})/.exec(u)[1]), ['CO', 'FL']);
+  assert.deepEqual(s.asked.map((a) => /state=([A-Z]{2})/.exec(a.url)[1]), ['CO', 'FL']);
 });
 
 test('the state the visitor picks is the state that is asked for', async () => {
   const s = sandbox({ state: 'Florida', term: 30 });
   await s.loadPanel();
-  assert.match(s.asked[0], /state=FL&term=ThirtyYears$/);
+  assert.match(s.asked[0].url, /state=FL&term=ThirtyYears$/);
 });
 
 test('asking twice for the same state and term does not ask twice', async () => {
@@ -472,65 +491,62 @@ test('carrier text is escaped, never injected', async () => {
 
 /* ---- the price is not the carrier's yet -------------------------------- */
 
-test('THE PRICE IS MARKED AN ESTIMATE UNTIL A CARRIER HAS ANSWERED', () => {
+test('THE PAGE HOLDS NO RATE ENGINE AT ALL', () => {
   /*
-   * The figure on this page comes from a hand-calibrated table, not from
-   * Assurity. It went live unlabelled for one deploy, looking exactly like a
-   * quote -- which is how it was mistaken for one.
+   * It used to: a per-thousand curve with a health factor, a tobacco
+   * multiplier and a gender factor, calibrated by hand to look plausible,
+   * and labelled an estimate. The label was honest and the arrangement was
+   * still wrong -- the first thing a visitor saw was a number nobody had
+   * quoted, replaced a second later by Assurity's. Two prices for one
+   * policy, both looking like the price.
    *
-   * The flag defaults TRUE and only a carrier answer may clear it, so a
-   * refusal, an outage or an unpriceable state all leave the label up
-   * without anyone handling those cases. "Estimates" is the claim that can
-   * always be defended.
+   * So the warning went WITH the engine rather than being switched off and
+   * left to rot. If any of these come back, so does that problem.
    */
-  assert.match(HTML, /let premiumIsEstimate = true;/,
-    'the estimate flag does not default to the safe side');
-  assert.match(HTML, /id="priceEstimate"/, 'the price carries no estimate note');
-  assert.match(HTML, /Estimate only[^<]*not a price from Assurity/,
-    'the note does not say whose price it is not');
-  assert.match(HTML, /priceEstimate'\)\.hidden = !premiumIsEstimate/,
-    'the note is not driven by the flag, so the two can disagree');
+  for (const gone of ['PER1000', 'HEALTH_FACTOR', 'profileFactor', 'monthlyFor',
+    'premiumIsEstimate', 'priceEstimate']) {
+    assert.ok(!HTML.includes(gone), `${gone} is back in the page`);
+  }
+  assert.doesNotMatch(HTML, /Estimate only/, 'the estimate warning is still in the markup');
 });
 
-test('AND ONLY ONE PLACE IN THE PAGE MAY CLEAR IT', () => {
-  /*
-   * This test was written while nothing cleared the flag at all, so that
-   * the first assignment would have to be justified rather than just
-   * appear. Here is the justification.
-   *
-   * There is exactly ONE `= false`, and it sits in applyQuote -- the
-   * function reached only with a parsed carrier answer in hand. Every other
-   * assignment sets it back to true: the default, and each way a price can
-   * fail. A second `= false` somewhere else is how this page starts
-   * presenting a figure as the carrier's that the carrier never sent, so
-   * the count is asserted rather than the intent.
-   */
-  const writes = [...HTML.matchAll(/premiumIsEstimate\s*=\s*(true|false)\s*;/g)].map((m) => m[1]);
-  assert.equal(writes.filter((w) => w === 'false').length, 1,
-    `${writes.filter((w) => w === 'false').length} places clear the estimate flag; only applyQuote may`);
-  assert.ok(writes.filter((w) => w === 'true').length >= 3,
-    'the failure paths do not put the estimate label back');
+test('AND SHOWS NO NUMBER IT DID NOT GET FROM THE CARRIER', () => {
+  /* The box is empty while a price is in flight and a dash when one cannot
+     be had. The only branch that writes a figure reads currentQuote. */
+  const render = /function renderPrice\(\)\{[\s\S]*?\n\}/.exec(HTML);
+  assert.ok(render, 'renderPrice has been renamed — re-read this test');
+  const writes = [...render[0].matchAll(/amt\.textContent = ([^;]+);/g)].map((m) => m[1].trim());
+  assert.equal(writes.length, 2, `renderPrice writes the price ${writes.length} ways`);
+  assert.match(writes[0], /currentQuote\.total/, 'the figure does not come from the carrier');
+  /* Not "contains no digits" -- the empty state is written with unicode
+     escapes, which are full of them. What must not appear is MONEY: the
+     page's currency formatter, or a reach into the carrier's totals. */
+  assert.doesNotMatch(writes[1], /fmt2|currentQuote/,
+    'a price is formatted when there is no carrier answer to format');
+});
 
+test('ONLY ONE PLACE MAY SAY A PRICE IS THE CARRIER’S', () => {
+  const priced = [...HTML.matchAll(/priceState = '(\w+)'/g)].map((m) => m[1]);
+  assert.equal(priced.filter((v) => v === 'priced').length, 1,
+    'more than one place declares a price to be the carrier’s');
   const applyQuote = /function applyQuote\(data\)\{?[\s\S]*?\n\}/.exec(HTML);
   assert.ok(applyQuote, 'applyQuote has been renamed — re-read this test');
-  assert.match(applyQuote[0], /premiumIsEstimate = false;/,
-    'the one clearing assignment is not in applyQuote');
+  assert.match(applyQuote[0], /priceState = 'priced';/);
   assert.match(applyQuote[0], /currentQuote = data\.quote/,
-    'applyQuote clears the flag without a carrier quote in hand');
+    'applyQuote declares a carrier price without a carrier quote in hand');
 });
 
-test('EVERY WAY A PRICE CAN FAIL PUTS THE LABEL BACK', () => {
+test('EVERY WAY A PRICE CAN FAIL CLEARS THE NUMBER', () => {
   /*
-   * The half that gets forgotten. A refused quote, an unreachable engine, a
-   * deployment not allowed to show rates, or simply not enough entered yet
-   * -- each must return to the estimate, because the figure still on screen
-   * came from our own table.
+   * The half that gets forgotten. A refused quote, an unreachable engine,
+   * or a change to the ask -- each must drop the figure, because it is
+   * Assurity's answer to a question that is no longer the one on screen.
    */
   for (const path of [
-    /if \(!res\.ok \|\| !data\.quote\)\{[\s\S]*?premiumIsEstimate = true;/,
-    /catch \(err\) \{[\s\S]*?premiumIsEstimate = true;/,
-    /function invalidatePrice\(\)\{[\s\S]*?premiumIsEstimate = true;/,
-  ]) assert.match(HTML, path, 'a failure path leaves the carrier label on our own number');
+    /if \(!res\.ok \|\| !data\.quote\)\{[\s\S]*?currentQuote = null;/,
+    /catch \(err\) \{[\s\S]*?currentQuote = null;/,
+    /function invalidatePrice\(\)\{[\s\S]*?currentQuote = null;/,
+  ]) assert.match(HTML, path, 'a failure path leaves the carrier’s old figure on screen');
 });
 
 test('AND ANY CHANGE TO THE ASK INVALIDATES THE PRICE', () => {
@@ -728,16 +744,20 @@ test('and occupation is not sent for a rider that does not need it', async () =>
 test('AN EXACT REPEAT COSTS NO CARRIER REQUEST', async () => {
   const s = sandbox();
   await s.loadPanel();
-  const before = s.asked.length;
   s.setResponse(async () => ({ ok: true, status: 200, headers: new Map(),
     json: async () => ({ quote: { total: { Monthly: 185.49, Annual: 2132 }, coverages: [] },
       underwriting: { riskClass: 'StandardNonTobacco', approximated: false } }) }));
+
+  /* Counted for THE TERM ON SCREEN only. Pricing it also kicks off the
+     three comparison cards in the background, which are three more terms
+     and three legitimate requests. */
+  const forShownTerm = () => s.asked.filter((a) =>
+    a.body?.term === 'TwentyYears' && a.url.includes('assurity-quote')).length;
   await s.priceNow();
-  const after = s.asked.length;
-  assert.equal(after - before, 1);
+  assert.equal(forShownTerm(), 1);
   await s.priceNow();
-  assert.equal(s.asked.length, after, 'the same ask was sent to the carrier twice');
-  assert.equal(s.state().premiumIsEstimate, false, 'a carrier answer did not clear the label');
+  assert.equal(forShownTerm(), 1, 'the same ask was sent to the carrier twice');
+  assert.equal(s.state().priceState, 'priced', 'a carrier answer was not recorded as one');
 });
 
 test('A REFUSAL AFTER A GOOD PRICE PUTS THE LABEL BACK', async () => {
@@ -757,7 +777,7 @@ test('A REFUSAL AFTER A GOOD PRICE PUTS THE LABEL BACK', async () => {
     json: async () => ({ quote: { total: { Monthly: 185.49, Annual: 2132 }, coverages: [] },
       underwriting: { riskClass: 'StandardNonTobacco', approximated: false } }) }));
   await s.priceNow();
-  assert.equal(s.state().premiumIsEstimate, false, 'nothing was priced to begin with');
+  assert.equal(s.state().priceState, 'priced', 'nothing was priced to begin with');
 
   s.riderAmounts.set('Child', 10000);
   s.chosenRiders.add('Child');            // a different ask, so past the cache
@@ -767,8 +787,9 @@ test('A REFUSAL AFTER A GOOD PRICE PUTS THE LABEL BACK', async () => {
         message: "'Occupation' must not be empty." }] }) }));
   await s.priceNow();
 
-  assert.equal(s.state().premiumIsEstimate, true,
-    'a refused quote left the carrier label on our own number');
+  assert.equal(s.state().priceState, 'failed',
+    'a refused quote left the previous carrier figure on screen');
+  assert.equal(s.state().currentQuote, null);
 });
 
 test('AND A DEPLOYMENT THAT MAY NOT SHOW RATES SAYS NOTHING TO THE VISITOR', async () => {
@@ -779,7 +800,7 @@ test('AND A DEPLOYMENT THAT MAY NOT SHOW RATES SAYS NOTHING TO THE VISITOR', asy
   s.setResponse(async () => ({ ok: false, status: 403, headers: new Map(),
     json: async () => ({ error: 'not approved', reason: 'display-not-approved' }) }));
   await s.priceNow();
-  assert.equal(s.state().premiumIsEstimate, true);
+  assert.equal(s.state().priceState, 'failed');
   assert.match(HTML, /res\.status === 403\s*\n?\s*\? null/,
     'a 403 is shown to the visitor as a carrier problem');
 });
@@ -832,4 +853,176 @@ test('THE $ SITS BESIDE THE DIGITS, NOT ON TOP OF THEM', () => {
   assert.ok(base, 'the base .input-prefix rule has gone — this test may be obsolete');
   assert.match(base[2], /position:\s*absolute/,
     'the base rule no longer positions absolutely, so this override may be dead code');
+});
+
+/* ---- what Apply leaves behind ------------------------------------------ */
+
+test('APPLY FOLDS THE FIELDS AWAY AND LEAVES THE FIGURE', () => {
+  /*
+   * A rider that is settled is a line of fact, not a form -- five panels
+   * open at once push the one somebody is reading off the screen. What
+   * stays is the amount that was applied and a way back to it, because
+   * collapsing a panel that cannot be reopened is just losing it.
+   */
+  assert.match(HTML, /id="applied-\$\{esc\(r\.lookup\)\}" hidden/,
+    'the applied summary is rendered open');
+  assert.match(HTML, /class="rider-edit" data-edit=/, 'there is no way back into the fields');
+  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(HTML);
+  assert.ok(handler, 'the Apply handler has moved — re-read this test');
+  assert.match(handler[0], /fields\.hidden = true;/, 'Apply does not fold the fields away');
+});
+
+test('BUT NOT WHEN IT WAS REFUSED', () => {
+  /*
+   * An Apply rejected for a missing income must leave the fields open with
+   * the bad one marked. Collapsing a panel somebody still has to fix is how
+   * a form loses someone.
+   */
+  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(HTML);
+  assert.ok(handler, 'the Apply handler has moved — re-read this test');
+  const bail = handler[0].indexOf('if (!ok) return;');
+  const fold = handler[0].indexOf('fields.hidden = true;');
+  assert.ok(bail !== -1, 'the validity check has gone');
+  assert.ok(bail < fold, 'the fields are folded away before the input is known to be valid');
+});
+
+test('and switching a rider off clears what Apply left', () => {
+  /* Including the partner dropped by the one-disability-rider rule, which
+     is switched off without anybody touching it. */
+  const off = /chosenRiders\.delete\(lookup\);[\s\S]*?pricePresently\(\);/.exec(HTML);
+  assert.ok(off, 'the switch-off path has moved — re-read this test');
+  assert.match(off[0], /applied-' \+ lookup/, 'the applied figure survives the rider being removed');
+  const exclusive = /\(tg\.dataset\.exclusive \|\| ''\)[\s\S]*?\}\);/.exec(HTML);
+  assert.match(exclusive[0], /applied-' \+ other/,
+    'the dropped disability rider keeps its applied figure on screen');
+});
+
+test('THE SPINNER IS UP BEFORE THE REQUEST, NOT WHEN IT LANDS', async () => {
+  /*
+   * The gap this closes: invalidatePrice used to leave the box 'idle' and
+   * the debounce then waited half a second before anything said a price was
+   * coming. An empty box with no spinner for 500ms reads as a broken page,
+   * and it was most of what "the rate shows later" looked like.
+   */
+  const s = sandbox();
+  await s.loadPanel();
+  s.setResponse(() => new Promise(() => {}));     // never answers
+  s.priceImmediately();
+  assert.equal(s.state().priceState, 'pricing',
+    'nothing said a price was on its way');
+  assert.equal(s.state().currentQuote, null, 'the stale figure is still on screen');
+});
+
+test('and a deliberate change does not wait out the slider debounce', () => {
+  /*
+   * Choosing a term, a state or a health class is a finished decision.
+   * Waiting 450ms on behalf of somebody who is not still moving anything is
+   * half a second of nothing.
+   */
+  const immediate = /function priceImmediately\(\)\{[\s\S]*?\n\}/.exec(HTML);
+  assert.ok(immediate, 'priceImmediately has been renamed — re-read this test');
+  assert.match(immediate[0], /priceNow\(\);/, 'the immediate path still defers the request');
+  assert.doesNotMatch(immediate[0], /setTimeout/, 'the immediate path is debounced');
+
+  /* And the slider still is, because it is not a finished decision. */
+  const soon = /function pricePresently\(\)\{[\s\S]*?\n\}/.exec(HTML);
+  assert.match(soon[0], /setTimeout\(priceNow/, 'the slider now asks on every pixel');
+});
+
+test('SWITCHING A RIDER ON DOES NOT PUT IT IN THE QUOTE — APPLY DOES', async () => {
+  /*
+   * An earlier version added the rider the moment the toggle moved, which
+   * blanked the premium and left a spinner turning over an empty box until
+   * somebody pressed a button nobody had told them about. The price on
+   * screen is still the right price for what has actually been applied, so
+   * it stays.
+   */
+  const s = sandbox();
+  await s.loadPanel();
+  const before = s.asked.length;
+  s.click('Child', 'yes');
+  assert.ok(!s.chosenRiders.has('Child'),
+    'the rider joined the quote before its amount was given');
+  assert.equal(s.asked.length, before, 'a carrier request went out for an unapplied rider');
+});
+
+test('and an on-or-off rider does, because there is nothing to apply', async () => {
+  const s = sandbox();
+  await s.loadPanel();
+  s.click('WaiverOfPremium', 'yes');
+  assert.ok(s.chosenRiders.has('WaiverOfPremium'));
+});
+
+test('SWITCHING OFF A RIDER THAT WAS NEVER APPLIED ASKS NOBODY', async () => {
+  /* It was not in the quote, so the price has not changed, and asking the
+     carrier to confirm that is a request for no reason. */
+  const s = sandbox();
+  await s.loadPanel();
+  s.click('Child', 'yes');
+  const before = s.asked.length;
+  s.click('Child', 'no');
+  assert.equal(s.asked.length, before, 'a carrier request went out for no change');
+});
+
+test('THE SPINNER IS NEVER LEFT TURNING OVER A REQUEST NOBODY MADE', () => {
+  /*
+   * The general form of that bug: something put the page into 'pricing'
+   * without going on to ask anybody, so the dots turned over an empty box
+   * until the visitor found a button nobody had mentioned.
+   *
+   * invalidatePrice is the only thing that enters that state, and it is
+   * called from exactly two places -- both of which issue a request on the
+   * next line. Checked by deleting those two functions and asserting that
+   * no call to it remains anywhere else.
+   */
+  for (const fn of ['pricePresently', 'priceImmediately']) {
+    const body = new RegExp(`function ${fn}\\(\\)\\{[\\s\\S]*?\\n\\}`).exec(HTML);
+    assert.ok(body, `${fn} has been renamed — re-read this test`);
+    assert.match(body[0], /invalidatePrice\(\);/, `${fn} does not invalidate first`);
+    assert.match(body[0], /priceNow/, `${fn} invalidates without asking for a new price`);
+  }
+  const rest = HTML
+    .replace(/function pricePresently\(\)\{[\s\S]*?\n\}/, '')
+    .replace(/function priceImmediately\(\)\{[\s\S]*?\n\}/, '')
+    /* Its own definition reads as a call to a substring match. */
+    .replace(/function invalidatePrice\(\)\{[\s\S]*?\n\}/, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!/invalidatePrice\(\)/.test(rest),
+    'something enters the pricing state outside the two functions that then ask');
+});
+
+test('A TERM CARD WITH NO CARRIER PRICE SHOWS A DASH, NOT A GUESS', async () => {
+  /*
+   * Assurity price one term per request, so the three comparison cards fill
+   * in behind the one on screen. Until each lands there is nothing to show
+   * -- and the page has no engine left to invent one with, which is the
+   * whole point of removing it.
+   */
+  const s = sandbox();
+  await s.loadPanel();
+  assert.equal(s.termPrice(30), '\u2014', 'an unpriced term card showed a figure');
+
+  s.setResponse(async () => ({ ok: true, status: 200, headers: new Map(),
+    json: async () => ({ quote: { total: { Monthly: 185.49, Annual: 2132 }, coverages: [] },
+      underwriting: { riskClass: 'StandardNonTobacco', approximated: false } }) }));
+  await s.priceNow();
+  assert.match(s.termPrice(20), /^\$\d/, 'the term actually priced still shows no figure');
+});
+
+test('APPLY IS WHAT PUTS THE RIDER IN THE QUOTE', () => {
+  /*
+   * The other half of "switching it on does not". Asserted against the
+   * source because driving a real Apply needs the inputs and the button,
+   * which the stub DOM does not build -- and a mutation that deleted this
+   * line walked through every behavioural test in the file.
+   *
+   * What matters is the ORDER: added only after the validity check, so a
+   * refused Apply does not quietly put a rider with no amount into the ask.
+   */
+  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(HTML);
+  assert.ok(handler, 'the Apply handler has moved — re-read this test');
+  const bail = handler[0].indexOf('if (!ok) return;');
+  const add = handler[0].indexOf('chosenRiders.add(lookup);');
+  assert.ok(add !== -1, 'Apply never adds the rider to the quote');
+  assert.ok(bail < add, 'a refused Apply still adds the rider to the quote');
 });
