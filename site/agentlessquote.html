@@ -381,7 +381,13 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .rider-field { display: flex; flex-direction: column; gap: 5px; }
 .rider-field label { font-size: 11px; font-weight: 700; color: var(--gray-mid); text-transform: uppercase; letter-spacing: 0.05em; }
 .rider-field .input-wrap { display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
-.rider-field .input-prefix { padding: 0 2px 0 10px; color: var(--gray-mid); font-size: 14px; font-weight: 600; }
+/* position: static UNDOES the page's base rule, which pins .input-prefix
+   absolutely at left:14px for the big coverage inputs that have padding cut
+   for it. Inherited into a flex row it sat ON TOP of the digits -- a "$" in
+   the middle of "3,000" -- because this override set padding and colour and
+   never touched position. Overriding half a rule is how a cascade collision
+   looks on screen. */
+.rider-field .input-prefix { position: static; transform: none; padding: 0 2px 0 10px; color: var(--gray-mid); font-size: 14px; font-weight: 600; }
 .rider-field input { flex: 1; border: none; outline: none; padding: 9px 10px 9px 4px; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text); background: transparent; width: 100%; }
 .rider-hint { font-size: 11px; color: var(--gray-mid); line-height: 1.45; }
 .rider-hint.ours { color: var(--gold); }

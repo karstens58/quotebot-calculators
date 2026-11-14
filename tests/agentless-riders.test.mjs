@@ -811,3 +811,25 @@ test('and every label points at a field that exists', async () => {
     assert.ok(ids.has(m[1]), `a label points at "${m[1]}", which is not in the panel`);
   }
 });
+
+test('THE $ SITS BESIDE THE DIGITS, NOT ON TOP OF THEM', () => {
+  /*
+   * The page's base rule pins .input-prefix absolutely at left:14px, for
+   * the big coverage inputs whose padding is cut to make room. The rider
+   * fields lay it out in a flex row instead -- and the override set padding
+   * and colour without touching `position`, so the "$" stayed absolute and
+   * landed in the middle of "3,000".
+   *
+   * Asserted in the stylesheet because no stubbed DOM resolves a cascade.
+   * It took a screenshot of the live page to see it.
+   */
+  const rule = /\.rider-field \.input-prefix \{([^}]*)\}/.exec(HTML);
+  assert.ok(rule, '.rider-field .input-prefix has been renamed — re-read this test');
+  assert.match(rule[1], /position:\s*static/,
+    'the absolute positioning from the base rule is not undone');
+
+  const base = /(^|\n)\.input-prefix \{([^}]*)\}/.exec(HTML);
+  assert.ok(base, 'the base .input-prefix rule has gone — this test may be obsolete');
+  assert.match(base[2], /position:\s*absolute/,
+    'the base rule no longer positions absolutely, so this override may be dead code');
+});
