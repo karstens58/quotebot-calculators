@@ -163,6 +163,28 @@ for (const file of fs.readdirSync(SITE).filter((f) => f.endsWith('.html'))) {
     }
   }
 
+  /* ---- hover stylesheet ----
+   *
+   * site/css/qb-hover.css holds the classes that replaced this site's 83
+   * inline onmouseenter/onmouseleave handlers. It is linked rather than
+   * spliced into each page's <style>, because dimeneedscalculator.html has no
+   * <style> block at all -- its CSS is entirely in external files -- and the
+   * splice branch below silently does nothing for a page like that. A link
+   * reaches all fourteen the same way.
+   *
+   * It goes LAST in the head so it outranks a page's own stylesheets on equal
+   * specificity; the classes only ever set the two properties their handler
+   * set, so there is nothing else for it to outrank. */
+  {
+    const want = '<link rel="stylesheet" href="css/qb-hover.css">';
+    if (!html.includes(want)) {
+      const head = html.indexOf('</head>');
+      if (head === -1) throw new Error(`${file}: no </head> to link the hover css from`);
+      html = `${html.slice(0, head)}${want}\n${html.slice(head)}`;
+      notes.push('hover css linked');
+    }
+  }
+
   /* ---- canonical, so two hostnames do not become two pages ---- */
   {
     /* The landing page canonicalises to the directory, not to index.html:

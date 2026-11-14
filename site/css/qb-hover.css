@@ -1,0 +1,46 @@
+/*
+ * Hover classes, replacing the 83 inline onmouseenter/onmouseleave handlers
+ * these pages carried. Those handlers are what stops a Content-Security-Policy
+ * without 'unsafe-inline' from going on tools.quote-bot.com, so they had to go.
+ *
+ * Each class carries the RESTING value as well as the hover one, because the
+ * inline style= declaration it replaced was removed -- left in place, an inline
+ * value beats any :hover rule in a stylesheet and the hover would do nothing.
+ *
+ * A file of its own rather than part of tools/chrome.css, because
+ * dimeneedscalculator.html keeps all its CSS in external files and has no
+ * <style> block for apply-chrome.mjs to splice into. Injecting the whole chrome
+ * block there collided with 25 of its own selectors; these nine do not collide
+ * with anything, so a linked stylesheet suits every page the same way.
+ *
+ * Linked into each page by tools/apply-chrome.mjs.
+ */
+
+/* ---- hover classes (replace inline onmouseenter/onmouseleave handlers; CSP-safe) ---- */
+/* Each class carries the resting value too, because the inline style= declaration it
+   replaced was removed -- an inline value would always beat these :hover rules.
+   Fallbacks are spelled out: dimeneedscalculator.html defines no custom properties. */
+.hv-social { color: rgba(255,255,255,0.65); }
+.hv-social:hover { color: #fff; }
+
+.hv-cta { background: var(--primary, #1a3d6b); box-shadow: none; }
+.hv-cta:hover { background: var(--primary-dark, #0f2540); box-shadow: 0 6px 24px rgba(26,61,107,0.3); }
+
+.hv-ghost-80 { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); }
+.hv-ghost-85 { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.85); }
+.hv-ghost-80:hover, .hv-ghost-85:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+
+.hv-menu-item { background: var(--off-white, #f7f9fc); color: var(--gray-dark, #2c3e58); }
+.hv-menu-item:hover { background: var(--accent-light, #e8f2fb); color: var(--primary, #1a3d6b); }
+
+.hv-glass-light { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.75); }
+.hv-glass-light:hover { background: rgba(255,255,255,0.18); color: #fff; }
+
+.hv-row-grey { background: var(--off-white, #f7f9fc); }
+.hv-row-grey:hover { background: #eef1f6; }
+
+.hv-row-violet { background: #f5f3ff; }
+.hv-row-violet:hover { background: #ede9fe; }
+
+.hv-fade { opacity: 1; }
+.hv-fade:hover { opacity: .85; }
