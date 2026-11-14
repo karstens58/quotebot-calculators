@@ -6,6 +6,7 @@
 <title>Assurity Agent-less Term Quote | Quote-Bot</title>
 <link rel="canonical" href="https://tools.quote-bot.com/agentlessquote.html">
 <meta name="description" content="Quote and buy Assurity term life online, start to finish, without an agent. Pick your coverage, see the price move as you change it, and apply in minutes.">
+<script>window.QB_QUOTE_ENDPOINT = "https://api.quote-bot.com/quote/";</script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -296,6 +297,29 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .rider-toggle button { padding: 7px 16px; border: none; background: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--gray-mid); cursor: pointer; transition: all var(--transition); }
 .rider-toggle button.active { background: var(--accent); color: #fff; }
 .rider-toggle button + button { border-left: 1.5px solid var(--border); }
+
+/* The "?" opens inline rather than floating. The approved text runs to a
+   paragraph and a state can add more, so a hover tooltip would clip it and a
+   touch device would never see it at all. */
+.rider-item { display: flex; flex-direction: column; gap: 9px; }
+.rider-help { background: #fff; font-family: inherit; font-weight: 700; padding: 0; }
+.rider-help:hover, .rider-help[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+.rider-help:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* MUST COME WITH THE display RULE BELOW. The browser hides [hidden] with its
+   own `display: none`, and an author's `display: flex` outranks it -- so
+   without this every disclosure rendered open and the "?" appeared to do
+   nothing. Caught in a real browser; a stubbed DOM cannot see it, because
+   nothing in a stub resolves the cascade. */
+.rider-note[hidden] { display: none; }
+.rider-note { background: var(--off-white); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 13px 15px; display: flex; flex-direction: column; gap: 9px; }
+.rider-note p { font-size: 12.5px; line-height: 1.6; color: var(--gray-dark); }
+.rider-note .var { color: var(--text); }
+.rider-note .var b { color: var(--primary); }
+.rider-note .form { font-size: 11px; color: var(--gray-mid); }
+.rider-included { display: flex; flex-direction: column; gap: 13px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--gray-light); }
+.rider-included-head { font-size: 11px; font-weight: 700; color: var(--gray-mid); text-transform: uppercase; letter-spacing: 0.06em; }
+.included-pill { padding: 5px 12px; border-radius: 100px; background: var(--green-light); color: var(--green); font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+.rider-empty { font-size: 13px; color: var(--gray-mid); line-height: 1.5; }
 
 .other-title { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 18px; }
 .term-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -694,6 +718,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <div class="cov-riders">
               <h3>Optional Riders</h3>
               <div class="rider-list" id="riderList"></div>
+              <div class="rider-included" id="riderIncluded" hidden></div>
             </div>
           </div>
         </div>
@@ -757,13 +782,6 @@ const COV_STOPS = [275000,300000,325000,350000,400000,450000,500000,550000,60000
 // monthly rate per $1,000 of coverage, calibrated to default profile (age 48 / Male / Non-tobacco / Standard)
 const PER1000 = { 10:0.13486, 15:0.16878, 20:0.22186, 30:0.36454 };
 const HEALTH_FACTOR = { 'Preferred Plus':0.68, 'Preferred':0.80, 'Standard Plus':0.91, 'Standard':1.0 };
-const RIDERS = [
-  'Accident-Only Disability Income',
-  "Children's Term Insurance Rider",
-  'Critical Illness Rider',
-  'Monthly Disability Income Rider',
-  'Disability Waiver of Premium Rider'
-];
 
 let sliderIndex = 6;      // $500,000
 let selectedTerm = 15;
@@ -837,25 +855,160 @@ function renderTermCards(){
   document.querySelectorAll('.term-select').forEach(b => b.addEventListener('click', () => {
     selectedTerm = parseInt(b.dataset.term);
     document.getElementById('termLength').value = selectedTerm;
-    renderPrice(); renderTermCards();
+    renderPrice(); renderTermCards(); loadPanel();
     document.querySelector('.cov-card').scrollIntoView({ behavior:'smooth', block:'start' });
   }));
 }
-function renderRiders(){
-  document.getElementById('riderList').innerHTML = RIDERS.map((r,i) => `
-    <div class="rider-row">
-      <div class="rider-label">${r} <span class="rider-help" title="Learn more">?</span></div>
-      <div class="rider-toggle" data-rider="${i}">
-        <button type="button" data-val="yes">Yes</button>
-        <button type="button" class="active" data-val="no">No</button>
-      </div>
-    </div>`).join('');
-  document.querySelectorAll('.rider-toggle').forEach(tg => tg.addEventListener('click', e => {
-    if (e.target.tagName !== 'BUTTON') return;
-    tg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-    e.target.classList.add('active');
-  }));
+/* ---------- RIDERS (from the carrier, via quote-engine) ---------- */
+/*
+ * THE RIDERS ARE NOT LISTED HERE, AND THE WORDS ARE NOT EITHER.
+ *
+ * Both come from GET /assurity-panel, which answers for one state and one
+ * term together. Assurity do not write the same riders everywhere, and the
+ * text they have approved varies by state as well -- so a list typed into
+ * this file would be right in Colorado and quietly wrong in Florida, and the
+ * approved wording would sit in a public repository with nothing checking it
+ * had not drifted. quotebot-backend holds one copy, digest-verified.
+ *
+ * If the panel cannot be had, this shows NO riders. Not a cached list, not
+ * the five we used to hardcode: a visitor who sees a rider offered has been
+ * told it is available in their state, and we only know that from the
+ * carrier.
+ */
+const STATE_CODES = {"Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","District of Columbia":"DC","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY"};
+/* Their spelling for a term, which is what the route takes. */
+const TERM_PERIODS = { 10:'TenYears', 15:'FifteenYears', 20:'TwentyYears', 30:'ThirtyYears' };
+
+let panel = null;          // the carrier's answer for the state+term showing
+let panelKey = '';         // what that answer was for
+let panelSeq = 0;          // so a slow reply cannot overwrite a newer one
+const chosenRiders = new Set();
+
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g,
+  (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function loadPanel(){
+  const inp = getInputs();
+  const state = STATE_CODES[inp.state];
+  const term = TERM_PERIODS[selectedTerm];
+  const key = state + '|' + term;
+  if (!state || !term) { panel = null; panelKey = ''; return renderRiders(); }
+  if (key === panelKey) return;                    // already showing this one
+
+  const endpoint = window.QB_QUOTE_ENDPOINT || '';
+  if (!/^https?:\/\//i.test(endpoint)) { panel = null; panelKey = ''; return renderRiders(); }
+
+  const seq = ++panelSeq;
+  try {
+    const res = await fetch(endpoint.replace(/\/$/, '')
+      + '/assurity-panel?state=' + encodeURIComponent(state) + '&term=' + encodeURIComponent(term));
+    const data = await res.json().catch(() => ({}));
+    if (seq !== panelSeq) return;                  // a newer ask has overtaken this
+    /* A 502 means they offer something we hold no approved words for, a 503
+       that the integration is not configured. Both are ours to fix and
+       neither is the visitor's business -- what they must not get is a rider
+       with nothing behind the "?". */
+    panel = res.ok && data.panel ? data.panel : null;
+    panelKey = panel ? key : '';
+    if (!panel) console.warn('[quote-bot] no Assurity rider panel for ' + key, res.status, data.error || '');
+  } catch (err) {
+    if (seq !== panelSeq) return;
+    panel = null; panelKey = '';
+    console.warn('[quote-bot] the Assurity rider panel could not be reached', err);
+  }
+  renderRiders();
 }
+
+function noteHtml(d, stateName){
+  const vars = (d.variations || []).map((t) =>
+    `<p class="var"><b>In ${esc(stateName)}:</b> ${esc(t)}</p>`).join('');
+  return `<div class="rider-note" id="note-${esc(d.lookup)}" hidden>
+      <p>${esc(d.base)}</p>${vars}
+      <p class="form">Assurity form ${esc(d.form)}</p>
+    </div>`;
+}
+
+function renderRiders(){
+  const list = document.getElementById('riderList');
+  const incl = document.getElementById('riderIncluded');
+  const stateName = getInputs().state;
+
+  if (!panel){
+    list.innerHTML = `<p class="rider-empty">Optional riders for ${esc(stateName)} aren't available to show right now. You can still continue — we'll go through them with you before anything is issued.</p>`;
+    incl.hidden = true; incl.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = panel.riders.map((r) => `
+    <div class="rider-item">
+      <div class="rider-row">
+        <div class="rider-label">${esc(r.name)}
+          <button type="button" class="rider-help" data-note="${esc(r.lookup)}"
+                  aria-expanded="false" aria-controls="note-${esc(r.lookup)}"
+                  aria-label="What ${esc(r.name)} covers">?</button>
+        </div>
+        <div class="rider-toggle" data-rider="${esc(r.lookup)}"
+             data-exclusive="${esc((r.exclusiveWith || []).join(' '))}">
+          <button type="button" data-val="yes"${chosenRiders.has(r.lookup) ? ' class="active"' : ''}>Yes</button>
+          <button type="button" data-val="no"${chosenRiders.has(r.lookup) ? '' : ' class="active"'}>No</button>
+        </div>
+      </div>
+      ${noteHtml(r.disclosure, stateName)}
+    </div>`).join('');
+
+  /* Carried free by every policy and never in the carrier's options list, so
+     a page built by walking that list drops it. It is a selling point. */
+  const included = panel.included || [];
+  incl.hidden = included.length === 0;
+  incl.innerHTML = included.length === 0 ? '' :
+    `<div class="rider-included-head">Included at no extra cost</div>` + included.map((i) => `
+      <div class="rider-item">
+        <div class="rider-row">
+          <div class="rider-label">${esc(i.name)}
+            <button type="button" class="rider-help" data-note="${esc(i.lookup)}"
+                    aria-expanded="false" aria-controls="note-${esc(i.lookup)}"
+                    aria-label="What ${esc(i.name)} covers">?</button>
+          </div>
+          <span class="included-pill">Included</span>
+        </div>
+        ${noteHtml(i.disclosure, stateName)}
+      </div>`).join('');
+}
+
+/* One listener for both lists, so re-rendering never leaves a dead "?". */
+document.querySelector('.cov-riders').addEventListener('click', (e) => {
+  const help = e.target.closest('.rider-help');
+  if (help){
+    const note = document.getElementById('note-' + help.dataset.note);
+    if (!note) return;
+    note.hidden = !note.hidden;
+    help.setAttribute('aria-expanded', String(!note.hidden));
+    return;
+  }
+  const btn = e.target.closest('.rider-toggle button');
+  if (!btn) return;
+  const tg = btn.closest('.rider-toggle');
+  const lookup = tg.dataset.rider;
+  tg.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (btn.dataset.val === 'yes'){
+    chosenRiders.add(lookup);
+    /* ONE DISABILITY RIDER PER POLICY -- Assurity's rule, not ours, and it
+       arrives with the panel rather than being typed here. Turning this one
+       on turns the other one off, visibly, instead of letting an applicant
+       pick a pair the carrier will not write. */
+    (tg.dataset.exclusive || '').split(' ').filter(Boolean).forEach((other) => {
+      chosenRiders.delete(other);
+      const o = document.querySelector(`.rider-toggle[data-rider="${other}"]`);
+      if (!o) return;
+      o.querySelectorAll('button').forEach((b) =>
+        b.classList.toggle('active', b.dataset.val === 'no'));
+    });
+  } else {
+    chosenRiders.delete(lookup);
+  }
+});
 function renderWelcome(){
   const inp = getInputs();
   const name = inp.firstName || 'there';
@@ -894,7 +1047,7 @@ document.getElementById('coverage').addEventListener('input', e => {
   const n = e.target.value.replace(/[^0-9]/g,'');
   e.target.value = n ? parseInt(n).toLocaleString() : '';
 });
-['state','health'].forEach(id => document.getElementById(id).addEventListener('change', () => { if (shown()) renderAll(); }));
+['state','health'].forEach(id => document.getElementById(id).addEventListener('change', () => { if (shown()) { renderAll(); loadPanel(); } }));
 ['firstName'].forEach(id => document.getElementById(id).addEventListener('input', () => { if (shown()) renderWelcome(); }));
 
 // coverage slider
@@ -916,7 +1069,7 @@ document.getElementById('covAmount').addEventListener('input', e => {
 // term length select (card)
 document.getElementById('termLength').addEventListener('change', e => {
   selectedTerm = parseInt(e.target.value);
-  renderPrice(); renderTermCards();
+  renderPrice(); renderTermCards(); loadPanel();
 });
 // monthly/yearly toggle
 document.getElementById('ptMonthly').addEventListener('click', () => { billing='monthly'; renderPrice(); });
@@ -927,7 +1080,8 @@ function shown(){ return document.getElementById('resultsContent').classList.con
 // MAIN reveal
 document.getElementById('quoteBtn').addEventListener('click', () => {
   seedFromIntake();
-  renderRiders();
+  renderRiders();          // the empty state, until the carrier answers
+  loadPanel();
   renderAll();
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('resultsContent').classList.add('show');
