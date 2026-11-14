@@ -756,35 +756,35 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
       <!-- Step Progress -->
       <div class="progress-wrap">
         <div class="progress-steps" style="grid-template-columns: repeat(5,1fr);">
-          <div class="progress-step active" id="tab0" onclick="goStep(0)">
+          <div class="progress-step active" id="tab0" data-qb-click="goStep" data-qb-click-args='[0]'>
             <div class="step-badge" id="badge0">C</div>
             <div class="step-info">
               <div class="step-letter">Cover</div>
               <div class="step-name">Assets</div>
             </div>
           </div>
-          <div class="progress-step" id="tab1" onclick="goStep(1)">
+          <div class="progress-step" id="tab1" data-qb-click="goStep" data-qb-click-args='[1]'>
             <div class="step-badge" id="badge1">A</div>
             <div class="step-info">
               <div class="step-letter">Assess</div>
               <div class="step-name">Risk Profile</div>
             </div>
           </div>
-          <div class="progress-step" id="tab2" onclick="goStep(2)">
+          <div class="progress-step" id="tab2" data-qb-click="goStep" data-qb-click-args='[2]'>
             <div class="step-badge" id="badge2">R</div>
             <div class="step-info">
               <div class="step-letter">Right-Size</div>
               <div class="step-name">Benefit Gap</div>
             </div>
           </div>
-          <div class="progress-step" id="tab3" onclick="goStep(3)">
+          <div class="progress-step" id="tab3" data-qb-click="goStep" data-qb-click-args='[3]'>
             <div class="step-badge" id="badge3">E</div>
             <div class="step-info">
               <div class="step-letter">Execute</div>
               <div class="step-name">Policy Design</div>
             </div>
           </div>
-          <div class="progress-step" id="tab4" onclick="goStep(4)">
+          <div class="progress-step" id="tab4" data-qb-click="goStep" data-qb-click-args='[4]'>
             <div class="step-badge" id="badge4">✉</div>
             <div class="step-info">
               <div class="step-letter">Your Info</div>
@@ -805,7 +805,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Combined retirement savings (IRA, 401k, investments)</label>
             <div class="range-row">
-              <input type="range" min="50000" max="2000000" step="25000" value="400000" id="retAssets" oninput="syncVal('retAssets','retAssetsVal',true)" data-qb-sum="Retirement savings" data-qb-sum-prefix="$">
+              <input type="range" min="50000" max="2000000" step="25000" value="400000" id="retAssets" data-qb-input="syncVal" data-qb-input-args='["retAssets", "retAssetsVal", true]' data-qb-sum="Retirement savings" data-qb-sum-prefix="$">
               <span class="range-val" id="retAssetsVal">$400,000</span>
             </div>
           </div>
@@ -813,7 +813,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Approximate home equity</label>
             <div class="range-row">
-              <input type="range" min="0" max="1000000" step="25000" value="200000" id="homeEq" oninput="syncVal('homeEq','homeEqVal',true)" data-qb-sum="Home equity" data-qb-sum-prefix="$">
+              <input type="range" min="0" max="1000000" step="25000" value="200000" id="homeEq" data-qb-input="syncVal" data-qb-input-args='["homeEq", "homeEqVal", true]' data-qb-sum="Home equity" data-qb-sum-prefix="$">
               <span class="range-val" id="homeEqVal">$200,000</span>
             </div>
           </div>
@@ -822,19 +822,19 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label class="field-label">Which assets are highest priority to protect?</label>
             <span class="field-hint">Select all that apply</span>
             <div class="check-group" id="assetGroup">
-              <div class="check-opt sel" data-val="ira" onclick="toggleCheck(this)">
+              <div class="check-opt sel" data-val="ira" data-qb-click="toggleCheck" data-qb-click-args='["@el"]'>
                 <div class="check-box">✓</div>
                 <div class="check-opt-text"><strong>Retirement accounts (IRA / 401k)</strong><span>Typically the largest pool at risk from extended care costs</span></div>
               </div>
-              <div class="check-opt" data-val="home" onclick="toggleCheck(this)">
+              <div class="check-opt" data-val="home" data-qb-click="toggleCheck" data-qb-click-args='["@el"]'>
                 <div class="check-box"></div>
                 <div class="check-opt-text"><strong>Home equity / primary residence</strong><span>Protect against Medicaid estate recovery after death</span></div>
               </div>
-              <div class="check-opt" data-val="invest" onclick="toggleCheck(this)">
+              <div class="check-opt" data-val="invest" data-qb-click="toggleCheck" data-qb-click-args='["@el"]'>
                 <div class="check-box"></div>
                 <div class="check-opt-text"><strong>Taxable investment accounts</strong><span>Avoid forced liquidation at inopportune times</span></div>
               </div>
-              <div class="check-opt" data-val="legacy" onclick="toggleCheck(this)">
+              <div class="check-opt" data-val="legacy" data-qb-click="toggleCheck" data-qb-click-args='["@el"]'>
                 <div class="check-box"></div>
                 <div class="check-opt-text"><strong>Estate / inheritance for heirs</strong><span>Preserve wealth transfer to the next generation</span></div>
               </div>
@@ -844,7 +844,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="step-nav">
             <button class="btn-back" disabled>← Back</button>
             <span class="step-counter">Step 1 of 5</span>
-            <button class="btn-next" onclick="goStep(1)">Assess your risk → </button>
+            <button class="btn-next" data-qb-click="goStep" data-qb-click-args='[1]'>Assess your risk → </button>
           </div>
         </div>
 
@@ -856,7 +856,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Your current age</label>
             <div class="range-row">
-              <input type="range" min="45" max="75" step="1" value="57" id="age" oninput="syncVal('age','ageVal',false)" data-qb-sum="Current age">
+              <input type="range" min="45" max="75" step="1" value="57" id="age" data-qb-input="syncVal" data-qb-input-args='["age", "ageVal", false]' data-qb-sum="Current age">
               <span class="range-val" id="ageVal">57</span>
             </div>
           </div>
@@ -865,25 +865,25 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label class="field-label">Gender</label>
             <span class="field-hint">Women face higher LTC risk and are rated at higher premiums for traditional policies.</span>
             <div class="radio-group" id="genderGroup">
-              <div class="radio-opt sel" data-val="male" onclick="pickRadio(this,'genderGroup')">Male</div>
-              <div class="radio-opt" data-val="female" onclick="pickRadio(this,'genderGroup')">Female</div>
+              <div class="radio-opt sel" data-val="male" data-qb-click="pickRadio" data-qb-click-args='["@el", "genderGroup"]'>Male</div>
+              <div class="radio-opt" data-val="female" data-qb-click="pickRadio" data-qb-click-args='["@el", "genderGroup"]'>Female</div>
             </div>
           </div>
 
           <div class="field-group">
             <label class="field-label">Marital / partnership status</label>
             <div class="radio-group" id="maritalGroup">
-              <div class="radio-opt sel" data-val="married" onclick="pickRadio(this,'maritalGroup')">Married / partnered</div>
-              <div class="radio-opt" data-val="single" onclick="pickRadio(this,'maritalGroup')">Single</div>
+              <div class="radio-opt sel" data-val="married" data-qb-click="pickRadio" data-qb-click-args='["@el", "maritalGroup"]'>Married / partnered</div>
+              <div class="radio-opt" data-val="single" data-qb-click="pickRadio" data-qb-click-args='["@el", "maritalGroup"]'>Single</div>
             </div>
           </div>
 
           <div class="field-group">
             <label class="field-label">Family history of dementia, Alzheimer's, or extended care need?</label>
             <div class="radio-group" id="familyHxGroup">
-              <div class="radio-opt" data-val="yes" onclick="pickRadio(this,'familyHxGroup')">Yes — parent or sibling</div>
-              <div class="radio-opt sel" data-val="no" onclick="pickRadio(this,'familyHxGroup')">No known history</div>
-              <div class="radio-opt" data-val="unknown" onclick="pickRadio(this,'familyHxGroup')">Unknown</div>
+              <div class="radio-opt" data-val="yes" data-qb-click="pickRadio" data-qb-click-args='["@el", "familyHxGroup"]'>Yes — parent or sibling</div>
+              <div class="radio-opt sel" data-val="no" data-qb-click="pickRadio" data-qb-click-args='["@el", "familyHxGroup"]'>No known history</div>
+              <div class="radio-opt" data-val="unknown" data-qb-click="pickRadio" data-qb-click-args='["@el", "familyHxGroup"]'>Unknown</div>
             </div>
           </div>
 
@@ -891,16 +891,16 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label class="field-label">Current health status</label>
             <span class="field-hint">Be honest — health conditions affect both insurability and the right policy type.</span>
             <div class="radio-group" id="healthGroup">
-              <div class="radio-opt sel" data-val="excellent" onclick="pickRadio(this,'healthGroup')">Excellent</div>
-              <div class="radio-opt" data-val="good" onclick="pickRadio(this,'healthGroup')">Good</div>
-              <div class="radio-opt" data-val="fair" onclick="pickRadio(this,'healthGroup')">Fair / managed conditions</div>
+              <div class="radio-opt sel" data-val="excellent" data-qb-click="pickRadio" data-qb-click-args='["@el", "healthGroup"]'>Excellent</div>
+              <div class="radio-opt" data-val="good" data-qb-click="pickRadio" data-qb-click-args='["@el", "healthGroup"]'>Good</div>
+              <div class="radio-opt" data-val="fair" data-qb-click="pickRadio" data-qb-click-args='["@el", "healthGroup"]'>Fair / managed conditions</div>
             </div>
           </div>
 
           <div class="step-nav">
-            <button class="btn-back" onclick="goStep(0)">← Back</button>
+            <button class="btn-back" data-qb-click="goStep" data-qb-click-args='[0]'>← Back</button>
             <span class="step-counter">Step 2 of 5</span>
-            <button class="btn-next" onclick="goStep(2)">Right-size benefit →</button>
+            <button class="btn-next" data-qb-click="goStep" data-qb-click-args='[2]'>Right-size benefit →</button>
           </div>
         </div>
 
@@ -917,26 +917,26 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label class="field-label">Estimated monthly care cost in your area</label>
             <span class="field-hint">Genworth 2026 Cost of Care Survey data by care type and region.</span>
             <div class="radio-group" id="careRegionGroup">
-              <div class="radio-opt" data-val="3500" onclick="pickRadio(this,'careRegionGroup')">Rural<br><span style="font-size:11px;color:var(--gray-mid);">~$3,500/mo</span></div>
-              <div class="radio-opt sel" data-val="5000" onclick="pickRadio(this,'careRegionGroup')">Suburban<br><span style="font-size:11px;color:var(--gray-mid);">~$5,000/mo</span></div>
-              <div class="radio-opt" data-val="7500" onclick="pickRadio(this,'careRegionGroup')">Urban<br><span style="font-size:11px;color:var(--gray-mid);">~$7,500/mo</span></div>
-              <div class="radio-opt" data-val="10000" onclick="pickRadio(this,'careRegionGroup')">High-cost metro<br><span style="font-size:11px;color:var(--gray-mid);">~$10,000/mo</span></div>
+              <div class="radio-opt" data-val="3500" data-qb-click="pickRadio" data-qb-click-args='["@el", "careRegionGroup"]'>Rural<br><span style="font-size:11px;color:var(--gray-mid);">~$3,500/mo</span></div>
+              <div class="radio-opt sel" data-val="5000" data-qb-click="pickRadio" data-qb-click-args='["@el", "careRegionGroup"]'>Suburban<br><span style="font-size:11px;color:var(--gray-mid);">~$5,000/mo</span></div>
+              <div class="radio-opt" data-val="7500" data-qb-click="pickRadio" data-qb-click-args='["@el", "careRegionGroup"]'>Urban<br><span style="font-size:11px;color:var(--gray-mid);">~$7,500/mo</span></div>
+              <div class="radio-opt" data-val="10000" data-qb-click="pickRadio" data-qb-click-args='["@el", "careRegionGroup"]'>High-cost metro<br><span style="font-size:11px;color:var(--gray-mid);">~$10,000/mo</span></div>
             </div>
           </div>
 
           <div class="field-group">
             <label class="field-label">Preferred care setting</label>
             <div class="radio-group" id="careSettingGroup">
-              <div class="radio-opt sel" data-val="home" onclick="pickRadio(this,'careSettingGroup')">At home (preferred)</div>
-              <div class="radio-opt" data-val="assisted" onclick="pickRadio(this,'careSettingGroup')">Assisted living</div>
-              <div class="radio-opt" data-val="nursing" onclick="pickRadio(this,'careSettingGroup')">Skilled nursing facility</div>
+              <div class="radio-opt sel" data-val="home" data-qb-click="pickRadio" data-qb-click-args='["@el", "careSettingGroup"]'>At home (preferred)</div>
+              <div class="radio-opt" data-val="assisted" data-qb-click="pickRadio" data-qb-click-args='["@el", "careSettingGroup"]'>Assisted living</div>
+              <div class="radio-opt" data-val="nursing" data-qb-click="pickRadio" data-qb-click-args='["@el", "careSettingGroup"]'>Skilled nursing facility</div>
             </div>
           </div>
 
           <div class="field-group">
             <label class="field-label">Benefit period — years of coverage the policy provides</label>
             <div class="range-row">
-              <input type="range" min="2" max="6" step="1" value="3" id="benefitYears" oninput="syncVal('benefitYears','benefitYearsVal',false,'yrs')" data-qb-sum="Benefit period" data-qb-sum-suffix=" yrs">
+              <input type="range" min="2" max="6" step="1" value="3" id="benefitYears" data-qb-input="syncVal" data-qb-input-args='["benefitYears", "benefitYearsVal", false, "yrs"]' data-qb-sum="Benefit period" data-qb-sum-suffix=" yrs">
               <span class="range-val" id="benefitYearsVal">3 yrs</span>
             </div>
           </div>
@@ -944,7 +944,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           <div class="field-group">
             <label class="field-label">Monthly amount you can self-fund from income / savings</label>
             <div class="range-row">
-              <input type="range" min="0" max="5000" step="250" value="0" id="selfFund" oninput="syncVal('selfFund','selfFundVal',true)" data-qb-sum="Can self-fund monthly" data-qb-sum-prefix="$">
+              <input type="range" min="0" max="5000" step="250" value="0" id="selfFund" data-qb-input="syncVal" data-qb-input-args='["selfFund", "selfFundVal", true]' data-qb-sum="Can self-fund monthly" data-qb-sum-prefix="$">
               <span class="range-val" id="selfFundVal">$0</span>
             </div>
           </div>
@@ -953,16 +953,16 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label class="field-label">Inflation protection</label>
             <span class="field-hint">For buyers more than 15 years from likely need, 3% compound is typically worth the added premium.</span>
             <div class="radio-group" id="inflationGroup">
-              <div class="radio-opt" data-val="none" onclick="pickRadio(this,'inflationGroup')">None</div>
-              <div class="radio-opt" data-val="simple" onclick="pickRadio(this,'inflationGroup')">3% simple</div>
-              <div class="radio-opt sel" data-val="compound" onclick="pickRadio(this,'inflationGroup')">3% compound (recommended)</div>
+              <div class="radio-opt" data-val="none" data-qb-click="pickRadio" data-qb-click-args='["@el", "inflationGroup"]'>None</div>
+              <div class="radio-opt" data-val="simple" data-qb-click="pickRadio" data-qb-click-args='["@el", "inflationGroup"]'>3% simple</div>
+              <div class="radio-opt sel" data-val="compound" data-qb-click="pickRadio" data-qb-click-args='["@el", "inflationGroup"]'>3% compound (recommended)</div>
             </div>
           </div>
 
           <div class="step-nav">
-            <button class="btn-back" onclick="goStep(1)">← Back</button>
+            <button class="btn-back" data-qb-click="goStep" data-qb-click-args='[1]'>← Back</button>
             <span class="step-counter">Step 3 of 5</span>
-            <button class="btn-next" onclick="goStep(3)">Execute plan →</button>
+            <button class="btn-next" data-qb-click="goStep" data-qb-click-args='[3]'>Execute plan →</button>
           </div>
         </div>
 
@@ -975,15 +975,15 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label class="field-label">Preferred policy structure</label>
             <span class="field-hint">Your risk profile and health status may affect which option is best.</span>
             <div class="check-group" id="policyTypeGroup">
-              <div class="check-opt" data-val="traditional" onclick="pickSingle(this,'policyTypeGroup')">
+              <div class="check-opt" data-val="traditional" data-qb-click="pickSingle" data-qb-click-args='["@el", "policyTypeGroup"]'>
                 <div class="check-box"></div>
                 <div class="check-opt-text"><strong>Traditional standalone LTC</strong><span>Annual premium · Use-it-or-lose-it · Largest benefit per dollar</span></div>
               </div>
-              <div class="check-opt sel" data-val="hybrid" onclick="pickSingle(this,'policyTypeGroup')">
+              <div class="check-opt sel" data-val="hybrid" data-qb-click="pickSingle" data-qb-click-args='["@el", "policyTypeGroup"]'>
                 <div class="check-box">✓</div>
                 <div class="check-opt-text"><strong>Hybrid life / LTC (most popular)</strong><span>Guaranteed premiums · Death benefit if unused · Single or annual premium</span></div>
               </div>
-              <div class="check-opt" data-val="annuity" onclick="pickSingle(this,'policyTypeGroup')">
+              <div class="check-opt" data-val="annuity" data-qb-click="pickSingle" data-qb-click-args='["@el", "policyTypeGroup"]'>
                 <div class="check-box"></div>
                 <div class="check-opt-text"><strong>Asset-Based LTC (ABLTC)</strong><span>Most lenient underwriting · Ideal for older buyers or impaired risk</span></div>
               </div>
@@ -994,8 +994,8 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label class="field-label">Do you have repositionable assets?</label>
             <span class="field-hint">CDs, savings, non-qualified annuities earning minimal returns are prime candidates for a hybrid policy via 1035 exchange.</span>
             <div class="radio-group" id="repoGroup">
-              <div class="radio-opt sel" data-val="yes" onclick="pickRadio(this,'repoGroup')">Yes — potential 1035 exchange or lump sum</div>
-              <div class="radio-opt" data-val="no" onclick="pickRadio(this,'repoGroup')">No — prefer annual premium payments</div>
+              <div class="radio-opt sel" data-val="yes" data-qb-click="pickRadio" data-qb-click-args='["@el", "repoGroup"]'>Yes — potential 1035 exchange or lump sum</div>
+              <div class="radio-opt" data-val="no" data-qb-click="pickRadio" data-qb-click-args='["@el", "repoGroup"]'>No — prefer annual premium payments</div>
             </div>
           </div>
 
@@ -1003,15 +1003,15 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
             <label class="field-label">Is your spouse or partner also applying?</label>
             <span class="field-hint">Applying together typically earns a 10–30% couple's discount and opens up Shared Care rider options.</span>
             <div class="radio-group" id="spouseGroup">
-              <div class="radio-opt sel" data-val="yes" onclick="pickRadio(this,'spouseGroup')">Yes — applying together</div>
-              <div class="radio-opt" data-val="no" onclick="pickRadio(this,'spouseGroup')">No / not applicable</div>
+              <div class="radio-opt sel" data-val="yes" data-qb-click="pickRadio" data-qb-click-args='["@el", "spouseGroup"]'>Yes — applying together</div>
+              <div class="radio-opt" data-val="no" data-qb-click="pickRadio" data-qb-click-args='["@el", "spouseGroup"]'>No / not applicable</div>
             </div>
           </div>
 
           <div class="step-nav">
-            <button class="btn-back" onclick="goStep(2)">← Back</button>
+            <button class="btn-back" data-qb-click="goStep" data-qb-click-args='[2]'>← Back</button>
             <span class="step-counter">Step 4 of 5</span>
-            <button class="btn-next" onclick="goStep(4)">Next: Your info →</button>
+            <button class="btn-next" data-qb-click="goStep" data-qb-click-args='[4]'>Next: Your info →</button>
           </div>
         </div>
 
@@ -1061,9 +1061,9 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           </div>
 
           <div class="step-nav">
-            <button class="btn-back" onclick="goStep(3)">← Back</button>
+            <button class="btn-back" data-qb-click="goStep" data-qb-click-args='[3]'>← Back</button>
             <span class="step-counter">Step 5 of 5</span>
-            <button class="btn-next teal" onclick="submitContact()">View my C.A.R.E. analysis ✓</button>
+            <button class="btn-next teal" data-qb-click="submitContact">View my C.A.R.E. analysis ✓</button>
           </div>
         </div>
 
@@ -1272,17 +1272,17 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
             <!-- Tab switcher -->
             <div class="cmp-mob-tabs">
-              <div class="cmp-mob-tab active" id="mob-tab-trad" onclick="mobTab('trad')">
+              <div class="cmp-mob-tab active" id="mob-tab-trad" data-qb-click="mobTab" data-qb-click-args='["trad"]'>
                 <span class="tab-icon">📄</span>
                 <span class="tab-label">Traditional</span>
                 <span class="tab-sel-badge">★ Selected</span>
               </div>
-              <div class="cmp-mob-tab" id="mob-tab-hybrid" onclick="mobTab('hybrid')">
+              <div class="cmp-mob-tab" id="mob-tab-hybrid" data-qb-click="mobTab" data-qb-click-args='["hybrid"]'>
                 <span class="tab-icon">🔗</span>
                 <span class="tab-label">Hybrid</span>
                 <span class="tab-sel-badge">★ Selected</span>
               </div>
-              <div class="cmp-mob-tab" id="mob-tab-abltc" onclick="mobTab('abltc')">
+              <div class="cmp-mob-tab" id="mob-tab-abltc" data-qb-click="mobTab" data-qb-click-args='["abltc"]'>
                 <span class="tab-icon">🏦</span>
                 <span class="tab-label">ABLTC</span>
                 <span class="tab-sel-badge">★ Selected</span>
@@ -1399,7 +1399,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
                 <a href="tel:8888048590" class="btn-cta-outline">📞 Call (888) 804-8590</a>
               </div>
               <br>
-              <button class="btn-restart" onclick="restart()">↺ Start over with new inputs</button>
+              <button class="btn-restart" data-qb-click="restart">↺ Start over with new inputs</button>
             </div>
           </div>
 
@@ -1446,441 +1446,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   </div>
 </footer>
 
-<script>
-let curStep = 0;
-const TOTAL_STEPS = 5;
-const BADGE_LABELS = ['C','A','R','E','✉'];
-
-function syncVal(id, outId, isCurrency, suffix) {
-  const v = parseInt(document.getElementById(id).value);
-  const el = document.getElementById(outId);
-  if (isCurrency) el.textContent = '$' + v.toLocaleString();
-  else if (suffix) el.textContent = v + ' ' + suffix;
-  else el.textContent = v;
-}
-
-function pickRadio(el, groupId) {
-  document.querySelectorAll('#' + groupId + ' .radio-opt').forEach(o => o.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-function toggleCheck(el) {
-  el.classList.toggle('sel');
-  el.querySelector('.check-box').textContent = el.classList.contains('sel') ? '✓' : '';
-}
-
-function pickSingle(el, groupId) {
-  document.querySelectorAll('#' + groupId + ' .check-opt').forEach(o => {
-    o.classList.remove('sel');
-    o.querySelector('.check-box').textContent = '';
-  });
-  el.classList.add('sel');
-  el.querySelector('.check-box').textContent = '✓';
-}
-
-// Auto-format phone as (xxx) xxx-xxxx
-document.addEventListener('DOMContentLoaded', function() {
-  const ph = document.getElementById('cf-phone');
-  if (ph) {
-    ph.addEventListener('input', function() {
-      let digits = this.value.replace(/\D/g, '').slice(0, 10);
-      let formatted = '';
-      if (digits.length > 0) formatted = '(' + digits.slice(0,3);
-      if (digits.length >= 4) formatted += ') ' + digits.slice(3,6);
-      if (digits.length >= 7) formatted += '-' + digits.slice(6,10);
-      this.value = formatted;
-    });
-  }
-});
-
-function goStep(n) {
-  if (n > curStep) {
-    for (let i = 0; i < curStep; i++) {
-      document.getElementById('tab' + i).classList.remove('active');
-      document.getElementById('tab' + i).classList.add('done');
-      document.getElementById('badge' + i).textContent = '✓';
-    }
-  }
-  document.getElementById('step' + curStep).classList.remove('active');
-  document.getElementById('tab' + curStep).classList.remove('active');
-  document.getElementById('resultsPanel').classList.remove('show');
-
-  curStep = n;
-  document.getElementById('step' + curStep).classList.add('active');
-  document.getElementById('tab' + curStep).classList.add('active');
-  document.getElementById('tab' + curStep).classList.remove('done');
-
-  window.scrollTo({ top: document.querySelector('.calc-card').offsetTop - 80, behavior: 'smooth' });
-}
-
-function getRadioVal(groupId) {
-  const sel = document.querySelector('#' + groupId + ' .sel');
-  return sel ? sel.dataset.val : null;
-}
-
-function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
-function pct(n) { return (n * 100).toFixed(1) + '%'; }
-
-/* ── Contact validation ── */
-function setErr(id, msg) {
-  const el = document.getElementById(id);
-  const inp = document.getElementById(id.replace('err-', 'cf-'));
-  el.textContent = msg;
-  if (inp) { msg ? inp.classList.add('error') : inp.classList.remove('error'); }
-}
-
-function validateContact() {
-  let ok = true;
-  const fname = document.getElementById('cf-fname').value.trim();
-  const lname = document.getElementById('cf-lname').value.trim();
-  const email = document.getElementById('cf-email').value.trim();
-  const phone = document.getElementById('cf-phone').value.trim();
-  const dob   = document.getElementById('cf-dob').value;
-  const state = document.getElementById('cf-state').value;
-
-  if (!fname) { setErr('err-fname', 'First name is required.'); ok = false; } else setErr('err-fname', '');
-  if (!lname) { setErr('err-lname', 'Last name is required.'); ok = false; } else setErr('err-lname', '');
-  /* Required because it decides WHO may take this lead: an agent not
-     licensed where the applicant lives is skipped by routing, and a lead
-     with no state skips that check entirely. */
-  if (!state) { setErr('err-state', 'State is required.'); ok = false; } else setErr('err-state', '');
-
-  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email) { setErr('err-email', 'Email address is required.'); ok = false; }
-  else if (!emailRe.test(email)) { setErr('err-email', 'Please enter a valid email address.'); ok = false; }
-  else setErr('err-email', '');
-
-  const digits = phone.replace(/\D/g, '');
-  /* Optional. Only the number that unlocks results can trigger a text, and
-     making it compulsory costs quotes from people who will not give one.
-     Still validated when they DO type one -- a half-entered number is a
-     lead nobody can ring. */
-  if (phone && digits.length < 10) { setErr('err-phone', 'Please enter a 10-digit phone number.'); ok = false; }
-  else setErr('err-phone', '');
-
-  if (!dob) { setErr('err-dob', 'Date of birth is required.'); ok = false; }
-  else {
-    const dobDate = new Date(dob);
-    const today = new Date();
-    const age = today.getFullYear() - dobDate.getFullYear() - (today < new Date(today.getFullYear(), dobDate.getMonth(), dobDate.getDate()) ? 1 : 0);
-    if (age < 18 || age > 100) { setErr('err-dob', 'Please enter a valid date of birth.'); ok = false; }
-    else setErr('err-dob', '');
-  }
-  return ok;
-}
-
-function submitContact() {
-  if (!validateContact()) {
-    // Scroll to first error
-    const firstErr = document.querySelector('.text-input.error');
-    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-  showResults();
-}
-
-/* ── Mobile tab switcher ── */
-function mobTab(col) {
-  ['trad','hybrid','abltc'].forEach(c => {
-    document.getElementById('mob-tab-' + c).classList.toggle('active', c === col);
-    document.getElementById('mob-panel-' + c).classList.toggle('active', c === col);
-  });
-}
-
-/* ── Results ── */
-/* ---- Quote Bot lead capture ------------------------------------------ */
-function qbCaptureLead(){
-  if (!window.QuoteBot) return;
-  try {
-    var V = function(id){ var e=document.getElementById(id); return e ? String(e.value).trim() : ""; };
-    var N = function(id){ var e=document.getElementById(id); return e ? (parseFloat(String(e.value).replace(/[^0-9.\-]/g,""))||0) : null; };
-    var C = function(sel){ var e=document.querySelector(sel); return e ? e.textContent.replace(/\s+/g," ").trim() : null; };
-    if (!V('cf-email')) return;
-    window.QuoteBot.capture({
-      email: V('cf-email'), phone: V('cf-phone'),
-      firstName: V('cf-fname'), lastName: V('cf-lname'),
-      productLine: 'LONG_TERM_CARE',
-      inputs: { dateOfBirth: V('cf-dob'), state: V('cf-state') },
-      results: null,
-      consentText: C('#qb-consent')
-    });
-  } catch (e) { /* capture must never break the calculator */ }
-}
-
-function showResults() {
-  qbCaptureLead();
-  document.getElementById('step4').classList.remove('active');
-  document.getElementById('tab4').classList.remove('active');
-  document.getElementById('tab4').classList.add('done');
-  document.getElementById('badge4').textContent = '✓';
-
-  // ── Inputs ──────────────────────────────────────────────────────────────
-  const retAssets    = parseInt(document.getElementById('retAssets').value);
-  const homeEq       = parseInt(document.getElementById('homeEq').value);
-  const age          = parseInt(document.getElementById('age').value);
-  const gender       = getRadioVal('genderGroup');
-  const marital      = getRadioVal('maritalGroup');
-  const familyHx     = getRadioVal('familyHxGroup');
-  const health       = getRadioVal('healthGroup');
-  const careRegion   = parseInt(getRadioVal('careRegionGroup'));
-  const benefitYears = parseInt(document.getElementById('benefitYears').value);
-  const selfFund     = parseInt(document.getElementById('selfFund').value);
-  const inflation    = getRadioVal('inflationGroup');
-  const policyType   = getRadioVal('policyTypeGroup') || 'hybrid';
-  const spouse       = getRadioVal('spouseGroup');
-  const repo         = getRadioVal('repoGroup');
-
-  // ── Core benefit numbers ─────────────────────────────────────────────────
-  const totalAssets    = retAssets + homeEq;
-  const netMonthlyCare = Math.max(500, careRegion - selfFund);
-  const careExposure   = netMonthlyCare * 12 * benefitYears;
-  const benefitPool    = Math.min(careExposure, retAssets * 0.85);
-
-  // ── Risk score ───────────────────────────────────────────────────────────
-  let riskScore = 45;
-  if (gender === 'female')       riskScore += 15;
-  if (familyHx === 'yes')        riskScore += 22;
-  if (familyHx === 'unknown')    riskScore += 8;
-  if (age >= 65)                 riskScore += 18;
-  else if (age >= 60)            riskScore += 10;
-  if (health === 'fair')         riskScore += 12;
-  if (marital === 'single')      riskScore += 8;
-  if (marital === 'married')     riskScore -= 5;
-  riskScore = Math.min(95, Math.max(18, riskScore));
-
-  let riskLabel, riskColor, riskClass;
-  if      (riskScore >= 68) { riskLabel = 'High';     riskColor = '#dc2626'; riskClass = 'high'; }
-  else if (riskScore >= 42) { riskLabel = 'Moderate'; riskColor = '#d97706'; riskClass = 'moderate'; }
-  else                      { riskLabel = 'Lower';    riskColor = '#16a34a'; riskClass = 'lower'; }
-
-  // ── Insurability string (shared) ─────────────────────────────────────────
-  let insurabilityText;
-  if (age + 5 >= 70 || health === 'fair') insurabilityText = 'Uncertain';
-  else if (age + 5 >= 65)                 insurabilityText = 'Possible — 1-in-4 declined at 65+';
-  else                                    insurabilityText = 'Likely insurable';
-
-  const waitAge = age + 5;
-
-  // ── Couple discount flags ────────────────────────────────────────────────
-  const coupleDisc     = (spouse === 'yes' && marital === 'married') ? 0.83 : 1.0;
-  const abltcCoupleDisc = (spouse === 'yes' && marital === 'married') ? 0.93 : 1.0;
-  const coupleLabel    = (spouse === 'yes' && marital === 'married') ? '10–30% applied' : 'Not applicable';
-  const abltcCoupleLbl = (spouse === 'yes' && marital === 'married') ? '5–10% applied'  : 'Not applicable';
-
-  // ── Inflation label ──────────────────────────────────────────────────────
-  const inflLabels = { none: 'None', simple: '3% simple', compound: '3% compound' };
-  const inflLabel  = inflLabels[inflation] || '3% compound';
-
-  // ── Base annual premium mid (Traditional / Hybrid shared base) ────────────
-  let base = (gender === 'female') ? 3900 : 2800;
-  if      (age < 50) base *= 0.62;
-  else if (age < 55) base *= 0.80;
-  else if (age < 60) base *= 1.00;
-  else if (age < 65) base *= 1.38;
-  else               base *= 1.80;
-  base *= (careRegion / 5000);
-  if (inflation === 'compound') base *= 1.30;
-  else if (inflation === 'simple') base *= 1.15;
-  if (benefitYears > 3) base *= (1 + (benefitYears - 3) * 0.18);
-  base *= coupleDisc;
-
-  const ageFactor5 = age < 60 ? 1.40 : 1.60;
-
-  // ── Traditional premium range ─────────────────────────────────────────────
-  const tradBase      = base * 1.00;
-  const tradLowNow    = Math.round(tradBase * 0.78 / 100) * 100;
-  const tradHighNow   = Math.round(tradBase * 1.28 / 100) * 100;
-  const tradLowWait   = Math.round(tradBase * 0.78 * ageFactor5 / 100) * 100;
-  const tradHighWait  = Math.round(tradBase * 1.28 * ageFactor5 / 100) * 100;
-  const tradMidNow    = (tradLowNow + tradHighNow) / 2;
-  const tradMidWait   = (tradLowWait + tradHighWait) / 2;
-  const tradDelay     = Math.round(((tradMidWait - tradMidNow) * 20 + tradMidNow * 5) / 100) * 100;
-
-  // ── Hybrid premium range ──────────────────────────────────────────────────
-  const hybBase       = base * 1.20;
-  const hybLowNow     = Math.round(hybBase * 0.72 / 100) * 100;
-  const hybHighNow    = Math.round(hybBase * 1.45 / 100) * 100;
-  const hybLowWait    = Math.round(hybBase * 0.72 * ageFactor5 / 100) * 100;
-  const hybHighWait   = Math.round(hybBase * 1.45 * ageFactor5 / 100) * 100;
-  const hybMidNow     = (hybLowNow + hybHighNow) / 2;
-  const hybMidWait    = (hybLowWait + hybHighWait) / 2;
-  const hybDelay      = Math.round(((hybMidWait - hybMidNow) * 20 + hybMidNow * 5) / 100) * 100;
-
-  // ── ABLTC single-premium range ────────────────────────────────────────────
-  let leverageLow, leverageMid, leverageHigh;
-  if      (age < 55) { leverageLow = 2.5; leverageMid = 3.0; leverageHigh = 3.5; }
-  else if (age < 60) { leverageLow = 2.2; leverageMid = 2.6; leverageHigh = 3.0; }
-  else if (age < 65) { leverageLow = 1.9; leverageMid = 2.2; leverageHigh = 2.6; }
-  else if (age < 70) { leverageLow = 1.6; leverageMid = 1.9; leverageHigh = 2.2; }
-  else               { leverageLow = 1.3; leverageMid = 1.6; leverageHigh = 1.9; }
-
-  const abltcLowNow  = Math.round((benefitPool / leverageHigh) * abltcCoupleDisc / 1000) * 1000;
-  const abltcHighNow = Math.round((benefitPool / leverageLow)  * abltcCoupleDisc / 1000) * 1000;
-
-  const levLowW  = Math.max(1.1, leverageLow  - 0.30);
-  const levHighW = Math.max(1.3, leverageHigh - 0.40);
-  const abltcLowWait  = Math.round((benefitPool / levHighW) * abltcCoupleDisc / 1000) * 1000;
-  const abltcHighWait = Math.round((benefitPool / levLowW)  * abltcCoupleDisc / 1000) * 1000;
-  const abltcMidNow   = (abltcLowNow  + abltcHighNow)  / 2;
-  const abltcMidWait  = (abltcLowWait + abltcHighWait) / 2;
-  const abltcDelay    = Math.round((abltcMidWait - abltcMidNow) / 1000) * 1000;
-
-  // ── Summary tiles ────────────────────────────────────────────────────────
-  const fname   = document.getElementById('cf-fname').value.trim();
-  const titleEl = document.querySelector('.results-title');
-  if (titleEl && fname) titleEl.textContent = fname + "'s C.A.R.E. Analysis";
-
-  document.getElementById('r-totalAssets').textContent   = fmt(totalAssets);
-  document.getElementById('r-careExp').textContent        = fmt(careExposure);
-  document.getElementById('r-careExpSub').textContent     = 'over ' + benefitYears + '-year benefit period';
-  document.getElementById('r-benefitPool').textContent    = fmt(benefitPool);
-  document.getElementById('r-monthlyBenefit').textContent = fmt(netMonthlyCare);
-
-  const rBadge = document.getElementById('r-riskBadge');
-  rBadge.textContent = riskLabel; rBadge.className = 'risk-badge ' + riskClass;
-  document.getElementById('r-riskFill').style.width      = riskScore + '%';
-  document.getElementById('r-riskFill').style.background = riskColor;
-
-  // ── Highlight selected column ─────────────────────────────────────────────
-  const colMap = { traditional: 'trad', hybrid: 'hybrid', annuity: 'abltc' };
-  const sel    = colMap[policyType] || 'hybrid';
-  ['trad','hybrid','abltc'].forEach(c => {
-    const head = document.getElementById('cmp-head-' + c);
-    if (head) head.classList.toggle('selected', c === sel);
-    document.querySelectorAll('#c-' + c + '-monthly, #c-' + c + '-period, #c-' + c + '-pool, #c-' + c + '-inflation, #c-' + c + '-couple, #c-' + c + '-prem-now, #c-' + c + '-cum20, #c-' + c + '-prem-wait, #c-' + c + '-prem-delay, #c-' + c + '-insure, #c-' + c + '-assets, #c-' + c + '-pct, #c-' + c + '-costpct').forEach(el => {
-      if (el) el.classList.toggle('selected', c === sel);
-    });
-  });
-
-  // ── Coverage Design rows ─────────────────────────────────────────────────
-  const monthly    = fmt(netMonthlyCare) + ' / mo';
-  const period     = benefitYears + ' years';
-  const pool       = fmt(benefitPool);
-
-  ['trad','hybrid','abltc'].forEach(c => {
-    document.getElementById('c-' + c + '-monthly').textContent    = monthly;
-    document.getElementById('c-' + c + '-period').textContent     = period;
-    document.getElementById('c-' + c + '-pool').textContent       = pool;
-    document.getElementById('c-' + c + '-inflation').textContent  = inflLabel;
-  });
-
-  // ── Couple discount ───────────────────────────────────────────────────────
-  document.getElementById('c-trad-couple').textContent   = coupleLabel;
-  document.getElementById('c-hybrid-couple').textContent = coupleLabel;
-  document.getElementById('c-abltc-couple').textContent  = abltcCoupleLbl;
-
-  // ── Wait age labels ───────────────────────────────────────────────────────
-  ['cmp-waitAge','cmp-waitAge2','cmp-waitAge3'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = waitAge;
-  });
-
-  // ── Cost of Delay ─────────────────────────────────────────────────────────
-  document.getElementById('c-trad-prem-now').textContent   = fmt(tradLowNow)  + ' – ' + fmt(tradHighNow)  + '/yr';
-  document.getElementById('c-hybrid-prem-now').textContent = fmt(hybLowNow)   + ' – ' + fmt(hybHighNow)   + '/yr';
-  document.getElementById('c-abltc-prem-now').textContent  = fmt(abltcLowNow) + ' – ' + fmt(abltcHighNow) + '\n(lump sum)';
-
-  // Cumulative 20yr cost: annual × 20 for Traditional & Hybrid; ABLTC is one-time (same range)
-  const tradCum20Low  = Math.round(tradLowNow  * 20 / 100) * 100;
-  const tradCum20High = Math.round(tradHighNow * 20 / 100) * 100;
-  const hybCum20Low   = Math.round(hybLowNow   * 20 / 100) * 100;
-  const hybCum20High  = Math.round(hybHighNow  * 20 / 100) * 100;
-  document.getElementById('c-trad-cum20').textContent   = fmt(tradCum20Low)  + ' – ' + fmt(tradCum20High);
-  document.getElementById('c-hybrid-cum20').textContent = fmt(hybCum20Low)   + ' – ' + fmt(hybCum20High);
-  document.getElementById('c-abltc-cum20').textContent  = fmt(abltcLowNow)   + ' – ' + fmt(abltcHighNow) + '\n(one-time)';
-
-  document.getElementById('c-trad-prem-wait').textContent   = fmt(tradLowWait)  + ' – ' + fmt(tradHighWait)  + '/yr';
-  document.getElementById('c-hybrid-prem-wait').textContent = fmt(hybLowWait)   + ' – ' + fmt(hybHighWait)   + '/yr';
-  document.getElementById('c-abltc-prem-wait').textContent  = fmt(abltcLowWait) + ' – ' + fmt(abltcHighWait) + '\n(lump sum)';
-
-  document.getElementById('c-trad-prem-delay').textContent   = fmt(tradDelay)  + ' lifetime';
-  document.getElementById('c-hybrid-prem-delay').textContent = fmt(hybDelay)   + ' lifetime';
-  document.getElementById('c-abltc-prem-delay').textContent  = fmt(abltcDelay) + ' more deposit';
-
-  ['trad','hybrid','abltc'].forEach(c => {
-    document.getElementById('c-' + c + '-insure').textContent = insurabilityText;
-  });
-
-  // ── Asset Protection ──────────────────────────────────────────────────────
-  ['trad','hybrid','abltc'].forEach(c => {
-    document.getElementById('c-' + c + '-assets').textContent = fmt(retAssets);
-    document.getElementById('c-' + c + '-pct').textContent    = pct(benefitPool / retAssets);
-  });
-  document.getElementById('c-trad-costpct').textContent   = pct(tradMidNow  / retAssets) + '/yr';
-  document.getElementById('c-hybrid-costpct').textContent = pct(hybMidNow   / retAssets) + '/yr';
-  document.getElementById('c-abltc-costpct').textContent  = pct(abltcMidNow / retAssets) + ' (deposit)';
-
-  // ── Populate mobile cards ─────────────────────────────────────────────
-  const mobCols = { traditional: 'trad', hybrid: 'hybrid', annuity: 'abltc' };
-  const mobSel = mobCols[policyType] || 'hybrid';
-
-  // Set selected tab styling and panel selection class
-  ['trad','hybrid','abltc'].forEach(c => {
-    const tab   = document.getElementById('mob-tab-' + c);
-    const panel = document.getElementById('mob-panel-' + c);
-    if (tab)   tab.classList.toggle('selected-tab', c === mobSel);
-    if (panel) panel.classList.toggle('selected', c === mobSel);
-  });
-  // Start on selected tab
-  mobTab(mobSel);
-
-  // Mirror all values into mobile IDs
-  const mobMap = [
-    ['m-trad-monthly',   'c-trad-monthly'],   ['m-hybrid-monthly',  'c-hybrid-monthly'],  ['m-abltc-monthly',   'c-abltc-monthly'],
-    ['m-trad-period',    'c-trad-period'],     ['m-hybrid-period',   'c-hybrid-period'],   ['m-abltc-period',    'c-abltc-period'],
-    ['m-trad-pool',      'c-trad-pool'],       ['m-hybrid-pool',     'c-hybrid-pool'],     ['m-abltc-pool',      'c-abltc-pool'],
-    ['m-trad-inflation', 'c-trad-inflation'],  ['m-hybrid-inflation','c-hybrid-inflation'],['m-abltc-inflation', 'c-abltc-inflation'],
-    ['m-trad-couple',    'c-trad-couple'],     ['m-hybrid-couple',   'c-hybrid-couple'],   ['m-abltc-couple',    'c-abltc-couple'],
-    ['m-trad-prem-now',  'c-trad-prem-now'],  ['m-hybrid-prem-now', 'c-hybrid-prem-now'], ['m-abltc-prem-now',  'c-abltc-prem-now'],
-    ['m-trad-cum20',     'c-trad-cum20'],      ['m-hybrid-cum20',    'c-hybrid-cum20'],    ['m-abltc-cum20',     'c-abltc-cum20'],
-    ['m-trad-prem-wait', 'c-trad-prem-wait'], ['m-hybrid-prem-wait','c-hybrid-prem-wait'],['m-abltc-prem-wait', 'c-abltc-prem-wait'],
-    ['m-trad-delay',     'c-trad-prem-delay'],['m-hybrid-delay',    'c-hybrid-prem-delay'],['m-abltc-delay',    'c-abltc-prem-delay'],
-    ['m-trad-insure',    'c-trad-insure'],     ['m-hybrid-insure',   'c-hybrid-insure'],   ['m-abltc-insure',    'c-abltc-insure'],
-    ['m-trad-assets',    'c-trad-assets'],     ['m-hybrid-assets',   'c-hybrid-assets'],   ['m-abltc-assets',    'c-abltc-assets'],
-    ['m-trad-pct',       'c-trad-pct'],        ['m-hybrid-pct',      'c-hybrid-pct'],      ['m-abltc-pct',       'c-abltc-pct'],
-    ['m-trad-costpct',   'c-trad-costpct'],    ['m-hybrid-costpct',  'c-hybrid-costpct'],  ['m-abltc-costpct',   'c-abltc-costpct'],
-  ];
-  mobMap.forEach(([mobId, deskId]) => {
-    const src  = document.getElementById(deskId);
-    const dest = document.getElementById(mobId);
-    if (src && dest) dest.textContent = src.textContent;
-  });
-  // Age labels in mobile cards
-  ['trad','hybrid','abltc'].forEach(c => {
-    const wa  = document.getElementById('m-' + c + '-wait-age');
-    const ia  = document.getElementById('m-' + c + '-insure-age');
-    if (wa) wa.textContent = waitAge;
-    if (ia) ia.textContent = waitAge;
-  });
-
-  document.getElementById('resultsPanel').classList.add('show');
-  setTimeout(() => {
-    document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 100);
-}
-
-function restart() {
-  document.getElementById('resultsPanel').classList.remove('show');
-  document.querySelectorAll('.progress-step').forEach((t, i) => {
-    t.classList.remove('active', 'done');
-    document.getElementById('badge' + i).textContent = BADGE_LABELS[i];
-  });
-  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-  // Clear contact fields
-  ['cf-fname','cf-lname','cf-email','cf-phone','cf-dob'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.value = ''; el.classList.remove('error'); }
-  });
-  ['err-fname','err-lname','err-email','err-phone','err-dob'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = '';
-  });
-  curStep = 0;
-  document.getElementById('step0').classList.add('active');
-  document.getElementById('tab0').classList.add('active');
-  window.scrollTo({ top: document.querySelector('.calc-card').offsetTop - 80, behavior: 'smooth' });
-}
-</script>
+<script src="js/careltccalculator.js"></script>
 
 <!-- qb:apply-modal:start -->
 <div data-qb-apply-modal class="qbm-veil" id="qbm-veil" role="dialog" aria-modal="true"

@@ -47,22 +47,50 @@ customHeaders:
       - key: 'Permissions-Policy'
         value: 'camera=(), microphone=(), geolocation=(), payment=()'
 
-      # NO Content-Security-Policy, AND THAT IS A DECISION RATHER THAN THE
-      # ONE THEY FORGOT.
+      # THE CONTENT-SECURITY-POLICY, now that it can be a real one.
       #
-      # These pages carry 389 inline event handlers -- onclick, onmouseenter,
-      # onchange and the rest, counted on 14 November -- and they load
-      # scripts from cdnjs.cloudflare.com. A CSP strict enough to be worth
-      # having blocks every one of those handlers, and the site breaks in a
-      # way that looks like nothing at all until somebody presses a button.
+      # This header used to be absent on purpose, and the note that stood
+      # here said why: 389 inline event handlers, and a policy strict enough
+      # to be worth having blocks every one of them. The site would have
+      # broken in the way that looks like nothing at all until somebody
+      # presses a button.
       #
-      # The alternative, `script-src 'self' 'unsafe-inline'`, permits exactly
-      # the injection the header exists to stop. It would turn the F into an
-      # A on a scanner and buy nothing real, which is worse than no header:
-      # it is a control that reports success.
+      # Those are gone -- all 392 of them in the end, and all 29 inline
+      # scripts with them. So `script-src 'self'` is simply true of this site
+      # now, rather than an aspiration with 'unsafe-inline' holding the door
+      # open. A policy that permits the injection it exists to stop is worse
+      # than no policy, because it reports success.
       #
-      # THE ACTUAL FIX is to move those handlers to addEventListener, page by
-      # page, and then add the policy. That is a real piece of work and it is
-      # tracked, not forgotten. admin.quote-bot.com already runs
-      # `script-src 'self'` with no inline anything, which is what this
-      # should look like when it is done.
+      # EVERY HOST HERE IS ONE THE SITE ACTUALLY LOADS, checked rather than
+      # guessed:
+      #   cdnjs.cloudflare.com   Chart.js, on the retirement distribution page
+      #   googletagmanager.com   gtag.js, injected by the consent gate AFTER
+      #                          somebody accepts cookies
+      #   fonts.googleapis.com   the stylesheet; fonts.gstatic.com the fonts
+      #   api.quote-bot.com      quote, lead and chat
+      #   google-analytics.com   where GA4 posts what it collects -- the
+      #                          wildcards cover the regional endpoints it
+      #                          picks on its own
+      #
+      # THE GOOGLETAGMANAGER LINE IS HERE BECAUSE OF A LIVE BREAKAGE ON
+      # quote-bot.com. That policy went on without it, the consent gate's tag
+      # was refused, and nothing was measured for anyone who consented. The
+      # pages looked perfect and securityheaders.com gave the site an A+,
+      # because a scanner grades the header rather than whether the header
+      # matches the site.
+      #
+      # It survived a report-only pass because the tag only loads after
+      # somebody clicks accept, and nobody did while it was being measured.
+      # Report-only sees what runs while it is watching; a consent gate
+      # exists to stop things running. So the gated paths on these pages were
+      # walked in a browser under this exact policy before it was written
+      # here -- accept cookies, open the chat, open the apply modal, on both
+      # the shared modal and MYGA's own. No violations on any of them.
+      #
+      # 'unsafe-inline' IS PRESENT IN style-src, AND ONLY THERE. These pages
+      # are inline-styled throughout and the chat widget injects a <style>
+      # element; removing that is a rewrite of every page and buys little,
+      # since inline CSS cannot execute. script-src carries no such escape
+      # hatch, and the test beside this file fails if one appears.
+      - key: 'Content-Security-Policy'
+        value: "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.quote-bot.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"

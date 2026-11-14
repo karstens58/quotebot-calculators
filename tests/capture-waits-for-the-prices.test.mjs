@@ -129,7 +129,7 @@ test('myga captures after its figures exist, and still captures when they do not
    * Nothing here reported it, because "capture happens after the prices
    * arrive" was only ever checked against `await`.
    */
-  const src = strip(readFileSync(`${SITE}mygacalculator.html`, 'utf8'));
+  const src = strip(pageSource('mygacalculator.html'));
   const at = src.indexOf('function runCalc(');
   assert.notEqual(at, -1, 'runCalc is gone from mygacalculator.html');
   const fn = src.slice(at, src.indexOf('\n}\n', at));

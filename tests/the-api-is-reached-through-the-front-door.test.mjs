@@ -78,7 +78,13 @@ test('EVERY API ADDRESS IS A DOOR THE DISTRIBUTION ROUTES', () => {
 test('and the three doors are each still reached from somewhere', () => {
   /* The other direction. A rename that quietly dropped every caller of one
      door would pass the tests above by naming nothing wrong. */
-  const all = PAGES.map((p) => read(p)).join('\n');
+  /* Pages AND shipped scripts. A door is reached from wherever the code
+     that calls it lives, and these pages' script moved into js/ for the
+     Content-Security-Policy -- the quote door is named in js/qb-config.js
+     now, not in any .html. Reading only the markup made it look as though
+     every caller had been lost. */
+  const all = [...PAGES.map((p) => read(p)),
+    ...SCRIPTS.map((js) => read(path.join('js', js)))].join('\n');
   for (const door of DOORS) {
     assert.ok(all.includes(`https://api.quote-bot.com/${door}`),
       `nothing calls the ${door} door any more — either it moved somewhere `
