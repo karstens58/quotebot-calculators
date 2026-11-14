@@ -341,6 +341,23 @@
     if (box) box.checked = allowed('analytics');
   };
 
+  /* The footer's "Consent Preferences" control used to call the function
+     above from an onclick attribute. A Content-Security-Policy without
+     'unsafe-inline' blocks that attribute, so the button is marked instead
+     and bound here -- next to the function it calls, rather than in a
+     separate file that could be dropped without anyone noticing the control
+     had gone quiet.
+
+     Delegated from the document because the footer is injected into the page
+     by tools/apply-chrome.mjs, and a listener bound to the button directly
+     would have to wait for, and know about, that. */
+  document.addEventListener('click', function (e) {
+    var hit = e.target.closest && e.target.closest('[data-consent-reopen]');
+    if (!hit) return;
+    e.preventDefault();
+    window.qbConsentReopen();
+  });
+
   /* ---- the banner ------------------------------------------------------- */
 
   function dismiss(el) { el.remove(); document.body.classList.remove('has-consent-bar'); }

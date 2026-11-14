@@ -37,21 +37,42 @@ const stripComments = (html) => html.replace(/<!--[\s\S]*?-->/g, '');
 const HOVER_CSS = read('site/css/qb-hover.css');
 const LINK = 'css/qb-hover.css';
 
+const HOVER = /\sonmouse(?:enter|leave|over|out)\s*=/gi;
+/* A focus handler whose whole body is `this.style.X = ...` is a style rule
+   written in the wrong place, and every one of those is now CSS. The two
+   onblur handlers still here call real functions and carry real logic; they
+   go with the other 237 handlers, not with this change, and this must not
+   claim otherwise. */
+const STYLE_FOCUS = /\son(?:focus|blur)\s*=\s*"\s*this\.style\.[^"]*"/gi;
+
 test('no page carries an inline hover handler', () => {
   const offenders = [];
   for (const p of PAGES) {
-    const hits = stripComments(read(p)).match(/\sonmouse(?:enter|leave|over|out)\s*=/gi) || [];
+    const hits = stripComments(read(p)).match(HOVER) || [];
     if (hits.length) offenders.push(`${p} (${hits.length})`);
   }
   assert.deepEqual(offenders, [], `inline hover handlers are back in: ${offenders.join(', ')}`);
 });
 
+test('no page styles an element from an inline focus or blur handler', () => {
+  const offenders = [];
+  for (const p of PAGES) {
+    const hits = stripComments(read(p)).match(STYLE_FOCUS) || [];
+    if (hits.length) offenders.push(`${p} (${hits.length})`);
+  }
+  assert.deepEqual(offenders, [], `focus styling back in a handler: ${offenders.join(', ')}`);
+});
+
 test('the check above can actually fail', () => {
   /* A test that cannot fail is decoration. Prove this one bites. */
   const sample = '<a class="hv-social" onmouseenter="this.style.color=\'#fff\'">x</a>';
-  assert.match(sample, /\sonmouse(?:enter|leave|over|out)\s*=/i);
-  assert.doesNotMatch(stripComments(`<!-- ${sample} -->`), /\sonmouse(?:enter|leave|over|out)\s*=/i,
+  assert.match(sample, HOVER);
+  assert.doesNotMatch(stripComments(`<!-- ${sample} -->`), HOVER,
     'a handler quoted inside a comment must not count as a live one');
+  /* and the focus check must tell a style handler from a real one */
+  assert.match('<input onblur="this.style.borderColor=\'red\'">', STYLE_FOCUS);
+  assert.doesNotMatch('<input onblur="onCoverageBlur(1,this)">', STYLE_FOCUS,
+    'a focus handler that calls a function is not a style handler');
 });
 
 test('no element keeps an inline value for a property its hover class sets', () => {
@@ -111,18 +132,18 @@ test('each hover class defines a resting value for every property it hovers', ()
      a class that only has a :hover rule has nothing to hover back to. */
   const rest = new Map();
   const hover = new Map();
-  for (const m of HOVER_CSS.matchAll(/^((?:\.[a-z0-9-]+(?::hover)?,?\s*)+)\{([^}]*)\}/gm)) {
+  for (const m of HOVER_CSS.matchAll(/^((?:\.[a-z0-9-]+(?::(?:hover|focus))?,?\s*)+)\{([^}]*)\}/gm)) {
     const props = [...m[2].matchAll(/([a-z-]+)\s*:/g)].map((x) => x[1]);
     for (const sel of m[1].split(',').map((s) => s.trim()).filter(Boolean)) {
-      const cls = sel.replace(/^\./, '').replace(/:hover$/, '');
-      const bag = sel.endsWith(':hover') ? hover : rest;
+      const cls = sel.replace(/^\./, '').replace(/:(?:hover|focus)$/, '');
+      const bag = /:(?:hover|focus)$/.test(sel) ? hover : rest;
       bag.set(cls, [...new Set([...(bag.get(cls) || []), ...props])]);
     }
   }
   const offenders = [];
   for (const [cls, props] of hover) {
     for (const prop of props) {
-      if (!(rest.get(cls) || []).includes(prop)) offenders.push(`.${cls}:hover sets ${prop} with no resting value`);
+      if (!(rest.get(cls) || []).includes(prop)) offenders.push(`.${cls} hovers/focuses ${prop} with no resting value`);
     }
   }
   assert.deepEqual(offenders, [], offenders.join('\n'));

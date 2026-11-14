@@ -571,15 +571,15 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         <div class="qb-gate-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">First Name <span style="color:var(--red);">*</span></label>
-            <input type="text" id="gate-first" placeholder="Jane" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input class="hv-focus-accent" type="text" id="gate-first" placeholder="Jane" style="width:100%;padding:11px 14px;border-width:1.5px;border-style:solid;border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;">
           </div>
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Last Name <span style="color:var(--red);">*</span></label>
-            <input type="text" id="gate-last" placeholder="Smith" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input class="hv-focus-accent" type="text" id="gate-last" placeholder="Smith" style="width:100%;padding:11px 14px;border-width:1.5px;border-style:solid;border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;">
           </div>
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Phone</label>
-            <input type="tel" id="gate-phone" placeholder="(555) 000-0000" oninput="formatPhone(this)" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input class="hv-focus-accent" type="tel" id="gate-phone" placeholder="(555) 000-0000" oninput="formatPhone(this)" style="width:100%;padding:11px 14px;border-width:1.5px;border-style:solid;border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;">
           </div>
             <div class="qb-gate-optin" data-qb-sms-optin></div>
           <div class="qb-gate-state">
@@ -589,7 +589,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
           <div>
             <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-dark);display:block;margin-bottom:6px;">Email <span style="color:var(--red);">*</span></label>
-            <input type="email" id="gate-email" placeholder="jane@example.com" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input class="hv-focus-accent" type="email" id="gate-email" placeholder="jane@example.com" style="width:100%;padding:11px 14px;border-width:1.5px;border-style:solid;border-radius:var(--radius);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s;">
           </div>
         </div>
         <div id="gate-error" style="display:none;font-size:12.5px;color:var(--red);font-weight:600;margin-bottom:10px;padding:8px 12px;background:var(--red-light);border-radius:8px;"></div>
@@ -1368,7 +1368,7 @@ window.addEventListener('load', () => { calculate(); });
         <a href="https://quote-bot.com/terms-of-service/">Terms of Use</a><span>|</span>
         <a href="https://quote-bot.com/privacy-policy/">Privacy Policy</a><span>|</span>
         <a href="https://quote-bot.com/cookie-policy/">Cookie Policy</a><span>|</span>
-        <button type="button" class="footer-consent-link" onclick="window.qbConsentReopen &amp;&amp; window.qbConsentReopen()">Consent Preferences</button>
+        <button type="button" class="footer-consent-link" data-consent-reopen>Consent Preferences</button>
       </div>
     </div>
   </div>

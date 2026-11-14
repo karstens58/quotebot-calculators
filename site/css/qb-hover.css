@@ -13,6 +13,9 @@
  * block there collided with 25 of its own selectors; these nine do not collide
  * with anything, so a linked stylesheet suits every page the same way.
  *
+ * Focus states live here too, for the same reason and by the same rule --
+ * the hv- prefix covers interaction states generally, not hover alone.
+ *
  * Linked into each page by tools/apply-chrome.mjs.
  */
 
@@ -44,3 +47,10 @@
 
 .hv-fade { opacity: 1; }
 .hv-fade:hover { opacity: .85; }
+
+/* The gate form's four inputs, which moved their focus ring off
+   onfocus/onblur. :focus rather than :focus-visible on purpose: the
+   handlers fired on any focus including a mouse click, and :focus-visible
+   would have quietly dropped the ring for mouse users. */
+.hv-focus-accent { border-color: var(--border, #d8e2f0); }
+.hv-focus-accent:focus { border-color: var(--accent, #4a90d9); }

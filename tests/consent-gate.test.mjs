@@ -132,14 +132,22 @@ test('THE FOOTER CONSENT LINK REACHES SOMETHING', () => {
    * and said nothing — harmless while there was no banner to reopen, and a
    * dead control the day there is one. Withdrawing has to be as easy as
    * agreeing, and the policy now promises exactly this button.
+   *
+   * The button no longer names the function: a CSP without 'unsafe-inline'
+   * blocks an onclick attribute, so it carries data-consent-reopen and the
+   * gate binds it. What is asserted is unchanged -- a control on every page,
+   * and something behind it -- but it is now counted by the marker, because
+   * counting the function name would pass on a page that merely mentions it.
    */
   const js = fs.readFileSync(path.join(ROOT, 'site/js/quotebot-consent.js'), 'utf8');
   const callers = withCapture.filter((f) =>
-    fs.readFileSync(path.join(ROOT, 'site', f), 'utf8').includes('qbConsentReopen'));
+    fs.readFileSync(path.join(ROOT, 'site', f), 'utf8').includes('data-consent-reopen'));
   assert.ok(callers.length >= 13,
     `only ${callers.length} pages offer a way to change your mind`);
   assert.match(js, /window\.qbConsentReopen\s*=/,
-    'the footer calls window.qbConsentReopen on every page and nothing defines it');
+    'the footer reopens consent on every page and nothing defines the function');
+  assert.match(js, /addEventListener\([\s\S]{0,40}\[data-consent-reopen\]|\[data-consent-reopen\]/,
+    'nothing binds the marker, so every one of those buttons is dead');
 });
 
 test('the banner points at a cookie policy that exists', () => {
@@ -281,4 +289,48 @@ test('STAFF ARE MARKED, AND THE TAG SENDS IT -- QBP-331', () => {
   assert.match(js, /\?\s*'internal'\s*:\s*undefined/,
     "the flag must be 'internal' or absent — GA4's built-in filter matches "
     + 'that exact value, and any other creates a bucket nobody filters on');
+});
+
+/*
+ * THE REOPEN CONTROL, AND THE ONE PAGE THAT SHOWS IT WITHOUT MEANING IT.
+ *
+ * The footer carries a "Consent Preferences" button on all fourteen pages,
+ * because tools/apply-chrome.mjs injects the same footer into all fourteen.
+ * Thirteen load js/quotebot-consent.js, which defines the function behind it.
+ * agentlessquote.html loads no external script at all, so there the button
+ * renders and does nothing -- and because the markup guards the call, it
+ * does nothing SILENTLY, with no error for anyone to notice.
+ *
+ * That is tolerable only while that page is the unlisted Assurity test page:
+ * noindex, nofollow, reached by a saved URL. It collects an email and a phone
+ * number, and agentless-is-unlisted.test.mjs says the noindex comes off in
+ * the same commit that links the page from the index. On that day it becomes
+ * a public page collecting contact details with no consent gate and a dead
+ * privacy control, and nothing else here would say so.
+ *
+ * So the exemption is tied to the noindex rather than to the filename. Remove
+ * the one and this fails until somebody adds the gate.
+ */
+test('every page showing the reopen control can actually reopen', () => {
+  for (const f of pages) {
+    const html = fs.readFileSync(path.join(ROOT, 'site', f), 'utf8');
+    if (!/data-consent-reopen/.test(html)) continue;
+    if (html.includes('quotebot-consent.js')) continue;
+    assert.match(html, /<meta\s+name="robots"\s+content="[^"]*noindex/i,
+      `${f} shows the consent-preferences button but loads no consent gate, `
+      + 'and is not unlisted — the control is dead on a public page');
+  }
+});
+
+test('the reopen control is bound in script, not from an attribute', () => {
+  /* A CSP without 'unsafe-inline' blocks an onclick attribute wherever it
+     came from, so the button carries a marker and the gate binds it. */
+  for (const f of pages) {
+    const html = fs.readFileSync(path.join(ROOT, 'site', f), 'utf8');
+    assert.doesNotMatch(html, /onclick="[^"]*qbConsentReopen/,
+      `${f}: the reopen control is back on an onclick attribute, which a CSP blocks`);
+  }
+  const gate = fs.readFileSync(path.join(ROOT, 'site/js/quotebot-consent.js'), 'utf8');
+  assert.match(gate, /\[data-consent-reopen\]/,
+    'nothing binds the marker, so the control does nothing on all fourteen pages');
 });
