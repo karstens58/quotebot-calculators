@@ -20,6 +20,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { pageScript } from './page-source.mjs';
 
 const SITE = path.join(import.meta.dirname, '..', 'site');
 const PAGES = fs.readdirSync(SITE).filter((f) => f.endsWith('.html'));
@@ -41,11 +42,17 @@ function inlineScript(html) {
 
 test('the sweep still finds the pages and their script', () => {
   assert.ok(PAGES.length >= 10, `only ${PAGES.length} pages found`);
+  /* Inline OR in the page's own file. The script is moving out of these
+     pages one at a time, for the Content-Security-Policy -- so counting only
+     inline script would have this tripwire fire on every page converted,
+     reporting a move as a disappearance. What it guards against is the sweep
+     silently matching nothing, and that is still exactly what it catches. */
   const withScript = PAGES.filter(
-    (f) => inlineScript(fs.readFileSync(path.join(SITE, f), 'utf8')).length > 500);
+    (f) => inlineScript(fs.readFileSync(path.join(SITE, f), 'utf8')).length
+      + pageScript(f).length > 500);
   assert.ok(withScript.length >= 10,
-    `only ${withScript.length} pages have inline script, which means this test `
-    + 'has stopped matching the site rather than the script having gone');
+    `only ${withScript.length} pages have script this test can find, which means `
+    + 'it has stopped matching the site rather than the script having gone');
 });
 
 test('EVERY PAGE SCRIPT PARSES', () => {

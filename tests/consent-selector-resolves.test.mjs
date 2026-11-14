@@ -30,6 +30,7 @@ import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSource } from './page-source.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const site = join(here, '..', 'site');
@@ -40,7 +41,9 @@ const NAMES_TEXTING = /\bsms\b|\btexts?\b|\btext messages?\b/;
 function capturingPages() {
   return readdirSync(site)
     .filter((f) => f.endsWith('.html'))
-    .map((f) => [f, readFileSync(join(site, f), 'utf8')])
+    /* pageSource: markup plus the page's own script, which moved out of the
+       page for the Content-Security-Policy. */
+    .map((f) => [f, pageSource(f)])
     .filter(([, h]) => /QuoteBot\.capture\s*\(/.test(h));
 }
 

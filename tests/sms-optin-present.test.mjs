@@ -17,6 +17,7 @@ import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSource } from './page-source.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const site = join(here, '..', 'site');
@@ -33,7 +34,9 @@ function capturingPages() {
        it, and the placement test below read those as three misplaced
        markers. Narrowing what is searched to markup is not a loosening of
        that rule: every real marker is still checked exactly as before. */
-    .map((f) => [f, readFileSync(join(site, f), 'utf8')
+    /* pageSource: markup plus the page's own script, which moved out of the
+       page for the Content-Security-Policy. */
+    .map((f) => [f, pageSource(f)
       .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')])
     .filter(([, html]) => /QuoteBot\.capture\s*\(/.test(html))
     .filter(([, html]) => /<input[^>]*(type="tel"|id="[^"]*phone)/i.test(html));

@@ -24,6 +24,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pageSource } from './page-source.mjs';
 
 const SITE = path.join(import.meta.dirname, '..', 'site');
 const PAGES = fs.readdirSync(SITE).filter((f) => f.endsWith('.html'));
@@ -333,7 +334,9 @@ test('NO CTA LINKS TO href="#"', () => {
  * above". A page that opens the apply modal has to declare its own figures.
  */
 test('EVERY PAGE USING THE APPLY MODAL DECLARES ITS SUMMARY', () => {
-  const srcOf = (f) => fs.readFileSync(path.join(SITE, f), 'utf8');
+  /* markup plus the page's own script: a page may declare data-qb-sum in
+     either, and the script is a file now. */
+  const srcOf = (f) => pageSource(f);
 
   /* Two ways a page can have a real summary, and the list of names that
      used to sit here recorded neither of them. A rate-card page feeds the

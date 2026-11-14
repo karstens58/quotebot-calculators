@@ -26,6 +26,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pageSource, pageScript } from './page-source.mjs';
 
 const SITE = path.join(import.meta.dirname, '..', 'site');
 
@@ -35,15 +36,21 @@ const KEYS = ['state', 'stateCode', 'businessState'];
 function capturingPages() {
   return fs.readdirSync(SITE)
     .filter((f) => f.endsWith('.html'))
-    .map((f) => [f, fs.readFileSync(path.join(SITE, f), 'utf8')])
+    /* pageSource: markup plus the page's own script, which moved out of the
+       page for the Content-Security-Policy. */
+    .map((f) => [f, pageSource(f)])
     .filter(([, html]) => /QuoteBot\.capture\s*\(/.test(html));
 }
 
-/** The page's scripts, with styles and markup stripped, so a CSS rule or an
- *  attribute cannot be mistaken for a key in the payload. */
-function scriptOf(html) {
-  return [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
-    .map((m) => m[1]).join('\n');
+/** The page's script, with styles and markup left out, so a CSS rule or an
+ *  attribute cannot be mistaken for a key in the payload. Takes the FILE
+ *  rather than its markup: the script is js/<page>.js now, and reading the
+ *  markup for <script> blocks finds nothing at all. */
+function scriptOf(file) {
+  return pageScript(file) + '\n'
+    + [...fs.readFileSync(path.join(SITE, file), 'utf8')
+      .matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
+      .map((m) => m[1]).join('\n');
 }
 
 test('the sweep still finds the calculators', () => {
@@ -56,7 +63,7 @@ test('the sweep still finds the calculators', () => {
 test('EVERY LEAD-CAPTURING PAGE SENDS A STATE', () => {
   const silent = [];
   for (const [file, html] of capturingPages()) {
-    const js = scriptOf(html);
+    const js = scriptOf(file);
     const sends = KEYS.some((k) => new RegExp(`\\b${k}\\s*:`).test(js));
     if (!sends) silent.push(file);
   }
@@ -75,7 +82,7 @@ test('A STATE FIELD ON THE FORM IS NOT LEFT OUT OF THE PAYLOAD', () => {
   for (const [file, html] of capturingPages()) {
     const hasField = /id="(?:cf-|f-|gate-|contact)?[Ss]tate"|id="bizState"/.test(html);
     if (!hasField) continue;
-    const js = scriptOf(html);
+    const js = scriptOf(file);
     if (!KEYS.some((k) => new RegExp(`\\b${k}\\s*:`).test(js))) dropped.push(file);
   }
   assert.deepEqual(dropped, [], `collected but never sent:\n  ${dropped.join('\n  ')}`);
