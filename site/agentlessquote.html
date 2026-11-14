@@ -623,7 +623,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         </div>
 
         <div class="field">
-          <label>Date of Birth <span class="req">*</span><span class="age-pill" id="agePill">Age 48</span></label>
+          <label>Date of Birth <span class="req">*</span><span class="age-pill" id="agePill" hidden></span></label>
           <input type="date" id="dob">
         </div>
 
@@ -1094,7 +1094,15 @@ document.querySelectorAll('.inputs-panel .seg').forEach(seg => {
   });
 });
 document.getElementById('dob').addEventListener('change', () => {
-  document.getElementById('agePill').textContent = 'Age ' + computeAge(document.getElementById('dob').value);
+  /* The pill showed a hardcoded "Age 48" in the markup, which was fine while a
+     date of birth was typed into the page and wrong the moment it was not: an
+     empty field beside a confident age nobody entered. It now appears only
+     once there is a date to compute from. */
+  const dobValue = document.getElementById('dob').value;
+  const agePill = document.getElementById('agePill');
+  const years = computeAge(dobValue);
+  agePill.hidden = !dobValue || !Number.isFinite(years) || years <= 0;
+  agePill.textContent = agePill.hidden ? '' : 'Age ' + years;
   if (shown()) renderAll();
 });
 // left-panel coverage formatting

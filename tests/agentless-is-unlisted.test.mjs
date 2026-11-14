@@ -71,6 +71,19 @@ test('IT TELLS CRAWLERS NOT TO INDEX IT, BECAUSE UNLINKED IS NOT UNREACHABLE', (
   assert.match(robots[1], /\bnofollow\b/, `robots content is "${robots[1]}"`);
 });
 
+test('NO AGE IS SHOWN BEFORE A DATE OF BIRTH IS GIVEN', () => {
+  /*
+   * The pill carried a hardcoded "Age 48" in the markup. That was invisible
+   * while my own date of birth was also typed into the page, and became an
+   * empty date field sitting beside a confident age nobody had entered the
+   * moment the demo values came out. It shipped that way for one deploy.
+   */
+  assert.doesNotMatch(HTML, /id="agePill"[^>]*>\s*Age\s*\d/,
+    'the age pill has a number printed into the markup');
+  assert.match(HTML, /id="agePill"[^>]*\shidden/,
+    'the age pill is not hidden until there is a date to compute from');
+});
+
 test('and it says, in the page, why it is arranged this way', () => {
   /* The arrangement is temporary and deliberate. A temporary state with no
      explanation attached is a permanent one nobody can safely undo. */
