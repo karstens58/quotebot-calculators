@@ -534,7 +534,9 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
 /* qb:chrome-css:end */
 </style>
-  <script src="js/quotebot-consent.js"
+  <script src="js/qb-actions.js"></script>
+<script src="js/qb-config.js"></script>
+<script src="js/quotebot-consent.js"
           data-version="2026-09-28"
           data-endpoint="https://api.quote-bot.com/lead/consent"
           data-analytics-id="G-TYQJ5CCJ1H"></script>
@@ -545,7 +547,6 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   <script src="js/quotebot-chat.js"
           data-endpoint="https://api.quote-bot.com/chat/"
           data-tool="quote" data-state="#state" data-context></script>
-  <script>window.QB_QUOTE_ENDPOINT = "https://api.quote-bot.com/quote/";</script>
   <link rel="stylesheet" href="css/quotebot-apply.css">
   <script>window.QB_APPLY = {"productLine":"TERM_LIFE","selection":function (s) { s.termYears = (typeof getInputs === "function" ? getInputs().term : null); return s; }};</script>
   <script src="js/quotebot-apply.js" defer></script>

@@ -18,14 +18,23 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 
-const HTML = readFileSync(new URL('../site/agentlessquote.html', import.meta.url), 'utf8');
+/*
+ * The page AND the script it loads, because this file asserts on both -- CSS
+ * rules and class attributes from the markup, function bodies from the
+ * script -- and the script moved out of the page when the inline <script>
+ * had to go for the Content-Security-Policy. Reading only the SRC made
+ * every cut() below fail at once, which is how this was noticed.
+ */
+const SRC = ['../site/agentlessquote.html', '../site/js/agentlessquote.js']
+  .map((f) => readFileSync(new URL(f, import.meta.url), 'utf8'))
+  .join('\n');
 
 function cut(start, endMarker) {
-  const i = HTML.indexOf(start);
+  const i = SRC.indexOf(start);
   assert.notEqual(i, -1, `could not find ${start}`);
-  const j = HTML.indexOf(endMarker, i + start.length);
+  const j = SRC.indexOf(endMarker, i + start.length);
   assert.notEqual(j, -1, `could not find the end of ${start}`);
-  return HTML.slice(i, j + endMarker.length);
+  return SRC.slice(i, j + endMarker.length);
 }
 
 /* The rider section, from the panel client through to the Apply handler.
@@ -288,10 +297,10 @@ test('THE RIDERS AND THEIR WORDS COME FROM THE CARRIER, NOT FROM THIS FILE', asy
 test('A HARDCODED RIDER LIST HAS NOT CREPT BACK IN', () => {
   /* The exact failure this wiring removed: five rider names typed into a
      public repository, right in Colorado and quietly wrong elsewhere. */
-  assert.doesNotMatch(HTML, /const RIDERS\s*=/);
+  assert.doesNotMatch(SRC, /const RIDERS\s*=/);
   for (const name of ['Critical Illness Rider', 'Disability Waiver of Premium Rider',
     "Children's Term Insurance Rider", 'Accident-Only Disability Income']) {
-    assert.ok(!HTML.includes(name),
+    assert.ok(!SRC.includes(name),
       `${name} is still typed into the page; it must come from the panel`);
   }
 });
@@ -299,8 +308,8 @@ test('A HARDCODED RIDER LIST HAS NOT CREPT BACK IN', () => {
 test('and no approved carrier wording is stored here either', () => {
   /* quotebot-backend holds one digest-verified copy. A second copy in this
      repository would have nothing checking it had not drifted. */
-  assert.doesNotMatch(HTML, /Accelerated Benefits Rider[^<"]{40,}/);
-  assert.doesNotMatch(HTML, /\bwe will pay\b|\bthe insured\b/i);
+  assert.doesNotMatch(SRC, /Accelerated Benefits Rider[^<"]{40,}/);
+  assert.doesNotMatch(SRC, /\bwe will pay\b|\bthe insured\b/i);
 });
 
 test('A DISCLOSURE STARTS CLOSED, AND THE STYLESHEET LETS IT', () => {
@@ -312,9 +321,9 @@ test('A DISCLOSURE STARTS CLOSED, AND THE STYLESHEET LETS IT', () => {
    * disclosure sat open anyway with the "?" doing nothing visible. A stubbed
    * DOM resolves no cascade and can never catch this; a real browser did.
    */
-  assert.match(HTML, /\.rider-note\[hidden\]\s*\{[^}]*display:\s*none/,
+  assert.match(SRC, /\.rider-note\[hidden\]\s*\{[^}]*display:\s*none/,
     '.rider-note sets display, so it needs its own [hidden] rule or it never hides');
-  assert.match(HTML, /class="rider-note" id="note-\$\{esc\(d\.lookup\)\}" hidden/,
+  assert.match(SRC, /class="rider-note" id="note-\$\{esc\(d\.lookup\)\}" hidden/,
     'the disclosure is rendered open');
 });
 
@@ -505,15 +514,15 @@ test('THE PAGE HOLDS NO RATE ENGINE AT ALL', () => {
    */
   for (const gone of ['PER1000', 'HEALTH_FACTOR', 'profileFactor', 'monthlyFor',
     'premiumIsEstimate', 'priceEstimate']) {
-    assert.ok(!HTML.includes(gone), `${gone} is back in the page`);
+    assert.ok(!SRC.includes(gone), `${gone} is back in the page`);
   }
-  assert.doesNotMatch(HTML, /Estimate only/, 'the estimate warning is still in the markup');
+  assert.doesNotMatch(SRC, /Estimate only/, 'the estimate warning is still in the markup');
 });
 
 test('AND SHOWS NO NUMBER IT DID NOT GET FROM THE CARRIER', () => {
   /* The box is empty while a price is in flight and a dash when one cannot
      be had. The only branch that writes a figure reads currentQuote. */
-  const render = /function renderPrice\(\)\{[\s\S]*?\n\}/.exec(HTML);
+  const render = /function renderPrice\(\)\{[\s\S]*?\n\}/.exec(SRC);
   assert.ok(render, 'renderPrice has been renamed — re-read this test');
   const writes = [...render[0].matchAll(/amt\.textContent = ([^;]+);/g)].map((m) => m[1].trim());
   assert.equal(writes.length, 2, `renderPrice writes the price ${writes.length} ways`);
@@ -526,10 +535,10 @@ test('AND SHOWS NO NUMBER IT DID NOT GET FROM THE CARRIER', () => {
 });
 
 test('ONLY ONE PLACE MAY SAY A PRICE IS THE CARRIER’S', () => {
-  const priced = [...HTML.matchAll(/priceState = '(\w+)'/g)].map((m) => m[1]);
+  const priced = [...SRC.matchAll(/priceState = '(\w+)'/g)].map((m) => m[1]);
   assert.equal(priced.filter((v) => v === 'priced').length, 1,
     'more than one place declares a price to be the carrier’s');
-  const applyQuote = /function applyQuote\(data\)\{?[\s\S]*?\n\}/.exec(HTML);
+  const applyQuote = /function applyQuote\(data\)\{?[\s\S]*?\n\}/.exec(SRC);
   assert.ok(applyQuote, 'applyQuote has been renamed — re-read this test');
   assert.match(applyQuote[0], /priceState = 'priced';/);
   assert.match(applyQuote[0], /currentQuote = data\.quote/,
@@ -546,7 +555,7 @@ test('EVERY WAY A PRICE CAN FAIL CLEARS THE NUMBER', () => {
     /if \(!res\.ok \|\| !data\.quote\)\{[\s\S]*?currentQuote = null;/,
     /catch \(err\) \{[\s\S]*?currentQuote = null;/,
     /function invalidatePrice\(\)\{[\s\S]*?currentQuote = null;/,
-  ]) assert.match(HTML, path, 'a failure path leaves the carrier’s old figure on screen');
+  ]) assert.match(SRC, path, 'a failure path leaves the carrier’s old figure on screen');
 });
 
 test('AND ANY CHANGE TO THE ASK INVALIDATES THE PRICE', () => {
@@ -556,7 +565,7 @@ test('AND ANY CHANGE TO THE ASK INVALIDATES THE PRICE', () => {
    * wrong number this page could show, so every input that feeds the ask
    * goes through the debounced re-price, which invalidates first.
    */
-  assert.match(HTML, /function pricePresently\(\)\{\s*\n\s*invalidatePrice\(\);/,
+  assert.match(SRC, /function pricePresently\(\)\{\s*\n\s*invalidatePrice\(\);/,
     'the debounced re-price does not invalidate before it waits');
 });
 
@@ -634,7 +643,7 @@ test('the floating treatment is fenced behind a fine pointer in CSS too', () => 
      stylesheet, or a touch screen gets an absolutely-positioned panel it
      cannot scroll to. */
   const fenced = /@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.rider-note \{[^}]*position: absolute/;
-  assert.match(HTML, fenced,
+  assert.match(SRC, fenced,
     'the bubble positioning is not inside a fine-pointer media query');
 });
 
@@ -801,7 +810,7 @@ test('AND A DEPLOYMENT THAT MAY NOT SHOW RATES SAYS NOTHING TO THE VISITOR', asy
     json: async () => ({ error: 'not approved', reason: 'display-not-approved' }) }));
   await s.priceNow();
   assert.equal(s.state().priceState, 'failed');
-  assert.match(HTML, /res\.status === 403\s*\n?\s*\? null/,
+  assert.match(SRC, /res\.status === 403\s*\n?\s*\? null/,
     'a 403 is shown to the visitor as a carrier problem');
 });
 
@@ -844,12 +853,12 @@ test('THE $ SITS BESIDE THE DIGITS, NOT ON TOP OF THEM', () => {
    * Asserted in the stylesheet because no stubbed DOM resolves a cascade.
    * It took a screenshot of the live page to see it.
    */
-  const rule = /\.rider-field \.input-prefix \{([^}]*)\}/.exec(HTML);
+  const rule = /\.rider-field \.input-prefix \{([^}]*)\}/.exec(SRC);
   assert.ok(rule, '.rider-field .input-prefix has been renamed — re-read this test');
   assert.match(rule[1], /position:\s*static/,
     'the absolute positioning from the base rule is not undone');
 
-  const base = /(^|\n)\.input-prefix \{([^}]*)\}/.exec(HTML);
+  const base = /(^|\n)\.input-prefix \{([^}]*)\}/.exec(SRC);
   assert.ok(base, 'the base .input-prefix rule has gone — this test may be obsolete');
   assert.match(base[2], /position:\s*absolute/,
     'the base rule no longer positions absolutely, so this override may be dead code');
@@ -864,10 +873,10 @@ test('APPLY FOLDS THE FIELDS AWAY AND LEAVES THE FIGURE', () => {
    * stays is the amount that was applied and a way back to it, because
    * collapsing a panel that cannot be reopened is just losing it.
    */
-  assert.match(HTML, /id="applied-\$\{esc\(r\.lookup\)\}" hidden/,
+  assert.match(SRC, /id="applied-\$\{esc\(r\.lookup\)\}" hidden/,
     'the applied summary is rendered open');
-  assert.match(HTML, /class="rider-edit" data-edit=/, 'there is no way back into the fields');
-  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(HTML);
+  assert.match(SRC, /class="rider-edit" data-edit=/, 'there is no way back into the fields');
+  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(SRC);
   assert.ok(handler, 'the Apply handler has moved — re-read this test');
   assert.match(handler[0], /fields\.hidden = true;/, 'Apply does not fold the fields away');
 });
@@ -878,7 +887,7 @@ test('BUT NOT WHEN IT WAS REFUSED', () => {
    * the bad one marked. Collapsing a panel somebody still has to fix is how
    * a form loses someone.
    */
-  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(HTML);
+  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(SRC);
   assert.ok(handler, 'the Apply handler has moved — re-read this test');
   const bail = handler[0].indexOf('if (!ok) return;');
   const fold = handler[0].indexOf('fields.hidden = true;');
@@ -889,10 +898,10 @@ test('BUT NOT WHEN IT WAS REFUSED', () => {
 test('and switching a rider off clears what Apply left', () => {
   /* Including the partner dropped by the one-disability-rider rule, which
      is switched off without anybody touching it. */
-  const off = /chosenRiders\.delete\(lookup\);[\s\S]*?pricePresently\(\);/.exec(HTML);
+  const off = /chosenRiders\.delete\(lookup\);[\s\S]*?pricePresently\(\);/.exec(SRC);
   assert.ok(off, 'the switch-off path has moved — re-read this test');
   assert.match(off[0], /applied-' \+ lookup/, 'the applied figure survives the rider being removed');
-  const exclusive = /\(tg\.dataset\.exclusive \|\| ''\)[\s\S]*?\}\);/.exec(HTML);
+  const exclusive = /\(tg\.dataset\.exclusive \|\| ''\)[\s\S]*?\}\);/.exec(SRC);
   assert.match(exclusive[0], /applied-' \+ other/,
     'the dropped disability rider keeps its applied figure on screen');
 });
@@ -919,13 +928,13 @@ test('and a deliberate change does not wait out the slider debounce', () => {
    * Waiting 450ms on behalf of somebody who is not still moving anything is
    * half a second of nothing.
    */
-  const immediate = /function priceImmediately\(\)\{[\s\S]*?\n\}/.exec(HTML);
+  const immediate = /function priceImmediately\(\)\{[\s\S]*?\n\}/.exec(SRC);
   assert.ok(immediate, 'priceImmediately has been renamed — re-read this test');
   assert.match(immediate[0], /priceNow\(\);/, 'the immediate path still defers the request');
   assert.doesNotMatch(immediate[0], /setTimeout/, 'the immediate path is debounced');
 
   /* And the slider still is, because it is not a finished decision. */
-  const soon = /function pricePresently\(\)\{[\s\S]*?\n\}/.exec(HTML);
+  const soon = /function pricePresently\(\)\{[\s\S]*?\n\}/.exec(SRC);
   assert.match(soon[0], /setTimeout\(priceNow/, 'the slider now asks on every pixel');
 });
 
@@ -976,12 +985,12 @@ test('THE SPINNER IS NEVER LEFT TURNING OVER A REQUEST NOBODY MADE', () => {
    * no call to it remains anywhere else.
    */
   for (const fn of ['pricePresently', 'priceImmediately']) {
-    const body = new RegExp(`function ${fn}\\(\\)\\{[\\s\\S]*?\\n\\}`).exec(HTML);
+    const body = new RegExp(`function ${fn}\\(\\)\\{[\\s\\S]*?\\n\\}`).exec(SRC);
     assert.ok(body, `${fn} has been renamed — re-read this test`);
     assert.match(body[0], /invalidatePrice\(\);/, `${fn} does not invalidate first`);
     assert.match(body[0], /priceNow/, `${fn} invalidates without asking for a new price`);
   }
-  const rest = HTML
+  const rest = SRC
     .replace(/function pricePresently\(\)\{[\s\S]*?\n\}/, '')
     .replace(/function priceImmediately\(\)\{[\s\S]*?\n\}/, '')
     /* Its own definition reads as a call to a substring match. */
@@ -1019,7 +1028,7 @@ test('APPLY IS WHAT PUTS THE RIDER IN THE QUOTE', () => {
    * What matters is the ORDER: added only after the validity check, so a
    * refused Apply does not quietly put a rider with no amount into the ask.
    */
-  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(HTML);
+  const handler = /const apply = e\.target\.closest\('\.rider-apply'\);[\s\S]*?priceImmediately\(\);/.exec(SRC);
   assert.ok(handler, 'the Apply handler has moved — re-read this test');
   const bail = handler[0].indexOf('if (!ok) return;');
   const add = handler[0].indexOf('chosenRiders.add(lookup);');

@@ -163,6 +163,44 @@ for (const file of fs.readdirSync(SITE).filter((f) => f.endsWith('.html'))) {
     }
   }
 
+  /* ---- the action dispatcher ----
+   *
+   * js/qb-actions.js turns data-qb-* attributes back into function calls, so
+   * that these pages can drop their inline handlers and still work under a
+   * Content-Security-Policy. Every page gets it, including the ones with no
+   * other external script, because the footer this tool injects carries
+   * actions of its own.
+   *
+   * SYNCHRONOUS, AND IN THE HEAD, on purpose. Each page's own script calls
+   * qbActions.register() while the page is parsing; defer or async would run
+   * this afterwards, and the registration would throw on an undefined
+   * qbActions -- in the console, where nobody is looking. */
+  {
+    const want = '<script src="js/qb-actions.js"></script>';
+    if (!html.includes(want)) {
+      /* FIRST, ahead of every other script -- not merely somewhere in the
+         head. Dropping it in before </head> put it after whatever scripts
+         the head already had, which works only for as long as none of them
+         registers an action. The guarantee is worth more than the tidiness
+         of a fixed insertion point. */
+      const close = html.indexOf('</head>');
+      if (close === -1) throw new Error(`${file}: no </head> to load the dispatcher from`);
+      const first = html.indexOf('<script');
+      const at = first !== -1 && first < close ? first : close;
+      html = `${html.slice(0, at)}${want}\n${html.slice(at)}`;
+      notes.push('dispatcher linked');
+    }
+    /* The quote endpoint, which was the same inline one-liner on six
+       pages. Straight after the dispatcher and before any page script,
+       because those read it as they run. */
+    const cfg = '<script src="js/qb-config.js"></script>';
+    if (!html.includes(cfg)) {
+      const at = html.indexOf(want) + want.length;
+      html = `${html.slice(0, at)}\n${cfg}${html.slice(at)}`;
+      notes.push('config linked');
+    }
+  }
+
   /* ---- hover stylesheet ----
    *
    * site/css/qb-hover.css holds the classes that replaced this site's 83
