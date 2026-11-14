@@ -370,3 +370,33 @@ test('carrier text is escaped, never injected', async () => {
   assert.ok(!s.riderList.innerHTML.includes('<script'), 'markup from the wire reached the DOM');
   assert.ok(s.riderList.innerHTML.includes('&lt;img'));
 });
+
+/* ---- the price is not the carrier's yet -------------------------------- */
+
+test('THE PRICE IS MARKED AN ESTIMATE UNTIL A CARRIER HAS ANSWERED', () => {
+  /*
+   * The figure on this page comes from a hand-calibrated table, not from
+   * Assurity. It went live unlabelled for one deploy, looking exactly like a
+   * quote -- which is how it was mistaken for one.
+   *
+   * The flag defaults TRUE and only a carrier answer may clear it, so a
+   * refusal, an outage or an unpriceable state all leave the label up
+   * without anyone handling those cases. "Estimates" is the claim that can
+   * always be defended.
+   */
+  assert.match(HTML, /let premiumIsEstimate = true;/,
+    'the estimate flag does not default to the safe side');
+  assert.match(HTML, /id="priceEstimate"/, 'the price carries no estimate note');
+  assert.match(HTML, /Estimate only[^<]*not a price from Assurity/,
+    'the note does not say whose price it is not');
+  assert.match(HTML, /priceEstimate'\)\.hidden = !premiumIsEstimate/,
+    'the note is not driven by the flag, so the two can disagree');
+});
+
+test('and nothing clears that flag except an answer from the carrier', () => {
+  /* Any assignment to it other than the safe default must come from a quote
+     response. Today there is none, so the label is always up. */
+  const writes = [...HTML.matchAll(/premiumIsEstimate\s*=\s*([^;]+);/g)].map((m) => m[1].trim());
+  assert.deepEqual(writes, ['true'],
+    `premiumIsEstimate is set to ${writes.join(', ')} — only a carrier answer may clear it`);
+});

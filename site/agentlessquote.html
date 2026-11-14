@@ -328,6 +328,11 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
    engine the tag comes from the carrier record, not from markup. */
 .no-agent-tag { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 9px; padding: 4px 11px; border-radius: 100px; background: var(--accent-light); color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 0.01em; white-space: nowrap; }
 .no-agent-tag svg { flex-shrink: 0; }
+/* Shown whenever the figure above did NOT come from the carrier. Borrowed
+   from keypersoncalculator.html, which states the rule this page follows:
+   "estimates" is the claim you can always defend, and it is the safe
+   default when nothing has come back. */
+.price-estimate { margin-top: 10px; padding: 8px 12px; border-radius: var(--radius); background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); font-size: 11.5px; line-height: 1.5; color: var(--gold); text-align: center; max-width: 250px; }
 .price-toggle { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--gray-mid); }
 .price-toggle span { cursor: pointer; transition: color var(--transition); }
 .price-toggle span.active { color: var(--primary); font-weight: 700; }
@@ -755,8 +760,9 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
                 </div>
                 <div class="price-box">
                   <span class="no-agent-tag" id="noAgentTag" title="Apply and get a decision online, without an agent."><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>No Agent Required</span>
-                  <div class="price-amt" id="priceAmt">$84.39</div>
+                  <div class="price-amt" id="priceAmt"></div>
                   <div class="price-toggle"><span class="active" id="ptMonthly">Monthly</span> | <span id="ptYearly">Yearly</span></div>
+                  <p class="price-estimate" id="priceEstimate">Estimate only &mdash; not a price from Assurity. Your premium is set by the carrier when you apply.</p>
                 </div>
               </div>
               <button class="cta-btn cov-continue" type="button">Continue Application</button>
@@ -838,6 +844,23 @@ const COV_STOPS = [275000,300000,325000,350000,400000,450000,500000,550000,60000
 const PER1000 = { 10:0.13486, 15:0.16878, 20:0.22186, 30:0.36454 };
 const HEALTH_FACTOR = { 'Preferred Plus':0.68, 'Preferred':0.80, 'Standard Plus':0.91, 'Standard':1.0 };
 
+/*
+ * TRUE UNTIL A CARRIER HAS ANSWERED, and that default is the point.
+ *
+ * The figure on this page is produced by the table above -- a hand-
+ * calibrated curve, not Assurity's filed rates, and its yearly number is
+ * the monthly times twelve, which is not how they price at all (their
+ * monthly factor is 0.087). So the page says so, every time, in the words
+ * keypersoncalculator.html settled on: "estimates" is the claim you can
+ * always defend.
+ *
+ * This is NOT a temporary label to delete when /assurity-quote is wired
+ * in. It is the permanent mechanism, defaulted to the safe side: only a
+ * carrier answer may set it false, so a refusal, an outage or a state we
+ * cannot price all leave the label up without anyone handling those cases.
+ */
+let premiumIsEstimate = true;
+
 let sliderIndex = 6;      // $500,000
 let selectedTerm = 15;
 let billing = 'monthly';
@@ -893,6 +916,7 @@ function renderPrice(){
   const m = monthlyFor(selectedTerm, cov);
   const val = billing === 'monthly' ? m : m * 12;
   document.getElementById('priceAmt').textContent = fmt2(val);
+  document.getElementById('priceEstimate').hidden = !premiumIsEstimate;
   document.getElementById('ptMonthly').classList.toggle('active', billing==='monthly');
   document.getElementById('ptYearly').classList.toggle('active', billing==='yearly');
 }
