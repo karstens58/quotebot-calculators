@@ -18,7 +18,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 
-const HTML = readFileSync(new URL('../preview/agentlessquote.html', import.meta.url), 'utf8');
+const HTML = readFileSync(new URL('../site/agentlessquote.html', import.meta.url), 'utf8');
 
 function cut(start, endMarker) {
   const i = HTML.indexOf(start);

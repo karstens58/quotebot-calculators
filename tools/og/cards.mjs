@@ -22,6 +22,25 @@ export const cards = [
     alt: "The Quote-Bot calculators index — coverage, retirement income, long-term care and business continuation tools",
   },
   {
+    // UNLISTED while Assurity's display approval is pending, and it still
+    // carries a card. The page is not linked from anywhere, but a card is
+    // what a URL looks like when somebody pastes it into Slack or iMessage --
+    // which is exactly how this one will be shared while it is being tested.
+    page: 'agentlessquote.html',
+    file: 'agentlessquote-card.png',
+    title: "Buy term life online, without an agent",
+    description: "Pick your coverage, watch the price move as you change it, and apply in minutes. A decision online — no agent, no medical exam scheduling, no waiting on a call back.",
+    eyebrow: 'AGENTLESS TERM LIFE',
+    head: ["No phone call.", "No agent.", "Just your policy."],
+    body: 'Choose your coverage and term, add the riders your state allows, and see the premium change as you go. Apply and get a decision online.',
+    rail: [
+      ['Instant', 'A decision while you are still here'],
+      ['Your state', 'Only the riders actually written there'],
+      ['No agent', 'Start to finish, on your own'],
+    ],
+    alt: 'The agentless term life quote and application page from Quote-Bot',
+  },
+  {
     page: 'careltccalculator.html',
     file: 'careltc-card.png',
     title: "Size your long-term care exposure with C.A.R.E.",
