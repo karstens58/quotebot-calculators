@@ -273,6 +273,13 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .cov-fields .field label { color: var(--gray-mid); }
 .price-box { flex: 1; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px; }
 .price-amt { font-family: 'Fraunces', serif; font-size: 38px; font-weight: 700; color: var(--primary); line-height: 1; }
+/* Only the directly-quoted, agentless product may wear this. The alternatives
+   below the fold are Compulife rows for fully-underwritten products, which are
+   cheaper precisely because somebody underwrites them — see
+   quotebot-backend shared/carrierdisplay.ts. When this page is wired to the
+   engine the tag comes from the carrier record, not from markup. */
+.no-agent-tag { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 9px; padding: 4px 11px; border-radius: 100px; background: var(--accent-light); color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 0.01em; white-space: nowrap; }
+.no-agent-tag svg { flex-shrink: 0; }
 .price-toggle { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--gray-mid); }
 .price-toggle span { cursor: pointer; transition: color var(--transition); }
 .price-toggle span.active { color: var(--primary); font-weight: 700; }
@@ -676,6 +683,7 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
                   </div>
                 </div>
                 <div class="price-box">
+                  <span class="no-agent-tag" id="noAgentTag" title="Apply and get a decision online, without an agent."><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>No Agent Required</span>
                   <div class="price-amt" id="priceAmt">$84.39</div>
                   <div class="price-toggle"><span class="active" id="ptMonthly">Monthly</span> | <span id="ptYearly">Yearly</span></div>
                 </div>
