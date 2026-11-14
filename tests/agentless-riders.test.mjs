@@ -61,48 +61,86 @@ const PANEL = {
 
 function el(tag = 'div') {
   const classes = new Set();
+  const attrs = {};
   return {
-    tag, dataset: {}, hidden: false, innerHTML: '', attrs: {}, children: [],
+    tag, dataset: {}, hidden: false, innerHTML: '', attrs, children: [], parent: null,
     classList: {
       add: (c) => classes.add(c), remove: (c) => classes.delete(c),
       contains: (c) => classes.has(c),
       toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)),
     },
     has: (c) => classes.has(c),
-    setAttribute(k, v) { this.attrs[k] = v; },
+    setAttribute(k, v) { attrs[k] = String(v); },
+    getAttribute(k) { return k in attrs ? attrs[k] : null; },
+    hasAttribute(k) { return k in attrs; },
+    removeAttribute(k) { delete attrs[k]; },
+    contains(n) { return n === this || this.children.includes(n); },
+    querySelector(sel) {
+      return this.children.find((c) => c.sel === sel) ?? null;
+    },
     querySelectorAll() { return this.children; },
-    /* Selector-aware on purpose. A closest() that answered "yes" to anything
-       made every click on a Yes/No button look like a click on the "?", and
-       the exclusivity test passed while testing nothing. */
+    /*
+     * Selector-aware on purpose. A closest() that answered "yes" to anything
+     * made every click on a Yes/No button look like a click on the "?", and
+     * the exclusivity test passed while testing nothing.
+     */
     closest(sel) {
-      if (sel === '.rider-help') return this.isHelp ? this : null;
-      if (sel === '.rider-toggle button') return this.tag === 'button' ? this : null;
-      if (sel === '.rider-toggle') {
-        return this.tag === 'button' ? this.parent : (this.dataset.rider ? this : null);
-      }
+      let n = this;
+      while (n) { if (n.sel === sel) return n; n = n.parent; }
       return null;
     },
   };
 }
 
-function sandbox({ state = 'Colorado', term = 20 } = {}) {
+function sandbox({ state = 'Colorado', term = 20, pointer = 'fine' } = {}) {
   const where = { state };
-  const riderList = el(), riderIncluded = el(), riders = el();
-  let handler = null;
-  riders.addEventListener = (_t, fn) => { handler = fn; };
+  const riderList = el(), riderIncluded = el();
 
-  /* The toggles under test are derived from the markup renderRiders WROTE,
-     not hand-built here, so an assertion about them is an assertion about the
-     page rather than about this file. */
+  /* The panel: one element, several listeners now (hover opens, tap pins),
+     so they are kept by type rather than overwriting one another. */
+  const riders = el();
+  riders.sel = '.cov-riders';
+  const on = {};
+  riders.addEventListener = (type, fn) => { on[type] = fn; };
+  const notes = new Map();
+  const helps = new Map();
   const toggles = new Map();
-  const readToggles = () => {
-    toggles.clear();
+  riders.querySelectorAll = (sel) => (sel === '.rider-note'
+    ? [...notes.values()]
+    : sel === '.rider-help' ? [...helps.values()] : []);
+
+  /*
+   * The elements under test are derived from the markup renderRiders WROTE,
+   * not hand-built here, so an assertion about them is an assertion about
+   * the page rather than about this file.
+   */
+  /* Rebuilt only when the page has re-rendered. Rebuilding on every
+     interaction threw away state the page had just set -- a pinned
+     disclosure vanished between a tap and the next hover, and the test
+     that caught it looked like a bug in the page. */
+  let builtFrom = null;
+  const build = () => {
+    const html = riderList.innerHTML + riderIncluded.innerHTML;
+    if (html === builtFrom) return;
+    builtFrom = html;
+    notes.clear(); helps.clear(); toggles.clear();
+    for (const m of html.matchAll(/data-note="([^"]*)"/g)) {
+      const lookup = m[1];
+      const item = el(); item.sel = '.rider-item';
+      const help = el('button'); help.sel = '.rider-help';
+      help.dataset.note = lookup; help.parent = item;
+      const note = el(); note.sel = '.rider-note'; note.hidden = true; note.parent = item;
+      item.children.push(help, note);
+      helps.set(lookup, help); notes.set('note-' + lookup, note);
+    }
     const re = /<div class="rider-toggle" data-rider="([^"]*)"\s*\n?\s*data-exclusive="([^"]*)">([\s\S]*?)<\/div>/g;
     let m;
     while ((m = re.exec(riderList.innerHTML))) {
-      const tg = el(); tg.dataset.rider = m[1]; tg.dataset.exclusive = m[2];
+      const tg = el(); tg.sel = '.rider-toggle';
+      tg.dataset.rider = m[1]; tg.dataset.exclusive = m[2];
       for (const b of m[3].matchAll(/data-val="(yes|no)"([^>]*)/g)) {
-        const btn = el('button'); btn.dataset.val = b[1]; btn.parent = tg;
+        const btn = el('button'); btn.sel = '.rider-toggle button';
+        btn.dataset.val = b[1]; btn.parent = tg;
         if (b[2].includes('class="active"')) btn.classList.add('active');
         tg.children.push(btn);
       }
@@ -110,21 +148,27 @@ function sandbox({ state = 'Colorado', term = 20 } = {}) {
     }
   };
 
-  const notes = new Map();
   const document = {
     getElementById: (id) => (id === 'riderList' ? riderList
       : id === 'riderIncluded' ? riderIncluded
       : notes.get(id) || null),
-    querySelector: (s) => {
-      if (s === '.cov-riders') return riders;
-      const m = /^\.rider-toggle\[data-rider="(.+)"\]$/.exec(s);
+    querySelector: (sel) => {
+      if (sel === '.cov-riders') return riders;
+      const m = /^\.rider-toggle\[data-rider="(.+)"\]$/.exec(sel);
       return m ? toggles.get(m[1]) || null : null;
     },
   };
 
   const asked = [];
-  let respond = async () => ({ ok: true, status: 200, json: async () => ({ panel: PANEL }) });
+  let respond = async () => ({ ok: true, status: 200, headers: new Map(),
+    json: async () => ({ panel: PANEL }) });
   const fetchImpl = (url) => { asked.push(String(url)); return respond(String(url)); };
+
+  const window = {
+    QB_QUOTE_ENDPOINT: 'https://engine.example/quote/',
+    /* What the page asks before binding hover at all. */
+    matchMedia: (q) => ({ matches: pointer === 'fine' && /hover: hover/.test(q) }),
+  };
 
   const body = `
     let selectedTerm = TERM;
@@ -133,22 +177,34 @@ function sandbox({ state = 'Colorado', term = 20 } = {}) {
     return { loadPanel, renderRiders, chosenRiders, read: () => panel };
   `;
   const api = new Function('document', 'window', 'fetch', 'console', 'WHERE', 'TERM', body)(
-    document, { QB_QUOTE_ENDPOINT: 'https://engine.example/quote/' }, fetchImpl,
-    { warn() {}, error() {} }, where, term);
+    document, window, fetchImpl, { warn() {}, error() {} }, where, term);
 
   return {
-    ...api, riderList, riderIncluded, asked,
-    moveTo: (s2) => { where.state = s2; },
+    ...api, riderList, riderIncluded, asked, notes, helps,
     setResponse: (fn) => { respond = fn; },
+    bound: () => Object.keys(on).sort(),
+    moveTo: (s2) => { where.state = s2; },
+    noteOf: (lookup) => { build(); return notes.get('note-' + lookup); },
+    hover(lookup) {
+      build();
+      on.mouseover?.({ target: helps.get(lookup) });
+      return notes.get('note-' + lookup);
+    },
+    unhover(lookup, into = null) {
+      on.mouseout?.({ target: helps.get(lookup), relatedTarget: into });
+      return notes.get('note-' + lookup);
+    },
+    tapHelp(lookup) {
+      build();
+      on.click({ target: helps.get(lookup) });
+      return notes.get('note-' + lookup);
+    },
     click(lookup, val) {
-      readToggles();
-      for (const [, tg] of toggles) {
-        notes.set('note-' + tg.dataset.rider, el());
-      }
+      build();
       const tg = toggles.get(lookup);
       assert.ok(tg, `${lookup} is not on the page`);
       const btn = tg.children.find((b) => b.dataset.val === val);
-      handler({ target: btn });
+      on.click({ target: btn });
       return toggles;
     },
   };
@@ -281,8 +337,9 @@ test('an unconfigured endpoint asks nobody and offers nothing', async () => {
      ${source}
      return { loadPanel, read: () => panel };`)(
     { getElementById: () => ({ innerHTML: '', hidden: false }),
-      querySelector: () => ({ addEventListener() {} }) },
-    { QB_QUOTE_ENDPOINT: '' }, () => { throw new Error('must not be called'); },
+      querySelector: () => ({ addEventListener() {}, querySelectorAll: () => [] }) },
+    { QB_QUOTE_ENDPOINT: '', matchMedia: () => ({ matches: false }) },
+    () => { throw new Error('must not be called'); },
     { warn() {} }, 'Colorado', 20);
   await api.loadPanel();
   assert.equal(api.read(), null);
@@ -399,4 +456,78 @@ test('and nothing clears that flag except an answer from the carrier', () => {
   const writes = [...HTML.matchAll(/premiumIsEstimate\s*=\s*([^;]+);/g)].map((m) => m[1].trim());
   assert.deepEqual(writes, ['true'],
     `premiumIsEstimate is set to ${writes.join(', ')} — only a carrier answer may clear it`);
+});
+
+/* ---- opening the disclosure ------------------------------------------- */
+
+test('WITH A POINTER, HOVERING THE "?" OPENS IT', async () => {
+  const s = sandbox({ pointer: 'fine' });
+  await s.loadPanel();
+  assert.ok(s.hover('Child').hidden === false, 'hover did not open the disclosure');
+  assert.equal(s.helps.get('Child').getAttribute('aria-expanded'), 'true');
+});
+
+test('and leaving the row closes it again', async () => {
+  const s = sandbox({ pointer: 'fine' });
+  await s.loadPanel();
+  s.hover('Child');
+  assert.equal(s.unhover('Child').hidden, true);
+});
+
+test('BUT MOVING INTO THE BUBBLE IS NOT LEAVING', async () => {
+  /*
+   * The bubble sits INSIDE the row it belongs to, so the pointer entering
+   * it is still inside .rider-item. Without this, the disclosure closes the
+   * instant you move towards it — which, on a paragraph of carrier wording,
+   * means it can be seen and never read.
+   */
+  const s = sandbox({ pointer: 'fine' });
+  await s.loadPanel();
+  const note = s.hover('Child');
+  assert.equal(s.unhover('Child', note).hidden, false,
+    'the disclosure closed as the pointer moved into it');
+});
+
+test('A CLICK PINS IT, SO IT SURVIVES THE POINTER WANDERING OFF', async () => {
+  /* Nobody reads a paragraph holding the mouse still. */
+  const s = sandbox({ pointer: 'fine' });
+  await s.loadPanel();
+  s.tapHelp('Child');
+  assert.equal(s.unhover('Child').hidden, false, 'a pinned disclosure was closed by a mouseout');
+  s.tapHelp('Child');
+  assert.equal(s.noteOf('Child').hidden, true, 'a second click did not close it');
+});
+
+test('ON A TOUCH SCREEN NOTHING IS BOUND TO HOVER AT ALL', async () => {
+  /*
+   * THE REASON THE DISCLOSURE IS NOT A TOOLTIP. A phone has no hover, and
+   * what sits behind the "?" is Assurity's approved rider wording — the one
+   * thing on this page that may never be unreachable. The floating
+   * treatment is presentation over an element a tap opens; the listeners
+   * that drive it are not even registered where there is no pointer.
+   */
+  const s = sandbox({ pointer: 'coarse' });
+  await s.loadPanel();
+  assert.deepEqual(s.bound(), ['click'],
+    'hover listeners were bound on a device that cannot hover');
+  assert.equal(s.tapHelp('Child').hidden, false, 'a tap did not open the disclosure');
+});
+
+test('only one disclosure is open at a time', async () => {
+  /* They float over the rows beneath them, so two open at once overlap. */
+  const s = sandbox({ pointer: 'fine' });
+  await s.loadPanel();
+  s.tapHelp('Child');
+  s.hover('MonthlyDisabilityIncome');
+  assert.equal(s.noteOf('Child').hidden, true);
+  assert.equal(s.noteOf('MonthlyDisabilityIncome').hidden, false);
+});
+
+test('the floating treatment is fenced behind a fine pointer in CSS too', () => {
+  /* The listeners are fenced in JS; the positioning has to be fenced in the
+     stylesheet, or a touch screen gets an absolutely-positioned panel it
+     cannot scroll to. */
+  const fenced = /@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.rider-note \{[^}]*position: absolute/;
+  assert.match(HTML, fenced,
+    'the bubble positioning is not inside a fine-pointer media query');
 });

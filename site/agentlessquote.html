@@ -350,9 +350,14 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .rider-toggle button.active { background: var(--accent); color: #fff; }
 .rider-toggle button + button { border-left: 1.5px solid var(--border); }
 
-/* The "?" opens inline rather than floating. The approved text runs to a
-   paragraph and a state can add more, so a hover tooltip would clip it and a
-   touch device would never see it at all. */
+/* THE "?" OPENS ON HOVER WHERE THERE IS A POINTER, AND ON TAP EVERYWHERE.
+   What sits behind it is Assurity's compliance-approved rider wording, so the
+   one thing it may never be is unreachable -- and a hover-only tooltip is
+   exactly that on every phone and tablet. So the disclosure is always a real
+   element that a tap opens and a tap closes; the floating treatment below is
+   presentation laid over that, inside a media query that only a fine pointer
+   matches. On a touch screen it opens in the flow, as it always has, where it
+   cannot be positioned off the edge of anything. */
 .rider-item { display: flex; flex-direction: column; gap: 9px; }
 .rider-help { background: #fff; font-family: inherit; font-weight: 700; padding: 0; }
 .rider-help:hover, .rider-help[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
@@ -363,6 +368,23 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
    nothing. Caught in a real browser; a stubbed DOM cannot see it, because
    nothing in a stub resolves the cascade. */
 .rider-note[hidden] { display: none; }
+
+/* The bubble. Only where a pointer can hover: a coarse pointer keeps the
+   in-flow panel, which needs no positioning and cannot be clipped. It is
+   anchored to the row rather than to the "?" itself, because the "?" sits
+   after a rider name whose length varies and a caret chasing it is a
+   lifetime of off-by-a-few-pixels for no gain in comprehension. */
+@media (hover: hover) and (pointer: fine) {
+  .rider-item { position: relative; }
+  .rider-note {
+    position: absolute; z-index: 40; left: 0; right: 0; top: calc(100% - 5px);
+    background: #fff; border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    box-shadow: var(--shadow-lg);
+  }
+  /* Pinned by a click, so it survives the pointer leaving. Reading a
+     paragraph without moving the mouse is not a thing people do. */
+  .rider-note[data-pinned] { border-left-color: var(--teal); }
+}
 .rider-note { background: var(--off-white); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 13px 15px; display: flex; flex-direction: column; gap: 9px; }
 .rider-note p { font-size: 12.5px; line-height: 1.6; color: var(--gray-dark); }
 .rider-note .var { color: var(--text); }
@@ -1054,14 +1076,64 @@ function renderRiders(){
       </div>`).join('');
 }
 
-/* One listener for both lists, so re-rendering never leaves a dead "?". */
-document.querySelector('.cov-riders').addEventListener('click', (e) => {
+/*
+ * One listener per behaviour on the whole panel, so re-rendering the list
+ * never leaves a dead "?" behind -- there is nothing bound to the rows.
+ */
+const riderPanel = document.querySelector('.cov-riders');
+
+const noteFor = (help) => document.getElementById('note-' + help.dataset.note);
+function showNote(help, show, pin){
+  const note = noteFor(help);
+  if (!note) return;
+  if (!show && note.hasAttribute('data-pinned') && !pin) return;  // a pinned one stays
+  note.hidden = !show;
+  if (pin && show) note.setAttribute('data-pinned', '');
+  if (!show) note.removeAttribute('data-pinned');
+  help.setAttribute('aria-expanded', String(show));
+}
+function closeAll(except){
+  riderPanel.querySelectorAll('.rider-note').forEach((n) => {
+    if (n === except) return;
+    n.hidden = true; n.removeAttribute('data-pinned');
+  });
+  riderPanel.querySelectorAll('.rider-help').forEach((h) => {
+    if (noteFor(h) !== except) h.setAttribute('aria-expanded', 'false');
+  });
+}
+
+/* HOVER IS AN ENHANCEMENT, NOT THE MECHANISM. Bound only where the browser
+   says a fine pointer exists, so a touch screen never arms it -- and even
+   then every one of these does the same thing a tap already does. */
+const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+if (canHover){
+  riderPanel.addEventListener('mouseover', (e) => {
+    const help = e.target.closest('.rider-help');
+    if (!help) return;
+    closeAll(noteFor(help));
+    showNote(help, true, false);
+  });
+  riderPanel.addEventListener('mouseout', (e) => {
+    const item = e.target.closest('.rider-item');
+    /* Only when the pointer has actually left the row -- the bubble is
+       INSIDE .rider-item, so moving into it to read is not a leave. */
+    if (!item || item.contains(e.relatedTarget)) return;
+    const help = item.querySelector('.rider-help');
+    if (help) showNote(help, false, false);
+  });
+}
+
+riderPanel.addEventListener('click', (e) => {
   const help = e.target.closest('.rider-help');
   if (help){
-    const note = document.getElementById('note-' + help.dataset.note);
+    const note = noteFor(help);
     if (!note) return;
-    note.hidden = !note.hidden;
-    help.setAttribute('aria-expanded', String(!note.hidden));
+    /* A click PINS, so the disclosure survives the pointer wandering off --
+       nobody reads a paragraph holding the mouse still. A second click
+       closes it. On touch this is the whole interaction. */
+    const open = !note.hidden && note.hasAttribute('data-pinned');
+    closeAll();
+    showNote(help, !open, true);
     return;
   }
   const btn = e.target.closest('.rider-toggle button');
