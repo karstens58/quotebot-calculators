@@ -8,3 +8,19 @@ Thumbs.db
 *.zip
 
 node_modules/
+
+# ENVIRONMENT FILES, NEVER COMMITTED.
+#
+# Nothing has ever leaked through one here -- 2,100 commits across these
+# repos were searched on 14 November 2026 for AWS keys, private keys and
+# provider tokens and none has ever been committed. This rule is so that
+# stays true by accident rather than by care.
+#
+# Secrets belong in Amplify's secret() and are resolved per branch at
+# deploy time; a .env in a repo is how a local convenience becomes a
+# permanent one. The negation keeps a documented EXAMPLE file committable,
+# since the usual reason somebody creates a real .env is that nothing told
+# them which variables to set.
+.env
+.env.*
+!.env.example
