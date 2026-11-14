@@ -24,9 +24,16 @@ import vm from 'node:vm';
 const SITE = path.join(import.meta.dirname, '..', 'site');
 const PAGES = fs.readdirSync(SITE).filter((f) => f.endsWith('.html'));
 
-/** The page's own script, with the src= includes left out. */
+/**
+ * The page's own script: no src= includes, and no data blocks.
+ *
+ * <script type="application/json"> is DATA -- the apply config arrives that
+ * way now, because an executable inline script is what the policy refuses
+ * and a JSON block is not executed at all. Feeding one to a JavaScript
+ * parser fails on the first colon, which says nothing about the page.
+ */
 function inlineScript(html) {
-  return [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
+  return [...html.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*type="application\/json")[^>]*>([\s\S]*?)<\/script>/gi)]
     .map((m) => m[1])
     .filter((s) => s.trim())
     .join('\n;\n');

@@ -41,7 +41,67 @@
 (function () {
   'use strict';
 
+  /*
+   * THE CONFIG ARRIVES AS DATA, NOT AS CODE.
+   *
+   * It used to be `<script>window.QB_APPLY = {...}</script>` written into
+   * each page by tools/apply-now.mjs -- an executable inline script, which a
+   * Content-Security-Policy without 'unsafe-inline' refuses to run. Every one
+   * of these ten pages would have lost its Apply button to the policy.
+   *
+   * A <script type="application/json"> block is data: the browser never
+   * executes it, so the policy has no quarrel with it. Same bytes, same
+   * place, parsed here instead of evaluated there.
+   *
+   * window.QB_APPLY is still honoured, because a page may yet want to
+   * declare something JSON cannot carry, and because nothing is served by
+   * breaking a page that still sets it.
+   */
   var cfg = window.QB_APPLY || {};
+  if (!window.QB_APPLY) {
+    var cfgEl = document.querySelector('script[type="application/json"][data-qb-apply-config]');
+    if (cfgEl) {
+      try {
+        cfg = JSON.parse(cfgEl.textContent) || {};
+      } catch (e) {
+        /* Loud: a page with an unreadable config has an Apply button that
+           silently sends the wrong product line, which is worse than one
+           that does not open. */
+        console.error('[quote-bot] apply config is not readable JSON', e);
+        cfg = {};
+      }
+    }
+  }
+
+  /*
+   * The one thing the config cannot carry.
+   *
+   * cfg.selection is a function, and JSON has none -- the same wall
+   * cfg.summary hit, which is why summaries are declared in markup with
+   * data-qb-sum. A page names a selector instead and the function lives
+   * here, keyed by that name.
+   *
+   * Deliberately small, as the map in tools/apply-now.mjs that this replaces
+   * said: the moment one of these needs more than a few lines it belongs in
+   * the page it describes, not in the file shared by all of them.
+   */
+  var SELECTORS = {
+    /* The quote tool's Select buttons carry the carrier but not the term:
+       the term is a property of what the visitor ASKED for, not of the row
+       the engine answered with, and it lives in the category dropdown. A
+       to-age-95 UL has no term length at all, so null is the right answer
+       rather than a number. */
+    quotetool: function (s) {
+      s.termYears = (typeof getInputs === 'function' ? getInputs().term : null);
+      return s;
+    },
+  };
+  if (!cfg.selection && cfg.selectionFrom) {
+    if (!SELECTORS[cfg.selectionFrom]) {
+      console.error('[quote-bot] no selector named "' + cfg.selectionFrom + '"');
+    }
+    cfg.selection = SELECTORS[cfg.selectionFrom];
+  }
 
   /*
    * THE INTENT IS PER BUTTON, NOT PER PAGE.

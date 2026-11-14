@@ -101,29 +101,29 @@ function publishCss() {
 }
 
 /**
- * A page that needs to compute part of its selection says so by name, and
- * the function lives here rather than in thirteen pages.
+ * The page's config, written as DATA.
  *
- * Kept deliberately small. The moment one of these needs more than a few
- * lines it belongs in the page it describes, not in the script that writes
- * the pages.
+ * This used to emit `<script>window.QB_APPLY = {...};</script>`, and for the
+ * quote tool it spliced a live function into that object -- which is why the
+ * SELECTORS map lived here, in the script that writes the pages.
+ *
+ * An executable inline script is exactly what a Content-Security-Policy
+ * without 'unsafe-inline' refuses to run, so all ten pages would have lost
+ * their Apply button to the policy. A <script type="application/json"> block
+ * is data rather than code: never executed, so never blocked.
+ *
+ * The function moved to js/quotebot-apply.js and is named here instead
+ * (selectionFrom), which is all JSON can carry. That file holds the map now,
+ * with the same rule it always had: keep them small, and the moment one
+ * needs more than a few lines it belongs in the page it describes.
  */
-const SELECTORS = {
-  quotetool:
-    'function (s) { s.termYears = (typeof getInputs === "function" '
-    + '? getInputs().term : null); return s; }',
-};
-
 function configLine(cfg) {
-  const { selectionFrom, ...rest } = cfg;
-  let json = JSON.stringify(rest);
-  if (selectionFrom) {
-    const fn = SELECTORS[selectionFrom];
-    if (!fn) throw new Error(`no selector named ${selectionFrom}`);
-    json = json.replace(/\}$/, ',"selection":' + JSON.stringify('@@FN@@') + '}')
-      .replace('"@@FN@@"', fn);
-  }
-  return '  <script>window.QB_APPLY = ' + json + ';</script>';
+  /* A value containing </script> would close this block early. None does
+     today -- they are product lines and relationship names -- but escaping
+     it costs nothing and the alternative is a page that breaks the first
+     time somebody adds a field. */
+  const json = JSON.stringify(cfg).replace(/</g, '\\u003c');
+  return `  <script type="application/json" data-qb-apply-config>${json}</script>`;
 }
 
 function apply(file, cfg) {
@@ -144,10 +144,15 @@ function apply(file, cfg) {
      at load. A defer on the script would not save it: the inline tag has to
      come first in document order either way, and putting it after is the
      kind of thing that works on one page and not the next. */
-  if (!s.includes('window.QB_APPLY')) {
-    s = s.replace('</head>', configLine(cfg) + '\n</head>');
+  const OLD_CFG = / {2}<script>window\.QB_APPLY = .*?;<\/script>/s;
+  const CFG = / {2}<script type="application\/json" data-qb-apply-config>.*?<\/script>/s;
+  if (OLD_CFG.test(s)) {
+    /* Upgrade in place: the executable form the policy would block. */
+    s = s.replace(OLD_CFG, configLine(cfg));
+  } else if (CFG.test(s)) {
+    s = s.replace(CFG, configLine(cfg));
   } else {
-    s = s.replace(/ {2}<script>window\.QB_APPLY = .*?;<\/script>/s, configLine(cfg));
+    s = s.replace('</head>', configLine(cfg) + '\n</head>');
   }
 
   if (!s.includes(JS_SRC)) {
