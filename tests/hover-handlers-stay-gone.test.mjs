@@ -27,6 +27,26 @@ const PAGES = [
   ...fs.readdirSync(path.join(ROOT, 'site')).filter((f) => f.endsWith('.html')).map((f) => `site/${f}`),
   ...fs.readdirSync(path.join(ROOT, 'tools')).filter((f) => f.endsWith('.html')).map((f) => `tools/${f}`),
 ];
+
+/*
+ * Markup is not only in the .html files any more.
+ *
+ * These pages build a good deal of themselves at render time and write it in
+ * with innerHTML, and that script moved into js/<page>.js when the inline
+ * <script> had to go for the policy. Two of the hover classes now appear
+ * ONLY there -- so a scan of the markup alone called them dead CSS and the
+ * class-usage check failed, on a change that moved nothing but the file the
+ * markup is written from.
+ *
+ * It matters for more than the tally: a handler or a stale inline style in a
+ * template literal is exactly as blocked, and exactly as broken, as one in
+ * the page. Both have to be searched or neither is really checked.
+ */
+const SOURCES = [
+  ...PAGES,
+  ...fs.readdirSync(path.join(ROOT, 'site/js')).filter((f) => f.endsWith('.js'))
+    .map((f) => `site/js/${f}`),
+];
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 
 /* Comments are prose, not code. Nothing in these files quotes a handler
@@ -47,7 +67,7 @@ const STYLE_FOCUS = /\son(?:focus|blur)\s*=\s*"\s*this\.style\.[^"]*"/gi;
 
 test('no page carries an inline hover handler', () => {
   const offenders = [];
-  for (const p of PAGES) {
+  for (const p of SOURCES) {
     const hits = stripComments(read(p)).match(HOVER) || [];
     if (hits.length) offenders.push(`${p} (${hits.length})`);
   }
@@ -56,7 +76,7 @@ test('no page carries an inline hover handler', () => {
 
 test('no page styles an element from an inline focus or blur handler', () => {
   const offenders = [];
-  for (const p of PAGES) {
+  for (const p of SOURCES) {
     const hits = stripComments(read(p)).match(STYLE_FOCUS) || [];
     if (hits.length) offenders.push(`${p} (${hits.length})`);
   }
@@ -86,7 +106,7 @@ test('no element keeps an inline value for a property its hover class sets', () 
   assert.ok(owns.size >= 9, `expected the nine hover classes, parsed ${owns.size}`);
 
   const offenders = [];
-  for (const p of PAGES) {
+  for (const p of SOURCES) {
     for (const tag of stripComments(read(p)).matchAll(/<[a-zA-Z][\w-]*\b[^>]*\bclass="([^"]*\bhv-[^"]*)"[^>]*>/g)) {
       const style = tag[0].match(/\sstyle="([^"]*)"/);
       if (!style) continue;
@@ -116,7 +136,7 @@ test('every page using a hover class links the stylesheet that defines it', () =
 
 test('every hover class used is defined, and every class defined is used', () => {
   const used = new Set();
-  for (const p of PAGES) {
+  for (const p of SOURCES) {
     for (const m of read(p).matchAll(/class="([^"]*)"/g)) {
       for (const c of m[1].split(/\s+/)) if (c.startsWith('hv-')) used.add(c);
     }
