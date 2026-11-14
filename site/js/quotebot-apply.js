@@ -494,7 +494,7 @@
     row.innerHTML =
       '<div class="qbm-bh"><span class="n">Beneficiary ' + n + '</span>'
       + '<span class="sp"></span>'
-      + '<button class="qbm-mini danger" type="button" onclick="qbRemoveBeneficiary(this)">Remove</button></div>'
+      + '<button class="qbm-mini danger" type="button" data-qb-click="qbRemoveBeneficiary" data-qb-click-args=\'["@el"]\'>Remove</button></div>'
       + '<div class="qbm-grid">'
       + '<div class="qbm-f"><label>First name</label><input type="text" data-b="firstName"'
       + ' autocomplete="section-ben' + n + ' given-name"></div>'
@@ -787,10 +787,31 @@
     qbFillMarkedStateSelects();
   }
 
-  /* The markup calls these by name from onclick attributes, which is how the
-     thirteen pages are written. Exported deliberately rather than by living
-     at the top level, so that what the page may call is a list someone can
-     read rather than whatever happened to be declared. */
+  /* The markup calls these by name. Listed deliberately rather than by
+     living at the top level, so that what the page may call is a list
+     someone can read rather than whatever happened to be declared.
+
+     REGISTERED, not just exported. The modal's markup now names actions
+     (data-qb-click) instead of carrying onclick attributes, because a
+     Content-Security-Policy without 'unsafe-inline' blocks those wherever
+     they came from -- including the Remove button a few lines up, which this
+     file writes into the page itself. js/qb-actions.js will only call what
+     has been registered, so this list is the allowlist for the modal.
+
+     The window exports stay for now: the calculator pages still carry their
+     own onclick attributes until each is converted, and removing these would
+     break them sooner than the policy will. They go with the last one. */
+  window.qbActions.register({
+    qbApplyNow: qbApplyNow,
+    qbAskAdvisor: qbAskAdvisor,
+    qbCloseApply: qbCloseApply,
+    qbCloseDone: qbCloseDone,
+    qbSubmitApply: qbSubmitApply,
+    qbAddBeneficiary: qbAddBeneficiary,
+    qbRemoveBeneficiary: qbRemoveBeneficiary,
+    qbOwnerChanged: qbOwnerChanged,
+  });
+
   window.qbApplyNow = qbApplyNow;
   window.qbAskAdvisor = qbAskAdvisor;
   window.qbCloseApply = qbCloseApply;

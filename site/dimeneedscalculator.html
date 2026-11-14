@@ -1751,7 +1751,7 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
            takes about a minute, and nothing is submitted to a carrier yet.</p>
       </div>
       <button class="qbm-x" type="button" aria-label="Close"
-              onclick="qbCloseApply()">&times;</button>
+              data-qb-click="qbCloseApply">&times;</button>
     </div>
 
     <div class="qbm-body">
@@ -1811,9 +1811,9 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
           and what happens on death.</p>
         <div class="qbm-choice">
           <label><input type="radio" name="qbm-own" value="me" checked
-                        onchange="qbOwnerChanged()"> I own it, and it is measured on my life</label>
+                        data-qb-change="qbOwnerChanged"> I own it, and it is measured on my life</label>
           <label><input type="radio" name="qbm-own" value="other"
-                        onchange="qbOwnerChanged()"> Somebody else owns it</label>
+                        data-qb-change="qbOwnerChanged"> Somebody else owns it</label>
         </div>
         <div class="qbm-grid" id="qbm-owner-fields" hidden>
           <div class="qbm-f"><label for="qbm-own-fname">Owner's first name</label>
@@ -1830,7 +1830,7 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
         <p class="qbm-why">Your beneficiaries, and what share each one gets.
           Shares have to add up to 100.</p>
         <div id="qbm-bens"></div>
-        <button class="qbm-mini" type="button" onclick="qbAddBeneficiary()">
+        <button class="qbm-mini" type="button" data-qb-click="qbAddBeneficiary">
           + Add a beneficiary</button>
         <p class="qbm-total" id="qbm-bentotal"></p>
       </div>
@@ -1839,10 +1839,10 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
     </div>
 
     <div class="qbm-foot">
-      <button class="qbm-back" type="button" onclick="qbCloseApply()">Not yet</button>
+      <button class="qbm-back" type="button" data-qb-click="qbCloseApply">Not yet</button>
       <span class="note">No signature, no payment, and nothing goes to a
         carrier. One of our advisors will call you to confirm.</span>
-      <button class="qbm-go" type="button" id="qbm-go" onclick="qbSubmitApply()">
+      <button class="qbm-go" type="button" id="qbm-go" data-qb-click="qbSubmitApply">
         Confirm and start</button>
     </div>
   </div>
@@ -1859,7 +1859,7 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
     <div class="qbm-head">
       <h2 id="qbm-done-title">Thanks — we have it.</h2>
       <button class="qbm-x" type="button" aria-label="Close"
-              onclick="qbCloseDone()">&times;</button>
+              data-qb-click="qbCloseDone">&times;</button>
     </div>
     <div class="qbm-body">
       <p id="qbm-done-what"></p>
@@ -1869,7 +1869,7 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
       </p>
     </div>
     <div class="qbm-foot">
-      <button class="qbm-go" type="button" onclick="qbCloseDone()">Close</button>
+      <button class="qbm-go" type="button" data-qb-click="qbCloseDone">Close</button>
     </div>
   </div>
 </div>

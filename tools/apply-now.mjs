@@ -70,6 +70,14 @@ const TOOLS = {
   'sequenceofreturnscalculator.html': { productLine: 'ANNUITY_FIXED' },
   'fiaincomeridercalculator.html': { productLine: 'ANNUITY_FIXED' },
   'index.html': null,
+  /*
+   * The agentless page carries Assurity's own application flow rather than
+   * this modal, so it takes no Apply of any kind -- null, like the landing
+   * page. Listed because this tool throws on a page nobody listed, which is
+   * the point of the map: it shipped on 14 November (QBP-562) without a line
+   * here, and every run of this tool has thrown since.
+   */
+  'agentlessquote.html': null,
 };
 
 const CSS_HREF = 'css/quotebot-apply.css';
