@@ -16,8 +16,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { pageSource } from './page-source.mjs';
 
-const PAGE = readFileSync(new URL('../site/mygacalculator.html', import.meta.url), 'utf8');
+/* The page's markup AND its own script, which moved to js/<page>.js when
+   the inline <script> had to go for the Content-Security-Policy. */
+const PAGE = pageSource('mygacalculator.html');
 const css = (sel) => {
   const re = new RegExp(`^\\${sel}\\s*\\{([^}]*)\\}`, 'm');
   const m = re.exec(PAGE);

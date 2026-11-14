@@ -25,13 +25,14 @@ import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pageSource } from './page-source.mjs';
 
 const SITE = join(dirname(fileURLToPath(import.meta.url)), '..', 'site');
 
 /** Every page that prices anything, found rather than listed. */
 const PRICING_PAGES = readdirSync(SITE)
   .filter((f) => f.endsWith('.html'))
-  .filter((f) => readFileSync(join(SITE, f), 'utf8').includes('const fmtMo ='));
+  .filter((f) => pageSource(f).includes('const fmtMo ='));
 
 test('every page that prints a premium has the rule at all', () => {
   /* Found rather than listed, so a fifth calculator is covered the day
@@ -42,7 +43,7 @@ test('every page that prints a premium has the rule at all', () => {
 
 for (const page of PRICING_PAGES) {
   test(`${page} shows a penny that is there and none that is not`, () => {
-    const html = readFileSync(join(SITE, page), 'utf8');
+    const html = pageSource(page);
     const from = html.indexOf('const fmtMo =');
     const to = html.indexOf('const fmtYr = fmtMo;', from);
     assert.ok(from > 0 && to > from, 'fmtMo and its fmtYr alias are not both here');

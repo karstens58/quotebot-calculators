@@ -17,17 +17,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { pageSource } from './page-source.mjs';
 
-/*
- * The page AND the script it loads, because this file asserts on both -- CSS
- * rules and class attributes from the markup, function bodies from the
- * script -- and the script moved out of the page when the inline <script>
- * had to go for the Content-Security-Policy. Reading only the SRC made
- * every cut() below fail at once, which is how this was noticed.
- */
-const SRC = ['../site/agentlessquote.html', '../site/js/agentlessquote.js']
-  .map((f) => readFileSync(new URL(f, import.meta.url), 'utf8'))
-  .join('\n');
+/* Markup and the page's own script together: this file asserts on both, and
+   the script moved to js/agentlessquote.js when the inline <script> had to go
+   for the Content-Security-Policy. */
+const SRC = pageSource('agentlessquote.html');
 
 function cut(start, endMarker) {
   const i = SRC.indexOf(start);

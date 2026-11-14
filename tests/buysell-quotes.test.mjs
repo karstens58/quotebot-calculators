@@ -15,8 +15,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { pageSource } from './page-source.mjs';
 
-const HTML = readFileSync(new URL('../site/crosspurchasebuysellcalculator.html', import.meta.url), 'utf8');
+/* The page's markup AND its own script, which moved to js/<page>.js when
+   the inline <script> had to go for the Content-Security-Policy. */
+const HTML = pageSource('crosspurchasebuysellcalculator.html');
 
 function cut(start, endMarker, { keepEnd = true } = {}) {
   const i = HTML.indexOf(start);

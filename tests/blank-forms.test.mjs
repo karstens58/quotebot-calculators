@@ -24,6 +24,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { pageSource } from './page-source.mjs';
 
 const SITE = fileURLToPath(new URL('../site/', import.meta.url));
 const PAGES = readdirSync(SITE).filter((f) => f.endsWith('.html'));
@@ -39,7 +40,7 @@ test('PAGES CARRY NOBODY’S PERSONAL DETAILS', () => {
   const forbidden = [/Karstens/i, /1978-01-26/, /Jane\s+Fonda/i,
     /Jordan\s+Avery/i, /Morgan\s+Lee/i, /Casey\s+Rivera/i];
   for (const page of PAGES) {
-    const html = readFileSync(SITE + page, 'utf8');
+    const html = pageSource(page);
     for (const re of forbidden) {
       assert.ok(!re.test(html), `${page} still contains ${re}`);
     }
@@ -93,7 +94,7 @@ test('the lists built in script start unchosen too', () => {
     ['crosspurchasebuysellcalculator.html', 'Select an industry'],
     ['keypersoncalculator.html', 'Select a state'],
   ]) {
-    assert.ok(readFileSync(SITE + page, 'utf8').includes(marker),
+    assert.ok(pageSource(page).includes(marker),
       `${page} never offers "${marker}", so its list falls to its first entry`);
   }
 });
@@ -102,7 +103,7 @@ test('NO DEFAULT STATE IS CHOSEN ANYWHERE', () => {
   /* The specific bug: every state list preselected Colorado, so a visitor in
      Florida was quoted Colorado rates unless they noticed. */
   for (const page of PAGES) {
-    const html = readFileSync(SITE + page, 'utf8');
+    const html = pageSource(page);
     assert.ok(!/===?\s*["']Colorado["']\s*\)\s*\S*\.?selected\s*=\s*true/.test(html),
       `${page} still preselects Colorado`);
   }

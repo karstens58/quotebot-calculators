@@ -17,6 +17,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, existsSync } from 'node:fs';
+import { pageSource } from './page-source.mjs';
 
 const dir = new URL('../site/', import.meta.url);
 const INDEX = readFileSync(new URL('index.html', dir), 'utf8');
@@ -59,7 +60,7 @@ for (const t of TILES) {
        chips, and it should not fail again the next time a path shape moves. */
     const file = new URL(t.href.replace(/^\//, ''), dir);
     assert.ok(existsSync(file), `${t.href} is on the index and not in site/`);
-    const html = readFileSync(file, 'utf8');
+    const html = pageSource(file.pathname.split('/').pop());
     const live = pricesLive(html);
     if (t.kind === 'live') {
       assert.ok(live,
@@ -81,6 +82,6 @@ test('D.I.M.E. is wired and chipped, together', () => {
   const tile = TILES.find((t) => t.href.replace(/^\//, '') === 'dimeneedscalculator.html');
   assert.ok(tile, 'the D.I.M.E. tile is gone from the index');
   assert.equal(tile.kind, 'live');
-  const html = readFileSync(new URL('dimeneedscalculator.html', dir), 'utf8');
+  const html = pageSource('dimeneedscalculator.html');
   assert.ok(pricesLive(html));
 });

@@ -33,6 +33,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pageSource } from './page-source.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = path.join(ROOT, 'site');
@@ -50,7 +51,7 @@ test('no page clears its whole query string', () => {
    */
   const guilty = [];
   for (const f of pages()) {
-    const src = fs.readFileSync(path.join(SITE, f), 'utf8');
+    const src = pageSource(f);
     /* replaceState to a bare pathname, however it is spelled. */
     if (/replaceState\s*\([^)]*,\s*['"]['"]\s*,\s*(location|window\.location)\.pathname\s*\)/
       .test(src)) guilty.push(f);
@@ -62,11 +63,11 @@ test('no page clears its whole query string', () => {
 
 test('a page that tidies its query does it through the shared keep-list', () => {
   const tidying = pages().filter((f) =>
-    /tidyQuery|replaceState/.test(fs.readFileSync(path.join(SITE, f), 'utf8')));
+    /tidyQuery|replaceState/.test(pageSource(f)));
   assert.ok(tidying.length >= 2,
     'the two pages that prefill from a URL are not tidying at all any more');
   for (const f of tidying) {
-    const src = fs.readFileSync(path.join(SITE, f), 'utf8');
+    const src = pageSource(f);
     assert.match(src, /QuoteBot\s*&&\s*window\.QuoteBot\.tidyQuery|QuoteBot\.tidyQuery\(\)/,
       `${f} rewrites its own URL without the shared keep-list`);
   }

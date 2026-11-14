@@ -31,6 +31,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { pageSource } from './page-source.mjs';
 
 const SITE = fileURLToPath(new URL('../site/', import.meta.url));
 const PAGES = readdirSync(SITE).filter((f) => f.endsWith('.html'));
@@ -65,7 +66,7 @@ test('A PAGE NEVER CAPTURES A LEAD BESIDE AN UNAWAITED PRICING CALL', () => {
   const guilty = [];
 
   for (const page of PAGES) {
-    const src = strip(readFileSync(SITE + page, 'utf8'));
+    const src = strip(pageSource(page));
     if (!src.includes('qbCaptureLead()')) continue;
     const asyncs = asyncFunctions(src);
     if (!asyncs.size) continue;
@@ -92,7 +93,7 @@ test('A PAGE NEVER CAPTURES A LEAD BESIDE AN UNAWAITED PRICING CALL', () => {
 });
 
 test('quotetool awaits its pricing before capturing', () => {
-  const src = strip(readFileSync(`${SITE}quotetool.html`, 'utf8'));
+  const src = strip(pageSource('quotetool.html'));
   const at = src.indexOf("getElementById('quoteBtn').addEventListener");
   assert.notEqual(at, -1, 'the quote button no longer has a handler');
   const handler = src.slice(at, at + 600);
@@ -107,7 +108,7 @@ test('AND CAPTURES EVEN WHEN PRICING FAILS', () => {
    * engine answered; a lead lost because Compulife was briefly down is
    * a worse outcome than a record with no premiums in it.
    */
-  const src = strip(readFileSync(`${SITE}quotetool.html`, 'utf8'));
+  const src = strip(pageSource('quotetool.html'));
   const at = src.indexOf("getElementById('quoteBtn').addEventListener");
   const handler = src.slice(at, at + 600);
   assert.match(handler, /finally\s*\{[\s\S]{0,80}qbCaptureLead\s*\(/,
@@ -143,7 +144,7 @@ test('myga captures after its figures exist, and still captures when they do not
 });
 
 test('dime awaits its kept quote before capturing, and captures when it fails', () => {
-  const src = strip(readFileSync(`${SITE}dimeneedscalculator.html`, 'utf8'));
+  const src = strip(pageSource('dimeneedscalculator.html'));
   const at = src.indexOf("getElementById('calcBtn').addEventListener");
   assert.notEqual(at, -1, 'the calculate button no longer has a handler');
   const handler = src.slice(at, at + 600);
@@ -175,7 +176,7 @@ const PRICES_WITHOUT_KEEPING = [
 test('A PAGE THAT PRICES AND CAPTURES SENDS A SESSION, SO THE QUOTE IS KEPT', () => {
   const guilty = [];
   for (const page of PAGES) {
-    const src = strip(readFileSync(SITE + page, 'utf8'));
+    const src = strip(pageSource(page));
     if (!src.includes('QB_QUOTE_ENDPOINT')) continue;   // does not price
     if (!src.includes('qbCaptureLead')) continue;       // does not capture
     /* THE KEY IN THE BODY, not a mention of the helper. The first
@@ -194,7 +195,7 @@ test('A PAGE THAT PRICES AND CAPTURES SENDS A SESSION, SO THE QUOTE IS KEPT', ()
 
 test('the priced-but-not-kept list has no stale names on it', () => {
   for (const page of PRICES_WITHOUT_KEEPING) {
-    const src = strip(readFileSync(SITE + page, 'utf8'));
+    const src = strip(pageSource(page));
     assert.ok(!/sessionId\s*[:=][^=]/.test(src),
       `${page} sends a session now -- take it off PRICES_WITHOUT_KEEPING`);
   }
@@ -226,7 +227,7 @@ test('NO PAGE FILES A LEAD WITH NO RECORD OF WHAT IT SHOWED', () => {
    */
   const guilty = [];
   for (const page of PAGES) {
-    const src = strip(readFileSync(SITE + page, 'utf8'));
+    const src = strip(pageSource(page));
     if (!src.includes('qbCaptureLead')) continue;
     if (!/results\s*:\s*null/.test(src)) continue;
     if (RECORDS_NOTHING_YET.includes(page)) continue;
@@ -240,7 +241,7 @@ test('the known-debt list has no stale names on it', () => {
   /* A page that has been fixed and left on the list turns the allowance
      into cover for the next one. */
   for (const page of RECORDS_NOTHING_YET) {
-    const src = strip(readFileSync(SITE + page, 'utf8'));
+    const src = strip(pageSource(page));
     assert.match(src, /results\s*:\s*null/,
       `${page} records what it shows now -- take it off RECORDS_NOTHING_YET`);
   }

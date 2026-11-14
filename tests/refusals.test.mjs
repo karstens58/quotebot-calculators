@@ -17,9 +17,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { pageSource } from './page-source.mjs';
 
-const CP = readFileSync(new URL('../site/crosspurchasebuysellcalculator.html', import.meta.url), 'utf8');
-const KP = readFileSync(new URL('../site/keypersoncalculator.html', import.meta.url), 'utf8');
+/* The page's markup AND its own script, which moved to js/<page>.js when
+   the inline <script> had to go for the Content-Security-Policy. */
+const CP = pageSource('crosspurchasebuysellcalculator.html');
+/* The page's markup AND its own script, which moved to js/<page>.js when
+   the inline <script> had to go for the Content-Security-Policy. */
+const KP = pageSource('keypersoncalculator.html');
 
 function cut(html, start, endMarker) {
   const i = html.indexOf(start);

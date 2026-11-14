@@ -21,8 +21,11 @@ import { loadCaptureApi } from './capture-api.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { pageSource } from './page-source.mjs';
 
-const HTML = readFileSync(new URL('../site/dimeneedscalculator.html', import.meta.url), 'utf8');
+/* The page's markup AND its own script, which moved to js/<page>.js when
+   the inline <script> had to go for the Content-Security-Policy. */
+const HTML = pageSource('dimeneedscalculator.html');
 
 const START = '(function prefillFromQuery() {';
 const END = '})();';
