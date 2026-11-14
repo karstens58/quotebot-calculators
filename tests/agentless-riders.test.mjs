@@ -28,7 +28,11 @@ function cut(start, endMarker) {
   return HTML.slice(i, j + endMarker.length);
 }
 
-const source = cut('/* ---------- RIDERS (from the carrier', "\n  } else {\n    chosenRiders.delete(lookup);\n  }\n});");
+/* The rider section, from the panel client through to the Apply handler.
+   The end marker is the last line of that handler; if it moves, this throws
+   rather than silently testing half a feature. */
+const source = cut('/* ---------- RIDERS (from the carrier',
+  '  clearTimeout(priceTimer);\n  invalidatePrice();\n  priceNow();\n});');
 
 /* ---- the carrier's answer, shaped as quote-engine returns it ------------ */
 
@@ -40,16 +44,31 @@ const disclosure = (lookup, name, variations = []) => ({
 const PANEL = {
   state: 'CO', term: 'TwentyYears',
   base: { lookup: 'Base', name: 'Term Life', disclosure: disclosure('Base', 'Term Life') },
+  /* Amounts and needsOccupation exactly as the route returns them for
+     Colorado: $100 increments on the disability riders, $1,000 on Child,
+     and our own $20,000 floor on Critical Illness over the carrier's
+     $10,000. */
   riders: [
     { lookup: 'AccidentOnlyDisabilityIncome', name: 'Accident-Only Disability Income Rider',
-      exclusiveWith: ['MonthlyDisabilityIncome'],
+      exclusiveWith: ['MonthlyDisabilityIncome'], needsOccupation: true,
+      amount: { minimum: 300, maximum: 3000, increment: 100 },
       disclosure: disclosure('AccidentOnlyDisabilityIncome', 'Accident-Only Disability Income Rider') },
     { lookup: 'MonthlyDisabilityIncome', name: 'Monthly Disability Income Rider',
-      exclusiveWith: ['AccidentOnlyDisabilityIncome'],
+      exclusiveWith: ['AccidentOnlyDisabilityIncome'], needsOccupation: true,
+      amount: { minimum: 300, maximum: 3000, increment: 100 },
       disclosure: disclosure('MonthlyDisabilityIncome', 'Monthly Disability Income Rider') },
     { lookup: 'Child', name: "Children's Term Insurance Rider", exclusiveWith: [],
+      needsOccupation: false, amount: { minimum: 1000, maximum: 25000, increment: 1000 },
       disclosure: disclosure('Child', "Children's Term Insurance Rider",
         ['In this state the rider terminates at age 26.']) },
+    { lookup: 'CriticalIllnessBenefit', name: 'Critical Illness Benefit Rider',
+      exclusiveWith: [], needsOccupation: false,
+      amount: { minimum: 20000, maximum: 100000, increment: 1 },
+      amountFloor: { minimum: 20000, source: 'Term Life Product Guide', why: 'the product is not written below it' },
+      disclosure: disclosure('CriticalIllnessBenefit', 'Critical Illness Benefit Rider') },
+    { lookup: 'WaiverOfPremium', name: 'Disability Waiver of Premium Rider',
+      exclusiveWith: [], needsOccupation: false,
+      disclosure: disclosure('WaiverOfPremium', 'Disability Waiver of Premium Rider') },
   ],
   included: [
     { lookup: 'AcceleratedBenefits', name: 'Accelerated Benefits Rider',
@@ -100,8 +119,13 @@ function sandbox({ state = 'Colorado', term = 20, pointer = 'fine' } = {}) {
      so they are kept by type rather than overwriting one another. */
   const riders = el();
   riders.sel = '.cov-riders';
+  /* A LIST PER TYPE, not one handler. The page registers two click
+     listeners on this panel -- one for the disclosure and the toggles, one
+     for the rider fields and Apply -- and a stub that kept only the last
+     silently unbound the first, which read as the toggles being broken. */
   const on = {};
-  riders.addEventListener = (type, fn) => { on[type] = fn; };
+  riders.addEventListener = (type, fn) => { (on[type] ??= []).push(fn); };
+  const fire = (type, ev) => (on[type] ?? []).forEach((fn) => fn(ev));
   const notes = new Map();
   const helps = new Map();
   const toggles = new Map();
@@ -170,33 +194,51 @@ function sandbox({ state = 'Colorado', term = 20, pointer = 'fine' } = {}) {
     matchMedia: (q) => ({ matches: pointer === 'fine' && /hover: hover/.test(q) }),
   };
 
+  /* The rest of the page, as far as this section can see it. Each of these
+     is a real thing defined elsewhere in agentlessquote.html; stubbed here
+     so the section under test can be exercised on its own, and recorded so
+     a test can assert what it asked for. */
+  const priced = [];
   const body = `
     let selectedTerm = TERM;
-    function getInputs(){ return { state: WHERE.state }; }
+    let premiumIsEstimate = true, currentQuote = null, currentUnderwriting = null;
+    let sliderIndex = 6;
+    const COV_STOPS = [275000,300000,325000,350000,400000,450000,500000,550000,600000,650000,700000,750000,800000];
+    function getInputs(){ return { state: WHERE.state, age: 48, gender: 'Male',
+      health: 'Standard', tobacco: 'No' }; }
+    function renderPrice(){ RECORD.push(['renderPrice', premiumIsEstimate]); }
+    function renderTermCards(){}
     ${source}
-    return { loadPanel, renderRiders, chosenRiders, read: () => panel };
+    return { loadPanel, renderRiders, chosenRiders, riderAmounts, occupation,
+             buildAsk, settleAmount, priceNow, PRICED,
+             state: () => ({ premiumIsEstimate, currentQuote, currentUnderwriting }),
+             read: () => panel };
   `;
-  const api = new Function('document', 'window', 'fetch', 'console', 'WHERE', 'TERM', body)(
-    document, window, fetchImpl, { warn() {}, error() {} }, where, term);
+  const api = new Function('document', 'window', 'fetch', 'console', 'WHERE', 'TERM',
+    'RECORD', 'setTimeout', 'clearTimeout', body)(
+    document, window, fetchImpl, { warn() {}, error() {} }, where, term, priced,
+    /* Synchronous, so a debounce is not a sleep in a test. */
+    (fn) => { priced.push(['scheduled']); return fn; }, () => {});
 
   return {
-    ...api, riderList, riderIncluded, asked, notes, helps,
+    ...api, riderList, riderIncluded, asked, notes, helps, priced,
     setResponse: (fn) => { respond = fn; },
     bound: () => Object.keys(on).sort(),
+    fire,
     moveTo: (s2) => { where.state = s2; },
     noteOf: (lookup) => { build(); return notes.get('note-' + lookup); },
     hover(lookup) {
       build();
-      on.mouseover?.({ target: helps.get(lookup) });
+      fire('mouseover', { target: helps.get(lookup) });
       return notes.get('note-' + lookup);
     },
     unhover(lookup, into = null) {
-      on.mouseout?.({ target: helps.get(lookup), relatedTarget: into });
+      fire('mouseout', { target: helps.get(lookup), relatedTarget: into });
       return notes.get('note-' + lookup);
     },
     tapHelp(lookup) {
       build();
-      on.click({ target: helps.get(lookup) });
+      fire('click', { target: helps.get(lookup) });
       return notes.get('note-' + lookup);
     },
     click(lookup, val) {
@@ -204,7 +246,7 @@ function sandbox({ state = 'Colorado', term = 20, pointer = 'fine' } = {}) {
       const tg = toggles.get(lookup);
       assert.ok(tg, `${lookup} is not on the page`);
       const btn = tg.children.find((b) => b.dataset.val === val);
-      on.click({ target: btn });
+      fire('click', { target: btn });
       return toggles;
     },
   };
@@ -450,12 +492,56 @@ test('THE PRICE IS MARKED AN ESTIMATE UNTIL A CARRIER HAS ANSWERED', () => {
     'the note is not driven by the flag, so the two can disagree');
 });
 
-test('and nothing clears that flag except an answer from the carrier', () => {
-  /* Any assignment to it other than the safe default must come from a quote
-     response. Today there is none, so the label is always up. */
-  const writes = [...HTML.matchAll(/premiumIsEstimate\s*=\s*([^;]+);/g)].map((m) => m[1].trim());
-  assert.deepEqual(writes, ['true'],
-    `premiumIsEstimate is set to ${writes.join(', ')} — only a carrier answer may clear it`);
+test('AND ONLY ONE PLACE IN THE PAGE MAY CLEAR IT', () => {
+  /*
+   * This test was written while nothing cleared the flag at all, so that
+   * the first assignment would have to be justified rather than just
+   * appear. Here is the justification.
+   *
+   * There is exactly ONE `= false`, and it sits in applyQuote -- the
+   * function reached only with a parsed carrier answer in hand. Every other
+   * assignment sets it back to true: the default, and each way a price can
+   * fail. A second `= false` somewhere else is how this page starts
+   * presenting a figure as the carrier's that the carrier never sent, so
+   * the count is asserted rather than the intent.
+   */
+  const writes = [...HTML.matchAll(/premiumIsEstimate\s*=\s*(true|false)\s*;/g)].map((m) => m[1]);
+  assert.equal(writes.filter((w) => w === 'false').length, 1,
+    `${writes.filter((w) => w === 'false').length} places clear the estimate flag; only applyQuote may`);
+  assert.ok(writes.filter((w) => w === 'true').length >= 3,
+    'the failure paths do not put the estimate label back');
+
+  const applyQuote = /function applyQuote\(data\)\{?[\s\S]*?\n\}/.exec(HTML);
+  assert.ok(applyQuote, 'applyQuote has been renamed — re-read this test');
+  assert.match(applyQuote[0], /premiumIsEstimate = false;/,
+    'the one clearing assignment is not in applyQuote');
+  assert.match(applyQuote[0], /currentQuote = data\.quote/,
+    'applyQuote clears the flag without a carrier quote in hand');
+});
+
+test('EVERY WAY A PRICE CAN FAIL PUTS THE LABEL BACK', () => {
+  /*
+   * The half that gets forgotten. A refused quote, an unreachable engine, a
+   * deployment not allowed to show rates, or simply not enough entered yet
+   * -- each must return to the estimate, because the figure still on screen
+   * came from our own table.
+   */
+  for (const path of [
+    /if \(!res\.ok \|\| !data\.quote\)\{[\s\S]*?premiumIsEstimate = true;/,
+    /catch \(err\) \{[\s\S]*?premiumIsEstimate = true;/,
+    /function invalidatePrice\(\)\{[\s\S]*?premiumIsEstimate = true;/,
+  ]) assert.match(HTML, path, 'a failure path leaves the carrier label on our own number');
+});
+
+test('AND ANY CHANGE TO THE ASK INVALIDATES THE PRICE', () => {
+  /*
+   * Assurity's premium for $500,000 is not their premium for $550,000.
+   * Leaving the old figure up while the slider moves is the most believable
+   * wrong number this page could show, so every input that feeds the ask
+   * goes through the debounced re-price, which invalidates first.
+   */
+  assert.match(HTML, /function pricePresently\(\)\{\s*\n\s*invalidatePrice\(\);/,
+    'the debounced re-price does not invalidate before it waits');
 });
 
 /* ---- opening the disclosure ------------------------------------------- */
@@ -508,8 +594,12 @@ test('ON A TOUCH SCREEN NOTHING IS BOUND TO HOVER AT ALL', async () => {
    */
   const s = sandbox({ pointer: 'coarse' });
   await s.loadPanel();
-  assert.deepEqual(s.bound(), ['click'],
+  /* Named rather than listed in full: the panel also binds click and input
+     for the rider fields, and asserting the whole set would fail the next
+     time something unrelated is bound. What must never appear is hover. */
+  assert.deepEqual(s.bound().filter((t) => t.startsWith('mouse')), [],
     'hover listeners were bound on a device that cannot hover');
+  assert.ok(s.bound().includes('click'), 'nothing is bound to click either');
   assert.equal(s.tapHelp('Child').hidden, false, 'a tap did not open the disclosure');
 });
 
@@ -530,4 +620,194 @@ test('the floating treatment is fenced behind a fine pointer in CSS too', () => 
   const fenced = /@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\.rider-note \{[^}]*position: absolute/;
   assert.match(HTML, fenced,
     'the bubble positioning is not inside a fine-pointer media query');
+});
+
+/* ---- the fields a rider opens ------------------------------------------ */
+
+test('A RIDER WITH AN AMOUNT OPENS A FIELD FOR IT, BOUNDED BY THE CARRIER', async () => {
+  const s = sandbox();
+  await s.loadPanel();
+  const html = s.riderList.innerHTML;
+  assert.ok(html.includes('id="fields-Child"'), "Children's Term has no fields");
+  assert.match(html, /\$1,000 to \$25,000, in \$1,000 steps/,
+    'the field does not say what the carrier will accept');
+  /* Hidden until the rider is switched on. */
+  assert.match(html, /id="fields-Child"[^>]*\shidden/);
+});
+
+test('AN ON-OR-OFF RIDER OPENS NO FIELDS AT ALL', async () => {
+  /* Waiver of Premium carries no BenefitAmount, so there is nothing to fill
+     in and a panel with only a button in it would be ceremony. */
+  const s = sandbox();
+  await s.loadPanel();
+  assert.ok(!s.riderList.innerHTML.includes('id="fields-WaiverOfPremium"'));
+});
+
+test('OUR STRICTER MINIMUM IS SHOWN AS OURS, NOT AS THE CARRIER’S', async () => {
+  /*
+   * /options returns a Critical Illness minimum of 10,000 and the quote
+   * service prices it. The product is written from 20,000. Saying so is the
+   * difference between a visitor understanding a limit and discovering it at
+   * underwriting.
+   */
+  const s = sandbox();
+  await s.loadPanel();
+  const html = s.riderList.innerHTML;
+  assert.match(html, /Our minimum is \$20,000/);
+  assert.match(html, /refused at underwriting/);
+});
+
+test('ONLY THE RIDERS THAT NEED AN INCOME ASK FOR ONE', async () => {
+  /* And the page does not decide which those are -- the panel says. */
+  const s = sandbox();
+  await s.loadPanel();
+  const block = (l) => {
+    const i = s.riderList.innerHTML.indexOf('id="fields-' + l + '"');
+    return i === -1 ? '' : s.riderList.innerHTML.slice(i, i + 2200);
+  };
+  assert.match(block('MonthlyDisabilityIncome'), /Gross monthly income/);
+  assert.match(block('MonthlyDisabilityIncome'), /Railroad worker/);
+  assert.doesNotMatch(block('Child'), /Gross monthly income/,
+    "a visitor was asked their salary to price their children's rider");
+  assert.doesNotMatch(block('CriticalIllnessBenefit'), /Gross monthly income/);
+});
+
+/* ---- what Apply sends -------------------------------------------------- */
+
+test('AN AMOUNT IS ROUNDED DOWN TO THE CARRIER’S INCREMENT, NEVER UP', () => {
+  /*
+   * Every limit on these riders is a ceiling, so down is the only direction
+   * that cannot breach one. Assurity refuse an off-increment amount rather
+   * than tidying it, so this is what stops a visitor being refused for
+   * typing a round number.
+   */
+  const s = sandbox();
+  s.read?.();
+  const settle = s.settleAmount;
+  /* The panel has to be loaded for the ranges to exist. */
+  return (async () => {
+    await s.loadPanel();
+    assert.equal(s.settleAmount('MonthlyDisabilityIncome', '1,250'), 1200);
+    assert.equal(s.settleAmount('MonthlyDisabilityIncome', '1,200'), 1200,
+      'an amount already on an increment is kept');
+    assert.equal(s.settleAmount('MonthlyDisabilityIncome', '99,999'), 3000,
+      'above the carrier maximum is the maximum, not a refusal');
+    assert.equal(s.settleAmount('MonthlyDisabilityIncome', '50'), 300,
+      'below the minimum is the minimum');
+    assert.equal(s.settleAmount('CriticalIllnessBenefit', '15,000'), 20000,
+      'our floor holds, not the carrier’s 10,000');
+    assert.equal(s.settleAmount('Child', 'abc'), null);
+  })();
+});
+
+test('NOTHING IS PRICED UNTIL THERE IS ENOUGH TO ASK WITH', async () => {
+  const s = sandbox({ state: 'Colorado' });
+  await s.loadPanel();
+  s.chosenRiders.add('MonthlyDisabilityIncome');
+  /* A disability rider with no income yet: the ask cannot be built, and the
+     carrier would answer 400 "'Occupation' must not be empty". */
+  assert.equal(s.buildAsk(), null);
+  s.occupation.grossMonthlyIncome = 6000;
+  s.riderAmounts.set('MonthlyDisabilityIncome', 1500);
+  const ask = s.buildAsk();
+  assert.ok(ask, 'an ask that had everything was still refused');
+  assert.deepEqual(ask.riders, [{ lookup: 'MonthlyDisabilityIncome', amount: 1500 }]);
+  assert.equal(ask.occupation.grossMonthlyIncome, 6000);
+});
+
+test('and occupation is not sent for a rider that does not need it', async () => {
+  const s = sandbox();
+  await s.loadPanel();
+  s.chosenRiders.add('Child');
+  s.riderAmounts.set('Child', 10000);
+  s.occupation.grossMonthlyIncome = 6000;      // left over from looking at a disability rider
+  assert.equal(s.buildAsk().occupation, undefined,
+    'a visitor’s salary was sent to price their children’s rider');
+});
+
+test('AN EXACT REPEAT COSTS NO CARRIER REQUEST', async () => {
+  const s = sandbox();
+  await s.loadPanel();
+  const before = s.asked.length;
+  s.setResponse(async () => ({ ok: true, status: 200, headers: new Map(),
+    json: async () => ({ quote: { total: { Monthly: 185.49, Annual: 2132 }, coverages: [] },
+      underwriting: { riskClass: 'StandardNonTobacco', approximated: false } }) }));
+  await s.priceNow();
+  const after = s.asked.length;
+  assert.equal(after - before, 1);
+  await s.priceNow();
+  assert.equal(s.asked.length, after, 'the same ask was sent to the carrier twice');
+  assert.equal(s.state().premiumIsEstimate, false, 'a carrier answer did not clear the label');
+});
+
+test('A REFUSAL AFTER A GOOD PRICE PUTS THE LABEL BACK', async () => {
+  /*
+   * THE ONLY VERSION OF THIS TEST THAT BITES. Refusing on the first ask
+   * proves nothing: the label is already up and removing the assignment
+   * that restores it changes no outcome — a mutation walked straight
+   * through the first version of this test.
+   *
+   * The case that matters is a visitor who HAS a carrier price on screen,
+   * changes something, and is refused. The figure showing is now ours
+   * again, and must say so.
+   */
+  const s = sandbox();
+  await s.loadPanel();
+  s.setResponse(async () => ({ ok: true, status: 200, headers: new Map(),
+    json: async () => ({ quote: { total: { Monthly: 185.49, Annual: 2132 }, coverages: [] },
+      underwriting: { riskClass: 'StandardNonTobacco', approximated: false } }) }));
+  await s.priceNow();
+  assert.equal(s.state().premiumIsEstimate, false, 'nothing was priced to begin with');
+
+  s.riderAmounts.set('Child', 10000);
+  s.chosenRiders.add('Child');            // a different ask, so past the cache
+  s.setResponse(async () => ({ ok: false, status: 422, headers: new Map(),
+    json: async () => ({ error: 'the carrier did not price this quote',
+      problems: [{ field: 'PrimaryInsured.Person.Occupation',
+        message: "'Occupation' must not be empty." }] }) }));
+  await s.priceNow();
+
+  assert.equal(s.state().premiumIsEstimate, true,
+    'a refused quote left the carrier label on our own number');
+});
+
+test('AND A DEPLOYMENT THAT MAY NOT SHOW RATES SAYS NOTHING TO THE VISITOR', async () => {
+  /* A 403 is ours — the display approval — and not something a visitor can
+     act on or should be shown a carrier error about. */
+  const s = sandbox();
+  await s.loadPanel();
+  s.setResponse(async () => ({ ok: false, status: 403, headers: new Map(),
+    json: async () => ({ error: 'not approved', reason: 'display-not-approved' }) }));
+  await s.priceNow();
+  assert.equal(s.state().premiumIsEstimate, true);
+  assert.match(HTML, /res\.status === 403\s*\n?\s*\? null/,
+    'a 403 is shown to the visitor as a carrier problem');
+});
+
+test('NO id IS RENDERED TWICE IN THE PANEL', async () => {
+  /*
+   * Both disability riders render their own copy of the income and
+   * employment fields, and an unscoped `id="income"` therefore appeared
+   * twice in the document. getElementById returns the first, a <label for>
+   * resolves to whichever it finds, and the field a visitor can see need
+   * not be the one being read — a real browser refused to type into it.
+   * Only one of the two riders can ever be chosen; both are in the DOM.
+   */
+  const s = sandbox();
+  await s.loadPanel();
+  const ids = [...(s.riderList.innerHTML + s.riderIncluded.innerHTML)
+    .matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+  const seen = new Set();
+  const twice = ids.filter((id) => (seen.has(id) ? true : (seen.add(id), false)));
+  assert.deepEqual([...new Set(twice)], [], `rendered more than once: ${[...new Set(twice)].join(', ')}`);
+});
+
+test('and every label points at a field that exists', async () => {
+  const s = sandbox();
+  await s.loadPanel();
+  const html = s.riderList.innerHTML + s.riderIncluded.innerHTML;
+  const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));
+  for (const m of html.matchAll(/<label for="([^"]+)"/g)) {
+    assert.ok(ids.has(m[1]), `a label points at "${m[1]}", which is not in the panel`);
+  }
 });

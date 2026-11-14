@@ -332,6 +332,9 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
    from keypersoncalculator.html, which states the rule this page follows:
    "estimates" is the claim you can always defend, and it is the safe
    default when nothing has come back. */
+.price-note { margin-top: 9px; font-size: 11.5px; line-height: 1.45; color: var(--gray-dark); text-align: center; max-width: 250px; }
+.price-note[hidden], .price-problem[hidden] { display: none; }
+.price-problem { margin-top: 9px; padding: 8px 12px; border-radius: var(--radius); background: #fdecec; border: 1px solid rgba(220,38,38,0.3); font-size: 11.5px; line-height: 1.5; color: var(--red); text-align: center; max-width: 250px; }
 .price-estimate { margin-top: 10px; padding: 8px 12px; border-radius: var(--radius); background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); font-size: 11.5px; line-height: 1.5; color: var(--gold); text-align: center; max-width: 250px; }
 .price-toggle { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--gray-mid); }
 .price-toggle span { cursor: pointer; transition: color var(--transition); }
@@ -368,6 +371,29 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
    nothing. Caught in a real browser; a stubbed DOM cannot see it, because
    nothing in a stub resolves the cascade. */
 .rider-note[hidden] { display: none; }
+
+/* The fields a rider needs, opened by switching it on. In the flow, never
+   floating: unlike the disclosure these are controls somebody types into,
+   and a panel of inputs that can be dismissed by the pointer drifting is a
+   half-filled form nobody can get back to. */
+.rider-fields { background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 15px; display: flex; flex-direction: column; gap: 12px; }
+.rider-fields[hidden] { display: none; }
+.rider-field { display: flex; flex-direction: column; gap: 5px; }
+.rider-field label { font-size: 11px; font-weight: 700; color: var(--gray-mid); text-transform: uppercase; letter-spacing: 0.05em; }
+.rider-field .input-wrap { display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: 8px; background: #fff; overflow: hidden; }
+.rider-field .input-prefix { padding: 0 2px 0 10px; color: var(--gray-mid); font-size: 14px; font-weight: 600; }
+.rider-field input { flex: 1; border: none; outline: none; padding: 9px 10px 9px 4px; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text); background: transparent; width: 100%; }
+.rider-hint { font-size: 11px; color: var(--gray-mid); line-height: 1.45; }
+.rider-hint.ours { color: var(--gold); }
+.rider-field.bad .input-wrap { border-color: var(--red); }
+.rider-field.bad .rider-hint { color: var(--red); }
+.rider-seg { display: flex; border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden; align-self: flex-start; }
+.rider-seg button { padding: 6px 14px; border: none; background: #fff; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--gray-mid); cursor: pointer; }
+.rider-seg button.active { background: var(--accent); color: #fff; }
+.rider-seg button + button { border-left: 1.5px solid var(--border); }
+.rider-apply { align-self: flex-start; padding: 9px 22px; border: none; border-radius: 8px; background: var(--green); color: #fff; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity var(--transition); }
+.rider-apply:disabled { opacity: 0.5; cursor: default; }
+.rider-why { font-size: 11px; color: var(--gray-mid); line-height: 1.45; }
 
 /* The bubble. Only where a pointer can hover: a coarse pointer keeps the
    in-flow panel, which needs no positioning and cannot be clipped. It is
@@ -784,6 +810,8 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
                   <span class="no-agent-tag" id="noAgentTag" title="Apply and get a decision online, without an agent."><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>No Agent Required</span>
                   <div class="price-amt" id="priceAmt"></div>
                   <div class="price-toggle"><span class="active" id="ptMonthly">Monthly</span> | <span id="ptYearly">Yearly</span></div>
+                  <p class="price-note" id="priceClass" hidden></p>
+                  <p class="price-problem" id="priceProblem" hidden></p>
                   <p class="price-estimate" id="priceEstimate">Estimate only &mdash; not a price from Assurity. Your premium is set by the carrier when you apply.</p>
                 </div>
               </div>
@@ -882,6 +910,9 @@ const HEALTH_FACTOR = { 'Preferred Plus':0.68, 'Preferred':0.80, 'Standard Plus'
  * cannot price all leave the label up without anyone handling those cases.
  */
 let premiumIsEstimate = true;
+/* The carrier's last answer for exactly what is on screen, or null. */
+let currentQuote = null;
+let currentUnderwriting = null;
 
 let sliderIndex = 6;      // $500,000
 let selectedTerm = 15;
@@ -935,10 +966,33 @@ function renderSliderFill(){
 }
 function renderPrice(){
   const cov = COV_STOPS[sliderIndex];
-  const m = monthlyFor(selectedTerm, cov);
-  const val = billing === 'monthly' ? m : m * 12;
+  /*
+   * THEIR NUMBER WHEN WE HAVE ONE, AND NEVER ARITHMETIC ON IT. Assurity
+   * send a figure per payment frequency, and Monthly is NOT Annual over
+   * twelve -- their monthly modal factor is 0.087, and their total is the
+   * sum of the rounded parts rather than a factor applied to the annual. So
+   * each is read from them, not derived from the other.
+   */
+  const val = currentQuote
+    ? (billing === 'monthly' ? currentQuote.total.Monthly : currentQuote.total.Annual)
+    : (billing === 'monthly' ? monthlyFor(selectedTerm, cov) : monthlyFor(selectedTerm, cov) * 12);
   document.getElementById('priceAmt').textContent = fmt2(val);
   document.getElementById('priceEstimate').hidden = !premiumIsEstimate;
+
+  const why = document.getElementById('priceProblem');
+  why.hidden = !quoteProblem;
+  why.textContent = quoteProblem || '';
+
+  /* Which of Assurity's five they actually priced, and whether reaching it
+     meant walking down from the class that was asked for. Saying so here is
+     the whole point of the route returning it: better now than at
+     underwriting. */
+  const uw = document.getElementById('priceClass');
+  uw.hidden = !currentUnderwriting?.approximated;
+  if (currentUnderwriting?.approximated){
+    uw.textContent = 'Priced at Assurity\u2019s ' + ASSURITY_CLASS_NAMES[currentUnderwriting.riskClass]
+      + ' \u2014 they do not write the class you selected.';
+  }
   document.getElementById('ptMonthly').classList.toggle('active', billing==='monthly');
   document.getElementById('ptYearly').classList.toggle('active', billing==='yearly');
 }
@@ -956,7 +1010,7 @@ function renderTermCards(){
   document.querySelectorAll('.term-select').forEach(b => b.addEventListener('click', () => {
     selectedTerm = parseInt(b.dataset.term);
     document.getElementById('termLength').value = selectedTerm;
-    renderPrice(); renderTermCards(); loadPanel();
+    renderPrice(); renderTermCards(); loadPanel(); pricePresently();
     document.querySelector('.cov-card').scrollIntoView({ behavior:'smooth', block:'start' });
   }));
 }
@@ -1020,6 +1074,95 @@ async function loadPanel(){
   renderRiders();
 }
 
+/*
+ * THE FIELDS A RIDER NEEDS, AND NOT ONE OF THEM IS DECIDED HERE.
+ *
+ *   amount          present only when the carrier gives this rider a
+ *                   BenefitAmount range, with their own minimum, maximum and
+ *                   increment. `amountFloor` means the minimum is OURS and
+ *                   stricter than theirs, and the page says so rather than
+ *                   passing off our conservatism as their filing.
+ *   occupation      only when the panel says `needsOccupation`. Assurity's
+ *                   spec marks it optional; their service answers 400
+ *                   "'Occupation' must not be empty" without it, and the
+ *                   two riders that need it are the two disability income
+ *                   ones. The page does not hold that list -- the panel does.
+ *
+ * Which is why a rider the carrier stops writing, or starts writing with an
+ * amount, changes this panel without anybody editing this file.
+ */
+/* Assurity's own names for their five classes. Shown only when the class we
+   priced is not the one that was asked for. */
+const ASSURITY_CLASS_NAMES = {
+  PreferredPlusNonTobacco: 'Preferred Plus Non-Tobacco',
+  PreferredNonTobacco: 'Preferred Non-Tobacco',
+  StandardNonTobacco: 'Standard Non-Tobacco',
+  PreferredTobacco: 'Preferred Tobacco',
+  StandardTobacco: 'Standard Tobacco',
+};
+const money0 = (n) => '$' + Number(n).toLocaleString('en-US');
+const riderAmounts = new Map();
+const occupation = { grossMonthlyIncome: null, isSelfEmployed: false,
+  isGovernmentEmployee: false, isRailroadWorker: false,
+  isWorkingAtLeast30HoursAWeek: true };
+
+/*
+ * EVERY id IS SCOPED TO ITS RIDER. Both disability riders render their own
+ * copy of these fields, so an unscoped `id="income"` appeared twice in the
+ * document -- `getElementById` returns the first, a <label for> points at
+ * whichever it finds, and the one a visitor can see may not be the one
+ * being read. Only one of the two can ever be chosen, but both are in the
+ * DOM.
+ */
+const YESNO = (lookup, name, key, yesFirst) => `
+      <div class="rider-field">
+        <label>${esc(name)}</label>
+        <div class="rider-seg" data-occ="${esc(key)}" data-for="${esc(lookup)}">
+          <button type="button" data-val="yes"${yesFirst ? ' class="active"' : ''}>Yes</button>
+          <button type="button" data-val="no"${yesFirst ? '' : ' class="active"'}>No</button>
+        </div>
+      </div>`;
+
+function fieldsHtml(r){
+  if (!r.amount && !r.needsOccupation) return '';
+  const parts = [];
+
+  if (r.amount){
+    const { minimum, maximum, increment } = r.amount;
+    const steps = increment > 1 ? `, in ${money0(increment)} steps` : '';
+    parts.push(`
+      <div class="rider-field" data-amount="${esc(r.lookup)}">
+        <label for="amt-${esc(r.lookup)}">Benefit amount</label>
+        <div class="input-wrap"><span class="input-prefix">$</span>
+          <input id="amt-${esc(r.lookup)}" inputmode="numeric" autocomplete="off"
+                 value="${Number(riderAmounts.get(r.lookup) ?? minimum).toLocaleString('en-US')}">
+        </div>
+        <p class="rider-hint">${money0(minimum)} to ${money0(maximum)}${steps}.</p>
+        ${r.amountFloor ? `<p class="rider-hint ours">Our minimum is ${money0(r.amountFloor.minimum)} &mdash; Assurity's quote service will accept less, but the product is not written below it, so a lower figure would be refused at underwriting.</p>` : ''}
+      </div>`);
+  }
+
+  if (r.needsOccupation){
+    parts.push(`
+      <p class="rider-why">Assurity price this one against what you earn, so they need a few details about your work.</p>
+      <div class="rider-field" data-income="1">
+        <label for="income-${esc(r.lookup)}">Gross monthly income</label>
+        <div class="input-wrap"><span class="input-prefix">$</span>
+          <input id="income-${esc(r.lookup)}" inputmode="numeric" autocomplete="off"
+                 value="${occupation.grossMonthlyIncome ? Number(occupation.grossMonthlyIncome).toLocaleString('en-US') : ''}" placeholder="6,000">
+        </div>
+        <p class="rider-hint">Before tax.</p>
+      </div>`);
+    parts.push(YESNO(r.lookup, 'Working 30+ hours a week', 'isWorkingAtLeast30HoursAWeek', occupation.isWorkingAtLeast30HoursAWeek));
+    parts.push(YESNO(r.lookup, 'Self-employed', 'isSelfEmployed', occupation.isSelfEmployed));
+    parts.push(YESNO(r.lookup, 'Government employee', 'isGovernmentEmployee', occupation.isGovernmentEmployee));
+    parts.push(YESNO(r.lookup, 'Railroad worker', 'isRailroadWorker', occupation.isRailroadWorker));
+  }
+
+  parts.push(`<button type="button" class="rider-apply" data-apply="${esc(r.lookup)}">Apply</button>`);
+  return `<div class="rider-fields" id="fields-${esc(r.lookup)}" hidden>${parts.join('')}</div>`;
+}
+
 function noteHtml(d, stateName){
   const vars = (d.variations || []).map((t) =>
     `<p class="var"><b>In ${esc(stateName)}:</b> ${esc(t)}</p>`).join('');
@@ -1055,6 +1198,7 @@ function renderRiders(){
         </div>
       </div>
       ${noteHtml(r.disclosure, stateName)}
+      ${fieldsHtml(r)}
     </div>`).join('');
 
   /* Carried free by every policy and never in the carrier's options list, so
@@ -1123,6 +1267,130 @@ if (canHover){
   });
 }
 
+/* ---------- PRICING (Assurity's own, via quote-engine) ---------- */
+/*
+ * THE PRICE ON THIS PAGE IS THE CARRIER'S OR IT IS MARKED AN ESTIMATE.
+ * There is no third state. `premiumIsEstimate` starts true, only a carrier
+ * answer clears it, and ANY change to the ask puts it straight back --
+ * because Assurity's premium for $500,000 is not their premium for $550,000,
+ * and leaving the old number up while the slider moves is the most
+ * believable wrong number this page could show.
+ */
+const PRICED = new Map();          // the whole ask -> the carrier's answer
+let priceSeq = 0;
+let priceTimer = null;
+let quoteProblem = null;
+
+function riderPayload(){
+  return [...chosenRiders].map((lookup) => {
+    const r = panel?.riders.find((x) => x.lookup === lookup);
+    const amount = riderAmounts.get(lookup);
+    return r?.amount ? { lookup, amount } : { lookup };
+  });
+}
+
+/** Null when there is not yet enough to ask with -- not an error, just early. */
+function buildAsk(){
+  const inp = getInputs();
+  const state = STATE_CODES[inp.state];
+  const term = TERM_PERIODS[selectedTerm];
+  if (!state || !term || !inp.age || inp.age < 18) return null;
+  const riders = riderPayload();
+  const needsOcc = riders.some((r) =>
+    panel?.riders.find((x) => x.lookup === r.lookup)?.needsOccupation);
+  if (needsOcc && !occupation.grossMonthlyIncome) return null;
+  return {
+    state, term,
+    faceAmount: COV_STOPS[sliderIndex],
+    age: inp.age,
+    gender: inp.gender,
+    /* Compulife's eight, sent as collected. The route maps them to
+       Assurity's five and tells us which one it actually priced. */
+    healthClass: inp.health,
+    tobacco: inp.tobacco === 'Yes',
+    riders,
+    ...(needsOcc ? { occupation } : {}),
+  };
+}
+
+/* Anything that changes the ask makes the price on screen wrong. Called from
+   every input that feeds buildAsk, so the estimate label comes back the
+   instant a figure stops describing what is on screen. */
+function invalidatePrice(){
+  premiumIsEstimate = true;
+  quoteProblem = null;
+  renderPrice();
+}
+
+async function priceNow(){
+  const ask = buildAsk();
+  if (!ask) return invalidatePrice();
+
+  const endpoint = window.QB_QUOTE_ENDPOINT || '';
+  if (!/^https?:\/\//i.test(endpoint)) return invalidatePrice();
+
+  const key = JSON.stringify(ask);
+  /* An exact repeat costs nothing. Somebody who moves the slider up and
+     back, or switches a rider off and on, has already been priced for this
+     and should not spend a carrier request to learn it twice. */
+  if (PRICED.has(key)){
+    applyQuote(PRICED.get(key));
+    return;
+  }
+
+  const seq = ++priceSeq;
+  try {
+    const res = await fetch(endpoint.replace(/\/$/, '') + '/assurity-quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: key,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (seq !== priceSeq) return;        // a newer ask has overtaken this one
+
+    if (!res.ok || !data.quote){
+      /*
+       * THE CARRIER'S OWN WORDS WHERE THERE ARE ANY. Their refusals name a
+       * field and say what is wrong with it, which is the only part a
+       * visitor can act on. A 403 means this deployment may not show their
+       * rates at all, which is ours and not theirs to explain.
+       */
+      quoteProblem = res.status === 403
+        ? null
+        : (data.problems?.[0]?.message || data.refusals?.[0] || null);
+      premiumIsEstimate = true;
+      PRICED.delete(key);
+      renderPrice();
+      return;
+    }
+
+    PRICED.set(key, data);
+    applyQuote(data);
+  } catch (err) {
+    if (seq !== priceSeq) return;
+    premiumIsEstimate = true;
+    quoteProblem = null;
+    renderPrice();
+  }
+}
+
+function applyQuote(data){
+  currentQuote = data.quote;
+  currentUnderwriting = data.underwriting ?? null;
+  quoteProblem = null;
+  premiumIsEstimate = false;
+  renderPrice();
+  renderTermCards();
+}
+
+/* Debounced, because a slider produces a position every few pixels and only
+   the one it stops on is worth asking about. Apply does not wait. */
+function pricePresently(){
+  invalidatePrice();
+  clearTimeout(priceTimer);
+  priceTimer = setTimeout(priceNow, 500);
+}
+
 riderPanel.addEventListener('click', (e) => {
   const help = e.target.closest('.rider-help');
   if (help){
@@ -1143,8 +1411,22 @@ riderPanel.addEventListener('click', (e) => {
   tg.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
   btn.classList.add('active');
 
+  const fieldsOf = (l) => document.getElementById('fields-' + l);
+
   if (btn.dataset.val === 'yes'){
     chosenRiders.add(lookup);
+    const fields = fieldsOf(lookup);
+    if (fields){
+      /* Fields to fill in, so nothing is priced until Apply -- an amount of
+         "whatever the minimum happened to be" is not what they asked for. */
+      fields.hidden = false;
+      invalidatePrice();
+    } else {
+      /* An on-or-off rider: there is nothing to fill in, so switching it on
+         IS the apply. Making somebody press a button under an empty panel
+         would be ceremony. */
+      pricePresently();
+    }
     /* ONE DISABILITY RIDER PER POLICY -- Assurity's rule, not ours, and it
        arrives with the panel rather than being typed here. Turning this one
        on turns the other one off, visibly, instead of letting an applicant
@@ -1155,10 +1437,106 @@ riderPanel.addEventListener('click', (e) => {
       if (!o) return;
       o.querySelectorAll('button').forEach((b) =>
         b.classList.toggle('active', b.dataset.val === 'no'));
+      const of = fieldsOf(other);
+      if (of) of.hidden = true;
     });
   } else {
     chosenRiders.delete(lookup);
+    const fields = fieldsOf(lookup);
+    if (fields) fields.hidden = true;
+    /* Removing a rider needs no Apply: there is nothing left to confirm,
+       and the price is wrong until it is re-asked. */
+    pricePresently();
   }
+});
+
+/* ---------- the rider fields ---------- */
+
+const digits = (v) => String(v ?? '').replace(/[^0-9]/g, '');
+
+/*
+ * DOWN TO THE CARRIER'S INCREMENT, NEVER UP. Every limit on these riders is
+ * a ceiling -- Scott's reasoning, and the general one -- so rounding down is
+ * the only direction that cannot breach one. Assurity's service refuses an
+ * off-increment amount rather than tidying it, so this is what stops a
+ * visitor being refused for typing a round number.
+ */
+function settleAmount(lookup, raw){
+  const r = panel?.riders.find((x) => x.lookup === lookup);
+  if (!r?.amount) return null;
+  const { minimum, maximum, increment } = r.amount;
+  const n = Number(digits(raw));
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const capped = Math.min(n, maximum);
+  if (capped < minimum) return minimum;
+  return minimum + Math.floor((capped - minimum) / increment) * increment;
+}
+
+riderPanel.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el.id?.startsWith('income-')){
+    el.value = digits(el.value) ? Number(digits(el.value)).toLocaleString('en-US') : '';
+    return;
+  }
+  if (el.id?.startsWith('amt-')){
+    el.value = digits(el.value) ? Number(digits(el.value)).toLocaleString('en-US') : '';
+  }
+});
+
+riderPanel.addEventListener('click', (e) => {
+  /* The Yes/No answers about work. They feed the quote, never the page. */
+  const seg = e.target.closest('.rider-seg');
+  if (seg && e.target.tagName === 'BUTTON'){
+    const answer = e.target.dataset.val === 'yes';
+    occupation[seg.dataset.occ] = answer;
+    /* The same answer in every copy of these fields. It is one person's
+       employment, and both disability riders render their own set -- a
+       divergence between them would show one answer and send the other. */
+    riderPanel.querySelectorAll(`.rider-seg[data-occ="${seg.dataset.occ}"]`)
+      .forEach((other) => other.querySelectorAll('button').forEach((b) =>
+        b.classList.toggle('active', (b.dataset.val === 'yes') === answer)));
+    return;
+  }
+
+  const apply = e.target.closest('.rider-apply');
+  if (!apply) return;
+  const lookup = apply.dataset.apply;
+  const fields = document.getElementById('fields-' + lookup);
+  const amountField = fields.querySelector('[data-amount]');
+  const incomeField = fields.querySelector('[data-income]');
+
+  let ok = true;
+  if (amountField){
+    const input = amountField.querySelector('input');
+    const settled = settleAmount(lookup, input.value);
+    if (settled === null){ amountField.classList.add('bad'); ok = false; }
+    else {
+      amountField.classList.remove('bad');
+      /* Shown back as it will be ASKED FOR, not as it was typed. Somebody
+         who enters 1,250 on a $100 increment is quoted 1,200, and seeing
+         1,250 on screen beside a premium for 1,200 is how a page lies
+         quietly. */
+      input.value = settled.toLocaleString('en-US');
+      riderAmounts.set(lookup, settled);
+    }
+  }
+  if (incomeField){
+    const n = Number(digits(incomeField.querySelector('input').value));
+    if (!Number.isFinite(n) || n <= 0){ incomeField.classList.add('bad'); ok = false; }
+    else {
+      incomeField.classList.remove('bad');
+      occupation.grossMonthlyIncome = n;
+      /* And into the other rider's copy, for the same reason. */
+      riderPanel.querySelectorAll('[data-income] input')
+        .forEach((i) => { i.value = n.toLocaleString('en-US'); });
+    }
+  }
+  if (!ok) return;
+
+  /* Apply does not wait out the debounce. It is a deliberate press. */
+  clearTimeout(priceTimer);
+  invalidatePrice();
+  priceNow();
 });
 function renderWelcome(){
   const inp = getInputs();
@@ -1186,7 +1564,7 @@ document.querySelectorAll('.inputs-panel .seg').forEach(seg => {
     if (e.target.tagName !== 'BUTTON') return;
     seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
-    if (shown()) renderAll();
+    if (shown()) { renderAll(); pricePresently(); }
   });
 });
 document.getElementById('dob').addEventListener('change', () => {
@@ -1199,14 +1577,14 @@ document.getElementById('dob').addEventListener('change', () => {
   const years = computeAge(dobValue);
   agePill.hidden = !dobValue || !Number.isFinite(years) || years <= 0;
   agePill.textContent = agePill.hidden ? '' : 'Age ' + years;
-  if (shown()) renderAll();
+  if (shown()) { renderAll(); pricePresently(); }
 });
 // left-panel coverage formatting
 document.getElementById('coverage').addEventListener('input', e => {
   const n = e.target.value.replace(/[^0-9]/g,'');
   e.target.value = n ? parseInt(n).toLocaleString() : '';
 });
-['state','health'].forEach(id => document.getElementById(id).addEventListener('change', () => { if (shown()) { renderAll(); loadPanel(); } }));
+['state','health'].forEach(id => document.getElementById(id).addEventListener('change', () => { if (shown()) { renderAll(); loadPanel(); pricePresently(); } }));
 ['firstName'].forEach(id => document.getElementById(id).addEventListener('input', () => { if (shown()) renderWelcome(); }));
 
 // coverage slider
@@ -1214,7 +1592,7 @@ const slider = document.getElementById('covSlider');
 slider.addEventListener('input', () => {
   sliderIndex = parseInt(slider.value);
   document.getElementById('covAmount').value = COV_STOPS[sliderIndex].toLocaleString();
-  renderTicks(); renderSliderFill(); renderPrice(); renderTermCards();
+  renderTicks(); renderSliderFill(); renderPrice(); renderTermCards(); pricePresently();
 });
 document.getElementById('covDown').addEventListener('click', () => { if (sliderIndex>0){ sliderIndex--; slider.value=sliderIndex; slider.dispatchEvent(new Event('input')); } });
 document.getElementById('covUp').addEventListener('click', () => { if (sliderIndex<COV_STOPS.length-1){ sliderIndex++; slider.value=sliderIndex; slider.dispatchEvent(new Event('input')); } });
@@ -1223,12 +1601,12 @@ document.getElementById('covUp').addEventListener('click', () => { if (sliderInd
 document.getElementById('covAmount').addEventListener('input', e => {
   const n = e.target.value.replace(/[^0-9]/g,'');
   e.target.value = n ? parseInt(n).toLocaleString() : '';
-  if (n) { sliderIndex = nearestStop(parseInt(n)); slider.value = sliderIndex; renderTicks(); renderSliderFill(); renderPrice(); renderTermCards(); }
+  if (n) { sliderIndex = nearestStop(parseInt(n)); slider.value = sliderIndex; renderTicks(); renderSliderFill(); renderPrice(); renderTermCards(); pricePresently(); }
 });
 // term length select (card)
 document.getElementById('termLength').addEventListener('change', e => {
   selectedTerm = parseInt(e.target.value);
-  renderPrice(); renderTermCards(); loadPanel();
+  renderPrice(); renderTermCards(); loadPanel(); pricePresently();
 });
 // monthly/yearly toggle
 document.getElementById('ptMonthly').addEventListener('click', () => { billing='monthly'; renderPrice(); });
@@ -1242,6 +1620,9 @@ document.getElementById('quoteBtn').addEventListener('click', () => {
   renderRiders();          // the empty state, until the carrier answers
   loadPanel();
   renderAll();
+  /* Price the policy itself straight away. Riders come later, through
+     Apply; the base premium is what they came for. */
+  pricePresently();
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('resultsContent').classList.add('show');
   document.querySelector('.quote-grid').classList.add('results-mode');
