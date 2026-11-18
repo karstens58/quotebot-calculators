@@ -832,13 +832,106 @@
     return hit;
   }
 
+  /*
+   * THE WHOLE ANSWER, NOT JUST THE NAME -- QBP-602.
+   *
+   * This cached one field while the endpoint returned one field. Now it
+   * also returns a palette, a mark and the partnership wording, and those
+   * are the half that MUST come out of the cache: a visitor moving from a
+   * partner's portal page to a quote page should not watch Quote Bot blue
+   * repaint into their colours. Storing the name alone would have made
+   * every page after the first flash exactly the way the first one does.
+   *
+   * Still bounded, and still only what the endpoint gave us.
+   */
   function cacheBrand(code, brand) {
     var all = read(BRAND_KEY) || {};
     var now = Date.now();
     // Bound it. A visitor should not accumulate every affiliate they ever saw.
     Object.keys(all).forEach(function (k) { if (now - all[k].at > BRAND_TTL) delete all[k]; });
-    all[code] = { name: (brand && brand.name) || null, at: now };
+    all[code] = {
+      name: (brand && brand.name) || null,
+      logoUrl: (brand && brand.logoUrl) || null,
+      paint: (brand && brand.paint) || null,
+      partnership: (brand && brand.partnership) || null,
+      at: now,
+    };
     write(BRAND_KEY, all);
+  }
+
+  /*
+   * THE FIVE TOKENS A PARTNER'S BRAND OWNS, AND THE SIX IT DOES NOT.
+   *
+   * These thirteen pages are built on the same token names as the portal,
+   * so re-skinning is a substitution at the root rather than a second
+   * stylesheet. But only the BRAND half is substituted: --primary, the
+   * accent, and the ink that goes on the dark bands.
+   *
+   * THE NEUTRAL SCALE STAYS OURS, deliberately, and that is not timidity.
+   * `color: var(--white)` appears on these pages as a TEXT colour on dark
+   * fills, alongside eight or nine hardcoded #fff per page. Swapping the
+   * ground out from under those would be invisible on a cream palette and
+   * unreadable on a dark one -- and a calculator is the surface somebody
+   * reads a premium off. The portal page can take the whole palette
+   * because every colour on it comes from a token; these cannot, yet.
+   *
+   * --band-ink is the one that is not a brand colour but has to move with
+   * one: the top bar and the footer are painted in --primary-dark and
+   * carry words, and white is not always what reads on a partner's
+   * primary. The server works out which -- see PagePaint.primaryInk.
+   */
+  function paintPage(paint) {
+    try {
+      if (!paint) return;
+      var root = document.documentElement;
+      if (!root || !root.style || !root.style.setProperty) return;
+      var tokens = {
+        '--primary': paint.primary,
+        '--primary-dark': paint.primary,
+        '--primary-mid': paint.primary,
+        '--accent': paint.accent,
+        '--accent-light': paint.tint,
+        '--band-ink': paint.primaryInk,
+      };
+      Object.keys(tokens).forEach(function (k) {
+        /* Anything that is not a hex colour is dropped rather than
+           written. These values come from a public endpoint, and
+           setProperty with a junk value is how a stylesheet acquires a
+           declaration nobody wrote. */
+        if (/^#[0-9a-fA-F]{6}$/.test(String(tokens[k] || ''))) {
+          root.style.setProperty(k, tokens[k]);
+        }
+      });
+    } catch (e) { log('paint failed', e); }
+  }
+
+  /*
+   * THEIR MARK IN THE HEADER, OURS IN THE FOOTER.
+   *
+   * Not an oversight: the footer is where the fulfilment notice and the
+   * licence numbers are, and that block is Quote Bot's statement carried
+   * on their page. The header is the one that says whose link this is.
+   *
+   * src only -- never srcset, never a background -- so there is exactly
+   * one place a URL from a public endpoint lands, and it is an <img> that
+   * was already an <img>.
+   */
+  function swapLogo(url, name) {
+    try {
+      if (!url || String(url).slice(0, 5) !== 'data:') return;
+      var img = document.querySelector('.brand-header .brand-logo-img');
+      if (!img) return;
+      img.src = url;
+      /* The alt said Quote-Bot, and this is now their mark. NOT an empty
+         alt: on these pages the header logo is the only thing naming
+         whose page a reader is on, so decorative is the wrong answer. */
+      img.alt = String(name || '');
+      /* The intrinsic size was ours. Theirs is a different picture, and a
+         width and height describing a logo that is no longer there is how
+         a header ends up stretching one. */
+      img.removeAttribute('width');
+      img.removeAttribute('height');
+    } catch (e) { log('logo swap failed', e); }
   }
 
   /*
@@ -847,31 +940,55 @@
    * of the document would cover a heading on one and a nav on another. Pushing
    * the page down is the one behaviour that is correct everywhere.
    */
-  function drawStrip(name) {
+  function drawStrip(brand) {
     try {
+      var name = brand && brand.name;
+      var partnership = brand && brand.partnership;
       if (!name || document.getElementById('qb-cobrand')) return;
       var body = document.body;
       if (!body) return;
 
+      /* The strip takes the partner's quiet surface where there is one,
+         and Quote Bot's where there is not. Both pairs are ground-and-ink
+         decided on the server, so neither can come out unreadable. */
+      var paint = brand && brand.paint;
       var bar = document.createElement('div');
       bar.id = 'qb-cobrand';
       bar.setAttribute('role', 'note');
       bar.style.cssText = [
         'font:500 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
-        'color:#2c3e58', 'background:#eef1f6', 'border-bottom:1px solid #d8e2f0',
+        'color:' + ((paint && paint.ink) || '#2c3e58'),
+        'background:' + ((paint && paint.tint) || '#eef1f6'),
+        'border-bottom:1px solid ' + ((paint && paint.line) || '#d8e2f0'),
         'padding:8px 16px', 'text-align:center', 'letter-spacing:.01em',
       ].join(';');
 
-      var lead = document.createElement('span');
-      lead.style.cssText = 'color:#8a9ab5;margin-right:6px';
-      lead.textContent = 'Presented by';
+      /*
+       * TWO SENTENCES, AND THEY ARE NOT THE SAME KIND OF THING.
+       *
+       * "Presented by <them>" names whose link this is, on a page that is
+       * otherwise entirely ours. On a co-branded page the whole page is
+       * theirs, so the strip is the one place that says we are involved --
+       * which makes it a disclosure rather than a credit, and the wording
+       * comes from the server so that thirteen static files cannot drift.
+       */
+      if (partnership) {
+        var line = document.createElement('span');
+        line.style.cssText = 'font-weight:600';
+        line.textContent = partnership;   // never innerHTML
+        bar.appendChild(line);
+      } else {
+        var lead = document.createElement('span');
+        lead.style.cssText = 'color:#8a9ab5;margin-right:6px';
+        lead.textContent = 'Presented by';
 
-      var who = document.createElement('strong');
-      who.style.cssText = 'font-weight:600';
-      who.textContent = name;          // never innerHTML — see the note above
+        var who = document.createElement('strong');
+        who.style.cssText = 'font-weight:600';
+        who.textContent = name;          // never innerHTML — see the note above
 
-      bar.appendChild(lead);
-      bar.appendChild(who);
+        bar.appendChild(lead);
+        bar.appendChild(who);
+      }
       body.insertBefore(bar, body.firstChild);
     } catch (e) { log('co-brand strip failed', e); }
   }
@@ -880,13 +997,25 @@
     var code = propagationCode();
     if (!code || !endpointOk()) return;
 
+    /* PAINT BEFORE THE STRIP, on both paths. The strip sits inside the
+       colours; drawing it first would show it in ours and then repaint. */
     var hit = cachedBrand(code);
-    if (hit) { drawStrip(hit.name); return; }
+    if (hit) {
+      paintPage(hit.paint);
+      swapLogo(hit.logoUrl, hit.name);
+      drawStrip(hit);
+      return;
+    }
 
     var url = config.endpoint.replace(/\/$/, '') + '/brand?qb=' + encodeURIComponent(code);
     fetch(url, { method: 'GET', mode: 'cors' })
       .then(function (r) { return r.ok ? r.json() : {}; })
-      .then(function (brand) { cacheBrand(code, brand); drawStrip(brand && brand.name); })
+      .then(function (brand) {
+        cacheBrand(code, brand);
+        paintPage(brand && brand.paint);
+        swapLogo(brand && brand.logoUrl, brand && brand.name);
+        drawStrip(brand);
+      })
       .catch(function (e) { log('brand lookup failed', e); });
   }
 

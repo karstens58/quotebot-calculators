@@ -290,11 +290,31 @@ footer{background:var(--primary-dark);color:rgba(255,255,255,0.6);padding:34px 2
 /* qb:chrome-css:start */
 /* Header and footer — matched to the marketing site.
    Kept in step by tools/apply-chrome.mjs. */
-.topbar { background: var(--primary-dark); color: rgba(255,255,255,0.8); font-size: 12.5px; padding: 7px 32px; position: static; display: block; }
+/* --band-ink IS WHAT IS WRITTEN ON THE DARK BANDS — QBP-602.
+   The top bar and the footer are painted in --primary-dark, and on a
+   co-branded page that is the partner's colour, where white is not always
+   what reads. The capture script sets it from the server's answer, which
+   proves it clears 4.5:1 on exactly that colour — see PagePaint.primaryInk.
+   (Named by role rather than by filename on purpose: these comments are
+   inlined into thirteen pages, and three tests locate the capture script
+   by searching the page for its name.)
+
+   IT IS NEVER DECLARED, which is the point. Every rule below names it with
+   the literal it replaces as the fallback, so a page nobody co-branded
+   renders byte for byte what it rendered before and there is no second
+   palette to keep in step. Declaring it here with a default would make
+   that true by luck rather than by construction.
+
+   NO DIMMED VARIANT. The tonal steps in this footer are rgba whites, and a
+   dimmed version of a colour that might be black is a colour somebody has
+   to derive — in a stylesheet, where nothing can measure it. On a
+   co-branded page the band reads at full strength instead, which only
+   ever has more contrast than the thing it replaced. */
+.topbar { background: var(--primary-dark); color: var(--band-ink, rgba(255,255,255,0.8)); font-size: 12.5px; padding: 7px 32px; position: static; display: block; }
 .topbar-inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .topbar-phone { color: #ff6b6b; }
-.topbar a { color: #9ec9f0; font-weight: 600; }
-.topbar strong { color: #fff; }
+.topbar a { color: var(--band-ink, #9ec9f0); font-weight: 600; }
+.topbar strong { color: var(--band-ink, #fff); }
 .brand-header { background: var(--accent-light, #e8f2fb); padding: 14px 32px; }
 .brand-header-inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; }
 .brand-logo-img { height: 46px; width: auto; display: block; }
@@ -302,19 +322,19 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 .footer-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
 .footer-brand { display: flex; align-items: center; }
 .footer-logo-img { height: 42px; width: auto; display: block; }
-.footer-copy { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 12px; line-height: 1.6; }
-.footer-platform { font-size: 11.5px; color: rgba(255,255,255,0.55); margin-top: 10px; letter-spacing: .03em; }
+.footer-copy { font-size: 12.5px; color: var(--band-ink, rgba(255,255,255,0.55)); margin-top: 12px; line-height: 1.6; }
+.footer-platform { font-size: 11.5px; color: var(--band-ink, rgba(255,255,255,0.55)); margin-top: 10px; letter-spacing: .03em; }
 .footer-links { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
 .footer-links-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; font-size: 12.5px; }
-.footer-links-row a { color: rgba(255,255,255,0.7); transition: color 0.2s; }
-.footer-links-row a:hover { color: #fff; }
-.footer-links-row span { color: rgba(255,255,255,0.3); }
+.footer-links-row a { color: var(--band-ink, rgba(255,255,255,0.7)); transition: color 0.2s; }
+.footer-links-row a:hover { color: var(--band-ink, #fff); }
+.footer-links-row span { color: var(--band-ink, rgba(255,255,255,0.3)); }
 /* A button, not a link: it changes a setting rather than going anywhere, and an
    <a> with no destination is still announced as a link. The colour comes from
    the row's anchors rather than `inherit`, which on a dark footer picks up the
    body colour and renders the control as a smudge beside five legible links. */
-.footer-consent-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: none; color: rgba(255,255,255,0.7); transition: color 0.2s; }
-.footer-consent-link:hover { color: #fff; text-decoration: underline; }
+.footer-consent-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: none; color: var(--band-ink, rgba(255,255,255,0.7)); transition: color 0.2s; }
+.footer-consent-link:hover { color: var(--band-ink, #fff); text-decoration: underline; }
 .footer-consent-link:focus-visible { outline: 2px solid #9ec9f0; outline-offset: 2px; }
 @media (max-width: 760px) {
   .topbar { padding: 7px 20px; }
