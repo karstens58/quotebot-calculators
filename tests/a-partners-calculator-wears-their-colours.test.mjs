@@ -27,15 +27,18 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CAPTURE_SRC } from './capture-api.mjs';
 
 /* This repo's root, for the one assertion that reaches across to the
    backend -- the client-side split below buys nothing unless the server
-   permits revalidation, so the two are tested together. */
+   permits revalidation, so the two are worth reading together on a
+   machine that has both. */
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const BACKEND = join(ROOT, '..', 'quotebot-backend',
+  'amplify/functions/lead-capture/handler.ts');
 const CAPTURE = CAPTURE_SRC;
 
 const PAINT = {
@@ -299,12 +302,28 @@ test('and a stale cache is PAINTED FROM, then refreshed behind them', () => {
 });
 
 test('the server lets the browser revalidate rather than sit on it', () => {
-  /* Without stale-while-revalidate the script's background refresh is
-     answered out of the browser's own HTTP cache and changes nothing,
-     so the client-side split above would buy exactly zero. */
-  const handler = readFileSync(
-    join(ROOT, '..', 'quotebot-backend',
-      'amplify/functions/lead-capture/handler.ts'), 'utf8');
+  /*
+   * Without stale-while-revalidate the script's background refresh is
+   * answered out of the browser's own HTTP cache and changes nothing,
+   * so the client-side split above would buy exactly zero.
+   *
+   * SKIPPED WHEN THE BACKEND IS NOT CHECKED OUT BESIDE THIS REPO, as the
+   * other two cross-repo tests here are: CI for this repo clones only
+   * this repo, and a read that throws there fails the whole preBuild and
+   * stops the deploy -- which is exactly what it did on 20 November.
+   *
+   * A test that skips in CI guards nothing in CI, so the server half has
+   * its own guard in the backend's suite, beside the file it is about --
+   * tests/a-brand-answer-can-be-revalidated.test.ts. This one is the
+   * mirror, and it earns its keep on the machine where somebody changes
+   * one of the two halves.
+   */
+  if (!existsSync(BACKEND)) {
+    console.log('  (quotebot-backend is not checked out beside this repo '
+      + '— skipped; the backend has its own guard)');
+    return;
+  }
+  const handler = readFileSync(BACKEND, 'utf8');
   const at = handler.indexOf("case '/brand'") > 0
     ? handler.indexOf("case '/brand'") : handler.indexOf('async function handleBrand');
   assert.ok(at > 0, 'the brand endpoint is gone');
