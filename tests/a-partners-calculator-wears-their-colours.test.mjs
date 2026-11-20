@@ -27,7 +27,16 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CAPTURE_SRC } from './capture-api.mjs';
+
+/* This repo's root, for the one assertion that reaches across to the
+   backend -- the client-side split below buys nothing unless the server
+   permits revalidation, so the two are tested together. */
+const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const CAPTURE = CAPTURE_SRC;
 
 const PAINT = {
   primary: '#1d2142', primaryInk: '#ffffff', accent: '#7d3f77',
@@ -221,4 +230,92 @@ test('a half answer paints neither half', () => {
   const { painted, strip } = page({ brand: { name: 'X', partnership: 'p' } });
   assert.deepEqual(Object.keys(painted), []);
   assert.ok(strip, 'the strip went missing with the palette');
+});
+
+/* =====================================================================
+ * HOW LONG A COLOUR CHANGE TAKES TO ARRIVE -- QBP-602.
+ *
+ * Scott, 20 November: the colours did reach a ?qb= page "but had a
+ * significant delay". Two caches were stacked and neither was wrong on
+ * its own terms -- the HTTP header bounded how stale a DEACTIVATED
+ * affiliate could be, and the localStorage copy stopped a visitor
+ * watching the page repaint on every calculator they opened.
+ *
+ * What was wrong was using the second number for the first job: one
+ * six-hour TTL answered "do not repaint in front of somebody" and was
+ * also deciding "do not ask again during this visit".
+ *
+ * These tests hold the two apart, because the tempting fix -- delete
+ * the cache -- brings the repaint back, and the tempting other fix --
+ * shorten the TTL to a minute -- brings back both the repaint and the
+ * five-invocations-per-visitor the comment there warns about.
+ * ================================================================== */
+
+test('THE PAINT CACHE OUTLIVES THE ASK WINDOW', () => {
+  const fresh = /var BRAND_FRESH = ([^;]+);/.exec(CAPTURE);
+  const ttl = /var BRAND_TTL = ([^;]+);/.exec(CAPTURE);
+  assert.ok(fresh, 'there is no window for "do not ask again this visit"');
+  assert.ok(ttl, 'there is no window for "do not repaint in front of them"');
+
+  const ms = (expr) => Function(`"use strict"; return (${expr});`)();
+  const freshMs = ms(fresh[1]);
+  const ttlMs = ms(ttl[1]);
+
+  assert.ok(freshMs >= 5 * 60 * 1000,
+    'the ask window is under five minutes, so a visitor moving through '
+    + 'the calculators pays a Lambda invocation per page');
+  assert.ok(freshMs <= 30 * 60 * 1000,
+    `the ask window is ${freshMs / 60000} minutes; a palette change waits `
+    + 'that long before anything even checks');
+  assert.ok(ttlMs > freshMs,
+    'the paint cache does not outlive the ask window, so beyond it a '
+    + 'visitor watches the page repaint instead of seeing their colours '
+    + 'straight away');
+});
+
+test('and a stale cache is PAINTED FROM, then refreshed behind them', () => {
+  const at = CAPTURE.indexOf('function loadBrand()');
+  assert.ok(at > 0, 'loadBrand is gone');
+  const body = CAPTURE.slice(at, CAPTURE.indexOf('\n  function fetchBrand', at));
+
+  /* Painted first, unconditionally, whenever there is a cached answer.
+     A branch that fetched before painting when the entry was stale is
+     the repaint this whole mechanism exists to avoid. */
+  const paintAt = body.indexOf('paintPage(hit.paint)');
+  const refreshAt = body.indexOf('refreshBrand(code)');
+  assert.ok(paintAt > 0, 'a cached palette is no longer painted at once');
+  assert.ok(refreshAt > paintAt,
+    'the refresh is started before the page is painted from cache');
+
+  /* And the refresh must not draw. Applying a newer answer to the page
+     somebody is already looking at is the repaint, one second later. */
+  const fn = CAPTURE.slice(CAPTURE.indexOf('function refreshBrand('));
+  const upTo = fn.slice(0, fn.indexOf('\n  }'));
+  for (const draws of ['paintPage', 'swapLogo', 'drawStrip']) {
+    assert.ok(!upTo.includes(draws),
+      `refreshBrand calls ${draws}; a background refresh must update the `
+      + 'cache and never touch the page in front of somebody');
+  }
+});
+
+test('the server lets the browser revalidate rather than sit on it', () => {
+  /* Without stale-while-revalidate the script's background refresh is
+     answered out of the browser's own HTTP cache and changes nothing,
+     so the client-side split above would buy exactly zero. */
+  const handler = readFileSync(
+    join(ROOT, '..', 'quotebot-backend',
+      'amplify/functions/lead-capture/handler.ts'), 'utf8');
+  const at = handler.indexOf("case '/brand'") > 0
+    ? handler.indexOf("case '/brand'") : handler.indexOf('async function handleBrand');
+  assert.ok(at > 0, 'the brand endpoint is gone');
+  const body = handler.slice(at, at + 3000);
+  const header = /'Cache-Control': '([^']+)'/.exec(body);
+  assert.ok(header, 'the brand response no longer sets Cache-Control');
+  assert.match(header[1], /stale-while-revalidate=\d+/,
+    'the brand response does not allow revalidation, so a background '
+    + 'refresh is served from the browser cache and the colours still wait');
+  const maxAge = Number(/max-age=(\d+)/.exec(header[1])?.[1] ?? 0);
+  assert.ok(maxAge > 0 && maxAge <= 300,
+    `max-age is ${maxAge}s; beyond a few minutes the browser will not even `
+    + 'attempt the refresh that makes a change arrive');
 });

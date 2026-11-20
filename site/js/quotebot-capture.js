@@ -823,13 +823,43 @@
    *    five Lambda invocations.
    */
   var BRAND_KEY = 'qb.brand';
+  /*
+   * TWO WINDOWS, NOT ONE -- Scott, 20 November: the colours did change on
+   * a ?qb= page "but had a significant delay".
+   *
+   * This was one six-hour TTL, which conflated two different jobs:
+   *
+   *   DO NOT ASK AGAIN DURING THIS VISIT. Somebody moving through five
+   *     calculators should not cost five Lambda invocations. A visit is
+   *     minutes, so ten of them covers it with room to spare.
+   *   DO NOT REPAINT IN FRONT OF SOMEBODY. A cached palette is what stops
+   *     a visitor watching Quote Bot blue turn into their agency's
+   *     colours on every page after the first. That wants a LONG memory,
+   *     because the flash is just as ugly tomorrow as today.
+   *
+   * One number could not serve both, and six hours was the answer to the
+   * second question being used for the first -- so a palette approved at
+   * nine was still not on a calculator at two.
+   *
+   * Now: paint from cache instantly whenever there is one, and if that
+   * cache is older than FRESH, refresh it in the background. The visitor
+   * sees no flash and no wait, and the NEXT page view has the new
+   * colours. A change reaches a returning visitor in one page view rather
+   * than in six hours.
+   */
   var BRAND_TTL = 6 * 3600 * 1000;
+  var BRAND_FRESH = 10 * 60 * 1000;
 
   function cachedBrand(code) {
     var all = read(BRAND_KEY);
     var hit = all && all[code];
     if (!hit || Date.now() - hit.at > BRAND_TTL) return null;
     return hit;
+  }
+
+  /** Worth painting from, but old enough to be worth checking. */
+  function brandIsStale(hit) {
+    return !hit || Date.now() - hit.at > BRAND_FRESH;
   }
 
   /*
@@ -1004,19 +1034,47 @@
       paintPage(hit.paint);
       swapLogo(hit.logoUrl, hit.name);
       drawStrip(hit);
+      /*
+       * AND THEN GO AND CHECK, WITHOUT TOUCHING THIS PAGE.
+       *
+       * The fetch updates the cache and nothing else: no paint, no logo
+       * swap, no strip. Applying a newer answer here is exactly the
+       * repaint the cache exists to prevent -- somebody would watch the
+       * page change colour under them a second after it loaded, which
+       * is worse than seeing yesterday's colours for one more view.
+       */
+      if (brandIsStale(hit)) refreshBrand(code);
       return;
     }
 
+    /* Nothing cached: fetch and paint, as before. */
+    fetchBrand(code).then(function (brand) {
+      if (!brand) return;
+      paintPage(brand && brand.paint);
+      swapLogo(brand && brand.logoUrl, brand && brand.name);
+      drawStrip(brand);
+    });
+  }
+
+  function fetchBrand(code) {
     var url = config.endpoint.replace(/\/$/, '') + '/brand?qb=' + encodeURIComponent(code);
-    fetch(url, { method: 'GET', mode: 'cors' })
+    return fetch(url, { method: 'GET', mode: 'cors' })
       .then(function (r) { return r.ok ? r.json() : {}; })
       .then(function (brand) {
         cacheBrand(code, brand);
-        paintPage(brand && brand.paint);
-        swapLogo(brand && brand.logoUrl, brand && brand.name);
-        drawStrip(brand);
+        return brand;
       })
-      .catch(function (e) { log('brand lookup failed', e); });
+      .catch(function (e) { log('brand lookup failed', e); return null; });
+  }
+
+  /**
+   * Update the stored answer for next time, and draw nothing.
+   *
+   * A failure here is silent and harmless by construction: the page is
+   * already painted from the cache, and the cache keeps whatever it had.
+   */
+  function refreshBrand(code) {
+    try { fetchBrand(code); } catch (e) { log('brand refresh failed', e); }
   }
 
   /* ---------- public API -------------------------------------------------- */
