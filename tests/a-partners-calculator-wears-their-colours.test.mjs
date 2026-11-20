@@ -338,3 +338,58 @@ test('the server lets the browser revalidate rather than sit on it', () => {
     `max-age is ${maxAge}s; beyond a few minutes the browser will not even `
     + 'attempt the refresh that makes a change arrive');
 });
+
+/* ------------------------------------------- their mark, their site */
+
+/**
+ * CLICKING THEIR LOGO GOES TO THEIR SITE -- QBP-615.
+ *
+ * Scott, 20 November: "when co-branding occurs, clicking their logo
+ * should bring the consumer to the partners website, not to quote-bot's
+ * site."
+ *
+ * The header mark on these pages is wrapped in a link to quote-bot.com.
+ * Swapping the picture and leaving the link is how a consumer clicks
+ * an agency's logo and lands on ours -- which reads, to them, as the
+ * agency's site having been replaced by somebody else's.
+ */
+test('a co-branded mark links to the partner, not to us', () => {
+  const fn = CAPTURE.slice(CAPTURE.indexOf('function swapLogo('));
+  const body = fn.slice(0, fn.indexOf('\n  }'));
+
+  assert.match(body, /a\.href = site/,
+    'the mark is swapped and its link is left pointing at quote-bot.com');
+  assert.match(body, /a\.rel = 'noopener noreferrer'/,
+    'a partner-supplied destination is opened without noopener');
+});
+
+test('and no site means no link, never ours', () => {
+  const fn = CAPTURE.slice(CAPTURE.indexOf('function swapLogo('));
+  const body = fn.slice(0, fn.indexOf('\n  }'));
+  assert.match(body, /a\.removeAttribute\('href'\)/,
+    'a partner with no site keeps the link to quote-bot.com under their '
+    + 'own mark, which is the thing this change exists to stop');
+});
+
+test('NOTHING HERE DECIDES WHAT A SITE IS', () => {
+  /*
+   * The server sends an origin it has already checked is https. A
+   * second opinion in the page is a second place for `javascript:` to
+   * get into an href on a page consumers read.
+   */
+  const fn = CAPTURE.slice(CAPTURE.indexOf('function swapLogo('));
+  const body = fn.slice(0, fn.indexOf('\n  }'));
+  for (const parsing of ['new URL(', 'https://', 'indexOf(\'http', 'protocol']) {
+    assert.ok(!body.includes(parsing),
+      `swapLogo contains ${parsing}; it is working out for itself what a `
+      + 'safe destination is, which the server has already done');
+  }
+});
+
+test('and the site is kept with the cached brand', () => {
+  /* Left out, the mark links correctly on the page that fetched the
+     brand and links nowhere on every page painted from the cache. */
+  assert.match(CAPTURE, /site: \(brand && brand\.site\) \|\| null/,
+    'the cached copy drops the site, so the link survives exactly one '
+    + 'page view');
+});

@@ -882,6 +882,10 @@
     all[code] = {
       name: (brand && brand.name) || null,
       logoUrl: (brand && brand.logoUrl) || null,
+      /* Cached with the rest -- QBP-615. Left out, the mark links
+         correctly on the page that fetched the brand and links nowhere
+         on every page painted from the cache after it. */
+      site: (brand && brand.site) || null,
       paint: (brand && brand.paint) || null,
       partnership: (brand && brand.partnership) || null,
       at: now,
@@ -946,12 +950,40 @@
    * one place a URL from a public endpoint lands, and it is an <img> that
    * was already an <img>.
    */
-  function swapLogo(url, name) {
+  function swapLogo(url, name, site) {
     try {
       if (!url || String(url).slice(0, 5) !== 'data:') return;
       var img = document.querySelector('.brand-header .brand-logo-img');
       if (!img) return;
       img.src = url;
+      /*
+       * AND WHERE THE MARK NOW GOES -- QBP-615.
+       *
+       * Scott, 20 November: "when co-branding occurs, clicking their
+       * logo should bring the consumer to the partners website, not to
+       * quote-bot's site."
+       *
+       * NO DESTINATION BEATS THE WRONG ONE. Where the server sends no
+       * site, the href is REMOVED rather than left pointing at us --
+       * a mark that is theirs, linking to our homepage, is the thing
+       * this is correcting, and leaving it is worse than a logo that
+       * does not click.
+       *
+       * The server decides what a site is: https, origin only, and
+       * only on a co-branded page. Nothing here parses a URL, because
+       * this is the one place where getting that wrong puts a stranger's
+       * string into an href on a consumer page.
+       */
+      var a = img.closest ? img.closest('a') : null;
+      if (a) {
+        if (site) {
+          a.href = site;
+          a.rel = 'noopener noreferrer';
+        } else {
+          a.removeAttribute('href');
+          a.removeAttribute('rel');
+        }
+      }
       /* The alt said Quote-Bot, and this is now their mark. NOT an empty
          alt: on these pages the header logo is the only thing naming
          whose page a reader is on, so decorative is the wrong answer. */
@@ -1032,7 +1064,7 @@
     var hit = cachedBrand(code);
     if (hit) {
       paintPage(hit.paint);
-      swapLogo(hit.logoUrl, hit.name);
+      swapLogo(hit.logoUrl, hit.name, hit.site);
       drawStrip(hit);
       /*
        * AND THEN GO AND CHECK, WITHOUT TOUCHING THIS PAGE.
@@ -1051,7 +1083,8 @@
     fetchBrand(code).then(function (brand) {
       if (!brand) return;
       paintPage(brand && brand.paint);
-      swapLogo(brand && brand.logoUrl, brand && brand.name);
+      swapLogo(brand && brand.logoUrl, brand && brand.name,
+        brand && brand.site);
       drawStrip(brand);
     });
   }
