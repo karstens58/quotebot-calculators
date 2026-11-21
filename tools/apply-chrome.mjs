@@ -80,9 +80,64 @@ const SITE_URL = 'https://quote-bot.com';
  */
 const CANON_BASE = 'https://tools.quote-bot.com';
 
+/**
+ * The two numbers in the footer's fulfilment notice. QBP-602.
+ *
+ * THE SCRIPT REFUSES TO RUN WHILE EITHER IS EMPTY, and that is the whole
+ * reason they are constants with a guard rather than text typed into the
+ * partial. These are regulatory identifiers on what is, legally,
+ * advertising by a licensed agency. The failure mode of a wrong one is
+ * not a broken page -- it is fourteen pages that look perfect and state
+ * somebody else's number, or no number behind a label that promises one.
+ *
+ * THEY ARE THE SAME NUMBER FOR THIS AGENCY, and that is a fact about QB
+ * Insurance rather than a fact about insurance. Scott, 21 November: "for
+ * QB Insurance the state license number is = to the NPN." They are
+ * distinct identifiers in general -- the NPN is national and follows an
+ * agency across states, the licence is Colorado's -- and plenty of
+ * agencies carry two different ones.
+ *
+ * SO THE LINE IS BUILT FROM THESE, NOT WRITTEN OUT. Equal, it prints one
+ * number under both labels, because "NPN 738600 . Colorado licence
+ * #738600" reads to a consumer as a copy-paste mistake. Different, it
+ * prints them separately. The coincidence lives in the data, where it can
+ * stop being true, rather than in prose that would quietly go on
+ * asserting it.
+ */
+const AGENCY_NPN = '738600';
+const AGENCY_CO_LICENCE = '738600';
+
+/**
+ * The identifiers line, assembled. `&middot;` because the partial is
+ * markup and this lands inside it.
+ */
+const AGENCY_IDS = AGENCY_NPN === AGENCY_CO_LICENCE
+  ? `NPN / Colorado licence #${AGENCY_CO_LICENCE}`
+  : `NPN ${AGENCY_NPN} &middot; Colorado licence #${AGENCY_CO_LICENCE}`;
+
 const part = (f) => fs.readFileSync(path.join(ROOT, 'tools', f), 'utf8')
   .trim()
-  .replaceAll('{{SITE}}', SITE_URL);
+  .replaceAll('{{SITE}}', SITE_URL)
+  .replaceAll('{{IDS}}', AGENCY_IDS);
+
+/*
+ * THE GUARD, BEFORE ANY PAGE IS READ.
+ *
+ * Here rather than at the write, so a half-finished run cannot leave some
+ * pages with a notice and some without -- the state that is worse than
+ * either, because it looks like somebody checked.
+ */
+for (const [what, value] of [['AGENCY_NPN', AGENCY_NPN],
+  ['AGENCY_CO_LICENCE', AGENCY_CO_LICENCE]]) {
+  if (!/^\d{5,10}$/.test(value)) {
+    throw new Error(
+      `${what} is not a number in tools/apply-chrome.mjs. The footer's `
+      + 'fulfilment notice carries QB Insurance LLC\'s identifiers on '
+      + 'fourteen pages of licensed-agency advertising, and a label with '
+      + 'nothing behind it is worse than no line at all. Nothing has '
+      + 'been written.');
+  }
+}
 
 const TOPBAR = part('topbar.html');
 const BRAND = part('brand-header.html');

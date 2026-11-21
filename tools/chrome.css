@@ -47,6 +47,39 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 .footer-consent-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: none; color: var(--band-ink, rgba(255,255,255,0.7)); transition: color 0.2s; }
 .footer-consent-link:hover { color: var(--band-ink, #fff); text-decoration: underline; }
 .footer-consent-link:focus-visible { outline: 2px solid #9ec9f0; outline-offset: 2px; }
+
+/* The fulfilment notice -- QBP-602.
+
+   A BAND UNDER THE ROW RATHER THAN A FOURTH COLUMN IN IT. The row above is
+   the site's own furniture: mark, copyright, policy links. This is a
+   statement about who is legally behind the insurance, and sitting it
+   beside the cookie policy would read as more furniture.
+
+   LEFT-ALIGNED AND FULL WIDTH, because it is prose and the row above is
+   not. Capped at 78ch so it does not run the whole 1240 on a desktop,
+   which is unreadable at this size.
+
+   THE HEADING IS BRIGHTER THAN THE BODY, matching the tonal steps already
+   in this footer: --band-ink carries the partner's ink on a co-branded
+   page, with the rgba whites as the fallback for ours. No fourth step was
+   invented for it. */
+.footer-fulfilment {
+  max-width: 1240px; margin: 28px auto 0; padding-top: 22px;
+  border-top: 1px solid var(--band-ink, rgba(255,255,255,0.15));
+}
+.footer-fulfilment-head {
+  font-size: 12.5px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--band-ink, rgba(255,255,255,0.75));
+  margin: 0;
+}
+.footer-fulfilment-body {
+  font-size: 12.5px; line-height: 1.7; max-width: 78ch; margin: 8px 0 0;
+  color: var(--band-ink, rgba(255,255,255,0.55));
+}
+.footer-fulfilment-ids {
+  font-size: 11.5px; letter-spacing: .03em; margin: 8px 0 0;
+  color: var(--band-ink, rgba(255,255,255,0.45));
+}
 @media (max-width: 760px) {
   .topbar { padding: 7px 20px; }
   .topbar-inner { flex-wrap: wrap; row-gap: 6px; justify-content: center; text-align: center; }
@@ -55,6 +88,10 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   .footer-inner { flex-direction: column; gap: 24px; }
   .footer-links { align-items: flex-start; }
   .footer-links-row { justify-content: flex-start; }
+  /* The band already spans the column on a phone; the margin above it is
+     what separates it from the links, and 28px reads as a gap rather than
+     a break at this width. */
+  .footer-fulfilment { margin-top: 4px; padding-top: 20px; }
 }
 
 /* ── ONE LEFT EDGE FOR EVERY PAGE ─────────────────────────────────────────

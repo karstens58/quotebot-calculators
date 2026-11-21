@@ -65,6 +65,19 @@ function page({ brand, href = 'https://tools.quote-bot.com/quotetool.html?qb=BR-
   const painted = {};
   const logo = { src: 'img/quotebot-logo.png', alt: 'Quote-Bot',
     removeAttribute() {} };
+  /*
+   * The footer's fulfilment paragraph, as it ships in the page source --
+   * QBP-602. The attribute bag is real because the script marks the node
+   * once it has added the partner sentence, and a harness that dropped the
+   * mark would agree with a script that added the sentence twice.
+   */
+  const notice = {
+    textContent: 'Insurance products are offered and fulfilled by QB Insurance'
+      + ' LLC, doing business as Quote Bot, a licensed insurance agency.',
+    attrs: {},
+    getAttribute(k) { return this.attrs[k] ?? null; },
+    setAttribute(k, v) { this.attrs[k] = String(v); },
+  };
   const inserted = [];
   const node = () => ({
     style: { cssText: '' }, children: [], textContent: '',
@@ -80,7 +93,11 @@ function page({ brand, href = 'https://tools.quote-bot.com/quotetool.html?qb=BR-
     body: { insertBefore(el) { inserted.push(el); }, firstChild: null },
     addEventListener() {}, removeEventListener() {},
     querySelectorAll: () => [],
-    querySelector: (sel) => (sel.indexOf('brand-logo-img') >= 0 ? logo : null),
+    querySelector: (sel) => {
+      if (sel.indexOf('brand-logo-img') >= 0) return logo;
+      if (sel.indexOf('data-qb-fulfilment') >= 0) return notice;
+      return null;
+    },
     getElementById: () => null,
     createElement: node,
     head: { appendChild() {} },
@@ -110,7 +127,7 @@ function page({ brand, href = 'https://tools.quote-bot.com/quotetool.html?qb=BR-
   const api = fn(win, doc, win.history, win.localStorage, win.navigator,
     win.location);
   api.brand();
-  return { painted, logo, strip: inserted[0] ?? null };
+  return { painted, logo, notice, strip: inserted[0] ?? null, again: () => api.brand() };
 }
 
 /** Everything the strip ended up saying, however it was assembled. */
@@ -167,6 +184,58 @@ test('and the wording is the server\'s, not this file\'s', () => {
   const { strip } = page({ brand: { name: 'X', paint: PAINT,
     partnership: 'Working together with Quote Bot' } });
   assert.match(words(strip), /Working together with Quote Bot/);
+});
+
+test('THE FULFILMENT NOTICE NAMES THEM AS AN INDEPENDENT PARTNER', () => {
+  /*
+   * The fixed sentence is in the page source and never waits on a lookup.
+   * What a co-branded page adds is the portal page's second sentence, so
+   * a consumer following a partner's link from their portal page to a
+   * calculator is told the same thing in both places.
+   */
+  const { notice } = page({ brand: { name: 'Protectmyspouse.com LLC',
+    paint: PAINT, logoUrl: LOGO,
+    partnership: 'In partnership with Quote Bot' } });
+  assert.match(notice.textContent,
+    /QB Insurance LLC, doing business as Quote Bot, a licensed insurance agency\./,
+    'the fixed disclosure was damaged by the partner sentence');
+  assert.match(notice.textContent,
+    /Protectmyspouse\.com LLC is an independent partner\./,
+    'a page carrying their mark never said what they are');
+});
+
+test('AND AN ORDINARY VISITOR IS TOLD ABOUT NO PARTNER AT ALL', () => {
+  /*
+   * The answer that matters most. Nearly nobody is co-branded, and a
+   * notice naming the last partner a browser happened to see -- or an
+   * orphan sentence about a partner who is not there -- is a defect on
+   * every page at once.
+   */
+  const { notice } = page({ href: 'https://tools.quote-bot.com/quotetool.html' });
+  assert.doesNotMatch(notice.textContent, /independent partner/,
+    'a page with no partner on the link still named one');
+});
+
+test('and a page with no logo of theirs still says it, because the strip names them', () => {
+  /*
+   * KEYED TO THE NAME, NOT THE LOGO. The strip prints the name whether or
+   * not a logo swapped in; hanging the sentence off the logo would leave a
+   * page that names them and never says what they are.
+   */
+  const { notice, logo } = page({ brand: { name: 'Protectmyspouse.com LLC',
+    paint: PAINT, partnership: 'In partnership with Quote Bot' } });
+  assert.equal(logo.src, 'img/quotebot-logo.png', 'the fixture swapped a logo');
+  assert.match(notice.textContent, /Protectmyspouse\.com LLC is an independent partner\./);
+});
+
+test('and it is not said twice', () => {
+  /* Both the cached and the fetched path reach it, and a disclosure
+     stated twice reads as a mistake. */
+  const p = page({ brand: { name: 'Protectmyspouse.com LLC', paint: PAINT,
+    logoUrl: LOGO, partnership: 'In partnership with Quote Bot' } });
+  p.again();
+  const hits = p.notice.textContent.match(/is an independent partner/g) ?? [];
+  assert.equal(hits.length, 1, `said it ${hits.length} times`);
 });
 
 test('their mark replaces ours in the header, and so does its name', () => {

@@ -1055,6 +1055,49 @@
     } catch (e) { log('co-brand strip failed', e); }
   }
 
+  /*
+   * THE PARTNER'S HALF OF THE FULFILMENT NOTICE -- QBP-602.
+   *
+   * The footer already carries the fixed sentence in the page source:
+   * QB Insurance LLC offers and fulfils the insurance, with our NPN and
+   * licence. That is the disclosure, it is in the first response, and it
+   * never waits on a lookup.
+   *
+   * What a co-branded page adds is the second sentence the portal page
+   * carries -- "<their agency> is an independent partner." Same words,
+   * from fulfilmentNotice() in the backend's shared/portalpage.ts, so a
+   * consumer following a partner's link from their portal page to a
+   * calculator reads the same thing in both places.
+   *
+   * KEYED TO THE NAME, NOT TO THE LOGO, and the difference matters. The
+   * thing that needs this sentence is a page that SAYS it is theirs, and
+   * that is the name: the strip prints it whether or not a logo swapped
+   * in. Hanging it off the logo would leave a page that names them in the
+   * strip and never says what they are.
+   *
+   * CALLED BESIDE drawStrip ON BOTH PATHS, cached and fetched alike, so
+   * the name and the notice land in the same frame. A page that named a
+   * partner for even a moment without saying they are independent is the
+   * misattribution this whole feature exists to avoid.
+   *
+   * textContent, for the reason everything else here uses it: that string
+   * is free text typed into the admin console and served from a public
+   * endpoint.
+   */
+  function nameThePartner(name) {
+    try {
+      var who = String(name || '').trim();
+      if (!who) return;
+      var p = document.querySelector('[data-qb-fulfilment]');
+      /* Already said. Both paths can reach here, and a second sentence
+         is how a disclosure starts reading like a mistake. */
+      if (!p || p.getAttribute('data-qb-partner-named')) return;
+      p.textContent = p.textContent.replace(/\s+$/, '') + ' ' + who
+        + ' is an independent partner.';
+      p.setAttribute('data-qb-partner-named', '1');
+    } catch (e) { log('partner notice failed', e); }
+  }
+
   function loadBrand() {
     var code = propagationCode();
     if (!code || !endpointOk()) return;
@@ -1066,6 +1109,7 @@
       paintPage(hit.paint);
       swapLogo(hit.logoUrl, hit.name, hit.site);
       drawStrip(hit);
+      nameThePartner(hit.name);
       /*
        * AND THEN GO AND CHECK, WITHOUT TOUCHING THIS PAGE.
        *
@@ -1086,6 +1130,7 @@
       swapLogo(brand && brand.logoUrl, brand && brand.name,
         brand && brand.site);
       drawStrip(brand);
+      nameThePartner(brand && brand.name);
     });
   }
 
