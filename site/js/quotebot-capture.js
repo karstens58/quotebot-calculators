@@ -1098,8 +1098,37 @@
     } catch (e) { log('partner notice failed', e); }
   }
 
+  /*
+   * THE CODE THIS PAGE WAS ASKED FOR BY NAME -- QBP-626.
+   *
+   * NOT propagationCode(), and that distinction is a whole bug. That one
+   * is the ATTRIBUTION resolver: the code in the URL, and failing that
+   * the last one touched, for half an hour. Attribution is a memory of
+   * who referred you and it has to survive a bare URL -- that is the
+   * entire point of the window.
+   *
+   * Branding is a different claim. It says whose page this IS, and a page
+   * arrived at with no code in its address is nobody's but ours. Asking
+   * the attribution resolver meant that after any partner link, every
+   * page on this site for the next thirty minutes -- the hub at /
+   * included, typed straight into the address bar -- wore that partner's
+   * colours, carried their strip and named them in our footer.
+   *
+   * Scott, 23 November: "it should only reskin per each affiliate code
+   * page, not the raw page."
+   *
+   * THIS COSTS NOTHING IN A PARTNER'S JOURNEY, because decorate() stamps
+   * ?qb= onto every same-origin link before the visitor clicks. A code
+   * that arrived in the address bar stays in the address bar, so the
+   * colours follow the whole way through. What changes is only the page
+   * nobody pointed at a partner: typed, bookmarked, or found by search.
+   */
+  function brandCode() {
+    return currentParams().trackingCode || null;
+  }
+
   function loadBrand() {
-    var code = propagationCode();
+    var code = brandCode();
     if (!code || !endpointOk()) return;
 
     /* PAINT BEFORE THE STRIP, on both paths. The strip sits inside the

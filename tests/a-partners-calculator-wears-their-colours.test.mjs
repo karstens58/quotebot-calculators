@@ -54,11 +54,19 @@ const LOGO = 'data:image/png;base64,iVBORw0KGgo=';
  * The real script, not a stand-in -- see the note in capture-api.mjs about
  * what a stub agrees with.
  */
-function page({ brand, href = 'https://tools.quote-bot.com/quotetool.html?qb=BR-QUOTE' }) {
+function page({ brand, href = 'https://tools.quote-bot.com/quotetool.html?qb=BR-QUOTE',
+  lastTouch = null }) {
   const store = new Map();
   if (brand !== undefined) {
     store.set('qb.brand', JSON.stringify({
       'BR-QUOTE': { ...brand, at: Date.now() },
+    }));
+  }
+  /* A code this visitor touched on an EARLIER page -- QBP-626. Attribution
+     remembers it for half an hour; branding must not read it at all. */
+  if (lastTouch) {
+    store.set('qb.attr.last', JSON.stringify({
+      trackingCode: lastTouch, capturedAt: new Date().toISOString(),
     }));
   }
 
@@ -461,4 +469,109 @@ test('and the site is kept with the cached brand', () => {
   assert.match(CAPTURE, /site: \(brand && brand\.site\) \|\| null/,
     'the cached copy drops the site, so the link survives exactly one '
     + 'page view');
+});
+
+/* ---- the raw page is ours ---------------------------------------------- *
+ *
+ * QBP-626. Scott, 23 November: "it should only reskin per each affiliate
+ * code page, not the raw page."
+ *
+ * The defect this guards was named in this file's own header from the day
+ * it was written -- "a regression that paints an ordinary visitor's page
+ * in the last partner's colours" -- and happened anyway, because every
+ * assertion here was aimed at what the ENDPOINT returns and none at WHICH
+ * CODE the script asks with. loadBrand called propagationCode(), the
+ * attribution resolver, which falls back to the last code touched for
+ * thirty minutes. So after one partner link the whole site wore their
+ * colours, the hub at / included.
+ * ------------------------------------------------------------------------ */
+
+const RAW = 'https://tools.quote-bot.com/';
+
+test('A PAGE WITH NO CODE IN ITS URL IS NOT REPAINTED', () => {
+  /*
+   * Everything is in place to paint: a fresh brand in the cache and a code
+   * touched minutes ago. The only thing missing is anybody having asked
+   * for this page as a partner's, and that is the whole test.
+   */
+  const { painted } = page({
+    href: RAW,
+    lastTouch: 'BR-QUOTE',
+    brand: { name: 'Protectmyspouse.com LLC', paint: PAINT, logoUrl: LOGO,
+      partnership: 'In partnership with Quote Bot' },
+  });
+  assert.deepEqual(painted, {},
+    'the raw hub was painted in the last partner it saw');
+});
+
+test('AND CARRIES NO STRIP', () => {
+  const { strip } = page({
+    href: RAW,
+    lastTouch: 'BR-QUOTE',
+    brand: { name: 'Protectmyspouse.com LLC', paint: PAINT,
+      partnership: 'In partnership with Quote Bot' },
+  });
+  assert.equal(strip, null,
+    'our own front door told a visitor it was in partnership with us');
+});
+
+test('AND KEEPS OUR LOGO', () => {
+  const { logo } = page({
+    href: RAW,
+    lastTouch: 'BR-QUOTE',
+    brand: { name: 'Protectmyspouse.com LLC', paint: PAINT, logoUrl: LOGO },
+  });
+  assert.equal(logo.src, 'img/quotebot-logo.png',
+    "a partner's mark replaced ours on a page nobody pointed at them");
+  assert.equal(logo.alt, 'Quote-Bot');
+});
+
+test('AND DOES NOT NAME A PARTNER IN OUR FOOTER', () => {
+  /*
+   * The worst of the four. The fulfilment paragraph is a compliance
+   * sentence, and appending "X is an independent partner" to it on a page
+   * that has nothing to do with X is a statement about who is involved in
+   * a transaction, made to a consumer, that is not true.
+   */
+  const { notice } = page({
+    href: RAW,
+    lastTouch: 'BR-QUOTE',
+    brand: { name: 'Protectmyspouse.com LLC', paint: PAINT },
+  });
+  assert.doesNotMatch(notice.textContent, /independent partner/,
+    'the footer named a partner on a page they did not refer');
+  assert.equal(notice.getAttribute('data-qb-partner-named'), null);
+});
+
+test('A CODE IN THE URL STILL REPAINTS, WHICH IS THE POINT', () => {
+  /*
+   * The fix must not be "stop co-branding". An affiliate's own code page
+   * is exactly where their colours belong -- including the hub, when they
+   * sent somebody to it by name.
+   */
+  const { painted, strip, notice } = page({
+    href: `${RAW}?qb=BR-QUOTE`,
+    brand: { name: 'Protectmyspouse.com LLC', paint: PAINT, logoUrl: LOGO,
+      partnership: 'In partnership with Quote Bot' },
+  });
+  assert.equal(painted['--primary'], PAINT.primary,
+    'an affiliate code page stopped wearing their colours');
+  assert.match(words(strip), /In partnership with Quote Bot/);
+  assert.match(notice.textContent, /Protectmyspouse\.com LLC is an independent partner/);
+});
+
+test('AND ATTRIBUTION IS UNTOUCHED BY ANY OF THIS', () => {
+  /*
+   * THE HALF THAT MUST KEEP WORKING. The thirty-minute memory exists so a
+   * quote filled in three clicks later is still credited to whoever sent
+   * the visitor. Fixing the paint by shortening that memory, or by
+   * clearing it, would trade a cosmetic fault for an unpaid referral --
+   * and nobody would notice for a month.
+   */
+  assert.match(CAPTURE, /function decorateAll\(\)\s*\{\s*var code = propagationCode\(\);/,
+    'link decoration stopped using the remembered code');
+  assert.match(CAPTURE, /function brandCode\(\)\s*\{\s*return currentParams\(\)\.trackingCode \|\| null;/,
+    'the paint no longer reads the code off this page alone');
+  assert.match(CAPTURE, /function loadBrand\(\)\s*\{\s*var code = brandCode\(\);/,
+    'loadBrand went back to asking the attribution resolver');
 });
