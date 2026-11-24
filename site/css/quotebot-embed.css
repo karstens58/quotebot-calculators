@@ -1,0 +1,172 @@
+/*
+ * quotebot-embed.css — the quote tool as a panel on somebody else's page.
+ *
+ * QBP-633. Everything here is scoped under `html.qb-embed`, which
+ * quotebot-embed.js sets only when the page is loaded with ?embed=1. The
+ * ordinary page at tools.quote-bot.com is untouched by this file, and that
+ * is the point: ONE PAGE, ONE SET OF MARKUP. A separate embed page would
+ * be a second copy of a thousand lines of form, and the two would drift --
+ * a field added to one and not the other is a field that quietly stops
+ * being asked of half the people who quote.
+ *
+ * WHAT IS HIDDEN IS THE CHROME AROUND THE TOOL. The partner's own site
+ * supplies the header, the navigation and the footer; ours repeated inside
+ * a box on their page reads as a website in a website.
+ *
+ * WHAT IS NOT HIDDEN, AND MUST NOT BE, is the fulfilment notice: who is
+ * actually behind the insurance, and the licence number. It is a
+ * disclosure rather than decoration, and the reason the form lives in an
+ * iframe at all is that nothing on the host page can remove it -- not a
+ * stray CSS rule and not a deliberate one. See
+ * tests/the-notice-says-who-is-behind-the-insurance.test.mjs, which holds
+ * it on every page, and the-embed-keeps-the-licence-line.test.mjs, which
+ * holds it HERE, where hiding it would be one selector.
+ */
+
+/*
+ * HIDDEN UNTIL THE GUARD HAS SPOKEN.
+ *
+ * On the documentElement rather than the body, because this has to be true
+ * before the body exists: the class is set by a script in the head and the
+ * rule applies at first paint. Otherwise an unregistered site shows the
+ * whole form for as long as the verdict takes and then blanks it, which
+ * looks like a broken widget and hands over a form nobody was allowed to
+ * fill in.
+ *
+ * `visibility` and not `display`, so the layout is measured correctly
+ * while hidden -- the height we post to the host is taken before anybody
+ * sees anything.
+ */
+html.qb-embed-waiting body > * { visibility: hidden; }
+
+html.qb-embed,
+html.qb-embed body {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  /* The host page scrolls, not us: the iframe is told how tall to be. The
+     exception is the modal, which takes the viewport and scrolls itself. */
+  overflow: hidden;
+}
+
+/* The chrome the partner's own site already provides. */
+html.qb-embed .topbar,
+html.qb-embed .brand-header,
+html.qb-embed .footer-main,
+html.qb-embed .footer-legal,
+html.qb-embed .footer-copy,
+html.qb-embed .qb-chat-bubble { display: none !important; }
+
+html.qb-embed .page { padding: 0; max-width: none; }
+
+/*
+ * ONE COLUMN, ALWAYS. The grid puts the form beside the results, which is
+ * right on a full page and wrong in a 380px column on somebody's sidebar.
+ * The results are not beside the form here; they arrive over the host
+ * page as a modal.
+ */
+html.qb-embed .quote-grid {
+  display: block;
+  gap: 0;
+  max-width: none;
+}
+
+html.qb-embed .inputs-panel {
+  width: auto;
+  max-width: none;
+  border-radius: 10px;
+  margin: 0;
+}
+
+/* The results panel is not drawn in the flow at all; see the modal below. */
+html.qb-embed .results-panel { display: none; }
+
+/*
+ * THE RESULTS, OVER THE HOST PAGE.
+ *
+ * The iframe is told to take the whole viewport before this is shown, so
+ * "fixed to the viewport" here means fixed to the host's window. The
+ * scrim is drawn by us rather than by the loader: it is the one thing
+ * that must cover the host's own content, and a scrim on their side of
+ * the glass is a scrim their CSS can restyle.
+ */
+html.qb-embed.qb-embed-open { overflow: auto; }
+
+html.qb-embed.qb-embed-open .results-panel {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  padding: 56px 18px 28px;
+}
+
+html.qb-embed.qb-embed-open .inputs-panel { display: none; }
+
+/* Back to the form, which is the only way out of the modal: the host page
+   draws no close button, because the host page does not know what state we
+   are in. */
+html.qb-embed .qb-embed-back {
+  display: none;
+  position: fixed;
+  top: 10px;
+  right: 12px;
+  z-index: 2147483001;
+  border: 1.5px solid #d6d9e0;
+  background: #fff;
+  color: #1f2430;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: 600 13px/1 inherit;
+  cursor: pointer;
+}
+html.qb-embed.qb-embed-open .qb-embed-back { display: block; }
+html.qb-embed .qb-embed-back:hover { border-color: #9aa1ad; }
+
+/*
+ * THE FULFILMENT NOTICE STAYS, and is pinned under the form rather than
+ * left at the bottom of a footer that is no longer drawn.
+ */
+html.qb-embed footer { display: block; background: none; padding: 0; }
+html.qb-embed .footer-fulfilment {
+  display: block;
+  margin: 10px 2px 0;
+  padding: 0;
+  border: 0;
+  text-align: left;
+}
+html.qb-embed .footer-fulfilment-head { display: none; }
+html.qb-embed .footer-fulfilment-body,
+html.qb-embed .footer-fulfilment-ids {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+/*
+ * WHAT A SITE THAT IS NOT REGISTERED SEES.
+ *
+ * Scott, 23 November: say plainly that the site is not registered, with a
+ * link to the portal. A partner who pasted the snippet on a domain they
+ * have not added is overwhelmingly the person reading this, and a vague
+ * message costs them a support call. It does tell somebody who copied a
+ * code that the code is real -- which is a trade Scott made deliberately.
+ */
+.qb-embed-refusal {
+  font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1f2430;
+  background: #fff;
+  border: 1.5px solid #e3e6eb;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin: 0;
+}
+.qb-embed-refusal h2 { font-size: 15px; margin: 0 0 6px; }
+.qb-embed-refusal p { margin: 0 0 8px; color: #4b5563; }
+.qb-embed-refusal a { color: #1d4ed8; }
+.qb-embed-refusal code {
+  background: #f3f4f6; border-radius: 4px; padding: 1px 5px; font-size: 12.5px;
+}

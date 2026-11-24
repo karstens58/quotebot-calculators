@@ -608,6 +608,25 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
   <script type="application/json" data-qb-apply-config>{"productLine":"TERM_LIFE","selectionFrom":"quotetool"}</script>
   <script src="js/quotebot-apply.js" defer></script>
 <link rel="stylesheet" href="css/qb-hover.css">
+
+<!--
+  THE EMBED, WHEN THIS PAGE IS ONE -- QBP-633.
+
+  Both files do nothing at all unless the page was opened with ?embed=1,
+  which is how one page serves the tool here and the panel on a partner's
+  website. A second page would be a second copy of the form below, and the
+  two would drift.
+
+  IN THE HEAD, AND IN THIS ORDER, deliberately. The guard has to be defined
+  before the boot script runs, and the boot script has to run before the
+  body is painted: it marks the document as waiting, which is what keeps an
+  unregistered site from showing the whole form for as long as the verdict
+  takes. Moved below the body and the gate becomes a flicker.
+-->
+<link rel="stylesheet" href="css/quotebot-embed.css">
+<script src="js/quotebot-embed-guard.js"></script>
+<script src="js/quotebot-embed.js"
+        data-endpoint="https://api.quote-bot.com/lead/"></script>
 </head>
 <body>
 

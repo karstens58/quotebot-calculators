@@ -404,9 +404,31 @@ test('the server lets the browser revalidate rather than sit on it', () => {
   const at = handler.indexOf("case '/brand'") > 0
     ? handler.indexOf("case '/brand'") : handler.indexOf('async function handleBrand');
   assert.ok(at > 0, 'the brand endpoint is gone');
-  const body = handler.slice(at, at + 3000);
-  const header = /'Cache-Control': '([^']+)'/.exec(body);
-  assert.ok(header, 'the brand response no longer sets Cache-Control');
+  /*
+   * TO THE END OF THE FUNCTION, not a fixed number of characters. It was
+   * `at + 3000`, and QBP-633 added enough to that function to push the
+   * header past the window -- so the test reported that the endpoint sets
+   * no cacheable answer at all, which was a fact about the window rather
+   * than about the code.
+   */
+  const end = handler.indexOf('\n}\n', at);
+  const body = handler.slice(at, end > at ? end : handler.length);
+
+  /*
+   * THE COLOURS LITERAL, WHEREVER IT IS WRITTEN. This used to read the
+   * value sitting against the key, and QBP-633 gave that endpoint a second
+   * question to answer -- an embed permission, which is no-store while the
+   * colours keep their cache -- so the value became a ternary. Matched
+   * loosely, this would then have found the no-store branch and reported
+   * that the colours had stopped being revalidatable, which is a true
+   * reading of the wrong line.
+   *
+   * This is the mirror test doing the job it is kept for: the backend's
+   * own copy caught it in CI, and this one caught it here, on the machine
+   * where both halves are checked out.
+   */
+  const header = /'(public, max-age[^']+)'/.exec(body);
+  assert.ok(header, 'the brand response no longer sets a cacheable answer');
   assert.match(header[1], /stale-while-revalidate=\d+/,
     'the brand response does not allow revalidation, so a background '
     + 'refresh is served from the browser cache and the colours still wait');

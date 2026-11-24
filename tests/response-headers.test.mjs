@@ -172,7 +172,12 @@ test('THE POLICY ADMITS EVERY HOST THESE PAGES ACTUALLY LOAD', () => {
    * exactly what these two govern.
    */
   const LOADABLE = [...directive('script-src'), ...directive('connect-src')];
-  const LINKS_ONLY = new Set(['quote-bot.com', 'tools.quote-bot.com', 'www.instagram.com',
+  /* partners.quote-bot.com joined this list with QBP-633: the embed
+     refusal box links a partner to their portal to register the site, and
+     a link is navigated to rather than loaded, so no directive here
+     governs it. */
+  const LINKS_ONLY = new Set(['quote-bot.com', 'tools.quote-bot.com',
+    'partners.quote-bot.com', 'www.instagram.com',
     'www.facebook.com', 'x.com', 'www.linkedin.com', 'www.youtube.com',
     'fonts.googleapis.com', 'fonts.gstatic.com', 'www.w3.org', 'schema.org']);
 
