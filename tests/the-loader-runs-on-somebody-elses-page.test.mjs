@@ -73,6 +73,9 @@ function fakeFrame() {
       set height(v) { this.props.height = v; },
       get height() { return this.props.height; },
     },
+    attrs: {},
+    setAttribute(k, v) { this.attrs[k] = String(v); },
+    getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; },
     addEventListener(k, fn) { (listeners[k] ??= []).push(fn); },
     removeEventListener(k, fn) {
       const at = (listeners[k] ?? []).indexOf(fn);
@@ -255,10 +258,94 @@ test('and it queries the host DOM only for what the tag named', () => {
   const calls = [...SRC.matchAll(/querySelector(?:All)?\(([^)]*)\)/g)]
     .map((m) => m[1].trim());
   for (const arg of calls) {
-    assert.ok(/^(opener|where|fallback)$/.test(arg),
+    /*
+     * Three are selectors the partner wrote in their own snippet. The
+     * fourth is our own attribute, which is how a placeholder is found at
+     * all -- named here rather than allowed by pattern, so the next query
+     * added to this file has to be argued for in this test.
+     */
+    assert.ok(/^(opener|where|fallback)$/.test(arg)
+      || arg === "'[data-quotebot-embed]'",
       `the loader looks up "${arg}" on the host page, which the partner `
       + 'did not name in their snippet');
   }
+});
+
+/* ---- the placeholder, which is what WordPress gets --------------------- */
+
+/** A stand-in for one <div data-quotebot-embed>. */
+function placeholder(attrs, kids) {
+  const own = { 'data-quotebot-embed': '', ...attrs };
+  const children = (kids ?? []).slice();
+  const el = {
+    children,
+    appended: [],
+    getAttribute: (k) => (k in own ? own[k] : null),
+    setAttribute: (k, v) => { own[k] = String(v); },
+    get firstChild() { return children[0] ?? null; },
+    removeChild(c) { const at = children.indexOf(c); if (at >= 0) children.splice(at, 1); },
+    appendChild(c) { el.appended.push(c); },
+    own,
+  };
+  return el;
+}
+
+function fakeDoc(elements) {
+  return {
+    readyState: 'complete',
+    defaultView: harness(),
+    body: { appendChild() {} },
+    createElement: () => fakeFrame(),
+    querySelectorAll: (sel) => (sel === '[data-quotebot-embed]' ? elements : []),
+    querySelector: () => null,
+    addEventListener() {},
+  };
+}
+
+test('A PLACEHOLDER IS MOUNTED, AND ONLY ONCE', () => {
+  /*
+   * WordPress strips a <script> out of post content for anyone below
+   * administrator, and security plugins strip it whatever the role. A div
+   * survives, so the plugin enqueues the script properly and puts one of
+   * these in the content.
+   *
+   * Mounted twice is the failure that matters: a builder that injects
+   * content late, or a page firing DOMContentLoaded after we have already
+   * run, would otherwise stack a second frame on the first.
+   */
+  const el = placeholder({ 'data-code': 'DOE-TERM' });
+  const doc = fakeDoc([el]);
+  assert.equal(loader.mountAll(doc), 1, 'the placeholder was not mounted');
+  assert.equal(el.appended.length, 1);
+  assert.equal(loader.mountAll(doc), 0, 'the placeholder was mounted twice');
+  assert.equal(el.appended.length, 1, 'a second frame was stacked on the first');
+});
+
+test('AND WHATEVER WAS INSIDE IT IS CLEARED FIRST', () => {
+  /*
+   * The placeholder holds a plain link to the hosted page -- that is what
+   * a visitor sees when this script never runs. Left in place, somebody
+   * whose script DID run sees a form and a link to the same form.
+   */
+  const link = { tag: 'a' };
+  const el = placeholder({ 'data-code': 'DOE-TERM' }, [link]);
+  loader.mountAll(fakeDoc([el]));
+  assert.equal(el.children.length, 0,
+    'the fallback link is still there under the form');
+  assert.equal(el.appended.length, 1);
+});
+
+test('and a placeholder with no code mounts nothing', () => {
+  const el = placeholder({});
+  const doc = fakeDoc([el]);
+  const was = globalThis.console.warn;
+  globalThis.console.warn = () => {};
+  try {
+    assert.equal(loader.mountAll(doc), 0);
+  } finally {
+    globalThis.console.warn = was;
+  }
+  assert.equal(el.appended.length, 0, 'an empty frame was put on their page');
 });
 
 /* ---- the three placements ---------------------------------------------- */

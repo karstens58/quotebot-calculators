@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "quotebot/embed",
+  "title": "Quote Bot quote form",
+  "category": "widgets",
+  "icon": "shield",
+  "description": "Your co-branded life insurance quote form.",
+  "textdomain": "quotebot-embed",
+  "editorScript": "file:./editor.js",
+  "attributes": {
+    "code":   { "type": "string", "default": "" },
+    "open":   { "type": "string", "default": "" },
+    "target": { "type": "string", "default": "" },
+    "title":  { "type": "string", "default": "" },
+    "label":  { "type": "string", "default": "" }
+  },
+  "supports": { "html": false, "align": ["wide", "full"] }
+}

@@ -37,8 +37,11 @@
   var api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (typeof root !== 'undefined' && root) root.QuoteBotEmbedLoader = api;
-  if (typeof document !== 'undefined' && document && document.currentScript) {
-    api.boot(document.currentScript);
+  if (typeof document !== 'undefined' && document) {
+    /* The tag that loaded us, when it carries the settings itself. */
+    if (document.currentScript) api.boot(document.currentScript);
+    /* And any placeholder on the page, once there is a page. */
+    api.mountWhenReady(document);
   }
 }(typeof self !== 'undefined' ? self : this, function (root) {
   'use strict';
@@ -78,8 +81,8 @@
     }
   }
 
-  function makeFrame(code, title) {
-    var frame = DOC.createElement('iframe');
+  function makeFrame(code, title, d) {
+    var frame = (d || DOC).createElement('iframe');
     frame.src = frameSrc(code);
     frame.title = title || 'Life insurance quote';
     frame.setAttribute('loading', 'eager');
@@ -107,7 +110,7 @@
     var options = opts || {};
     /* The window to listen on. Defaults to ours, which is the only answer
        in a browser; named here so a test can drive this without one. */
-    var win = options.window || root;
+    var win = options.window || (frame.ownerDocument && frame.ownerDocument.defaultView) || root;
     var open = false;
     var heldOverflow = null;
 
@@ -198,19 +201,21 @@
    * partner who puts this on every page of their site is not loading our
    * form on every page of their site.
    */
-  function openable(code, title) {
+  function openable(code, title, d) {
+    var doc = d || DOC;
     var frame = null;
     var box = null;
     return function openNow(e) {
       if (e && e.preventDefault) e.preventDefault();
       if (frame) return;
-      box = DOC.createElement('div');
+      box = doc.createElement('div');
       styles(box, {
         position: 'fixed', inset: '0', 'z-index': '2147482999',
         background: 'rgba(16, 20, 28, 0.55)',
       });
-      frame = makeFrame(code, title);
+      frame = makeFrame(code, title, doc);
       var wired = wire(frame, {
+        window: doc.defaultView || root,
         onCollapse: function () {
           /* Out of the modal placement means GONE, not back to a panel
              nobody asked for -- and the frame goes with it, so the next
@@ -227,9 +232,59 @@
         position: 'fixed', inset: '0', width: '100%', height: '100%',
         'z-index': '2147483000',
       });
-      DOC.body.appendChild(box);
-      DOC.body.appendChild(frame);
+      doc.body.appendChild(box);
+      doc.body.appendChild(frame);
     };
+  }
+
+  /**
+   * THE OTHER WAY IN: a placeholder element -- QBP-633.
+   *
+   *   <div data-quotebot-embed data-code="DOE-TERM">
+   *     <a href="https://tools.quote-bot.com/quotetool.html?qb=DOE-TERM">
+   *       Get a life insurance quote</a>
+   *   </div>
+   *
+   * WRITTEN FOR WORDPRESS AND BETTER EVERYWHERE. WordPress strips a
+   * <script> out of post content for anyone below administrator, and
+   * plenty of security plugins strip it whatever the role -- so a snippet
+   * that IS a script tag is a snippet that silently does nothing for most
+   * of the people pasting it. A plugin enqueues the script properly, where
+   * nothing strips it, and puts one of these in the content, where a div
+   * survives. Page builders are the same story.
+   *
+   * WHATEVER IS INSIDE IT IS THE FALLBACK. The placeholder holds a plain
+   * link to the hosted page, and this empties it before putting the frame
+   * in. So a visitor whose browser never ran our script sees the link,
+   * and nobody sees both.
+   */
+  var MOUNTED = 'data-quotebot-mounted';
+
+  function mountAll(d) {
+    var doc = d || DOC;
+    if (!doc || !doc.querySelectorAll) return 0;
+    var found = doc.querySelectorAll('[data-quotebot-embed]');
+    var made = 0;
+    for (var i = 0; i < found.length; i += 1) {
+      var el = found[i];
+      /* Marked rather than counted, so a second call -- a page that fires
+         DOMContentLoaded after we already ran, a builder that injects
+         content later -- does not stack a second frame on the first. */
+      if (el.getAttribute(MOUNTED)) continue;
+      el.setAttribute(MOUNTED, '1');
+      if (boot(el, doc)) made += 1;
+    }
+    return made;
+  }
+
+  function mountWhenReady(d) {
+    var doc = d || DOC;
+    if (!doc) return;
+    if (doc.readyState === 'loading') {
+      doc.addEventListener('DOMContentLoaded', function () { mountAll(doc); });
+    } else {
+      mountAll(doc);
+    }
   }
 
   /** Read a setting off the tag, by either spelling. */
@@ -241,8 +296,9 @@
     return '';
   }
 
-  function boot(tag) {
-    if (!DOC || !tag) return null;
+  function boot(tag, d) {
+    var doc = d || DOC;
+    if (!doc || !tag) return null;
 
     var code = attr(tag, ['data-code', 'data-qb', 'data-tracking-code']);
     /*
@@ -272,7 +328,7 @@
      */
     var fallback = attr(tag, ['data-fallback']);
     if (fallback) {
-      var links = DOC.querySelectorAll(fallback);
+      var links = doc.querySelectorAll(fallback);
       for (var i = 0; i < links.length; i += 1) {
         links[i].style.setProperty('display', 'none');
       }
@@ -280,8 +336,8 @@
 
     /* Placement two: their button, and no form in the layout. */
     if (opener) {
-      var openNow = openable(code, title);
-      var buttons = DOC.querySelectorAll(opener);
+      var openNow = openable(code, title, doc);
+      var buttons = doc.querySelectorAll(opener);
       for (var b = 0; b < buttons.length; b += 1) {
         buttons[b].addEventListener('click', openNow);
       }
@@ -290,21 +346,32 @@
 
     /* Placement one: inline, where the tag is or where it points. */
     var where = attr(tag, ['data-target']);
-    var host = where ? DOC.querySelector(where) : null;
-    var frame = makeFrame(code, title);
-    wire(frame);
+    var host = where ? doc.querySelector(where) : null;
+    var frame = makeFrame(code, title, doc);
+    /* The window that owns this document, rather than whichever global
+       this file happens to have been evaluated against. */
+    wire(frame, { window: doc.defaultView || root });
     if (host) {
       host.appendChild(frame);
+    } else if (tag.getAttribute('data-quotebot-embed') !== null) {
+      /* A PLACEHOLDER HOLDS ITS OWN FALLBACK. Whatever is inside it is
+         the link somebody sees when this script never runs, so it is
+         cleared rather than pushed aside -- the alternative shows the
+         visitor a form and a link to the same form. */
+      while (tag.firstChild) tag.removeChild(tag.firstChild);
+      tag.appendChild(frame);
     } else if (tag.parentNode) {
       tag.parentNode.insertBefore(frame, tag.nextSibling);
     } else {
-      DOC.body.appendChild(frame);
+      doc.body.appendChild(frame);
     }
     return { placement: 'inline', frame: frame };
   }
 
   return {
     boot: boot,
+    mountAll: mountAll,
+    mountWhenReady: mountWhenReady,
     wire: wire,
     frameSrc: frameSrc,
     TOOLS: TOOLS,
