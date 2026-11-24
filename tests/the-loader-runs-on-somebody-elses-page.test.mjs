@@ -204,7 +204,8 @@ test('THE GREETING IS ADDRESSED TO OUR ORIGIN, NOT TO EVERY ORIGIN', () => {
    */
   const frame = fakeFrame();
   loader.wire(frame, { window: harness() }).hello();
-  assert.deepEqual(frame.contentWindow.posted, [[{ type: loader.HELLO }, loader.TOOLS]]);
+  assert.deepEqual(frame.contentWindow.posted,
+    [[{ type: loader.HELLO, placement: 'page' }, loader.TOOLS]]);
   assert.ok(!/postMessage\([^)]*,\s*['"]\*['"]/.test(SRC),
     'something is posted to any origin that cares to listen');
 });
@@ -232,6 +233,19 @@ test('AND NOTHING IS LEFT LISTENING WHEN A MODAL CLOSES', () => {
   wired.stop();
   assert.equal((frame.listeners.load ?? []).length, 0,
     'the frame is still listening for its own load after being discarded');
+});
+
+test('AND IT SAYS WHICH PLACEMENT IT USED -- QBP-635', () => {
+  /*
+   * The frame has to tell Back from Close, and only this side knows
+   * whether the form has a resting place in the page or only ever appears
+   * in front of it. Without this the frame guessed, and a visitor who
+   * pressed "Back to the form" from a button-opened modal lost the form.
+   */
+  const frame = fakeFrame();
+  loader.wire(frame, { window: harness(), placement: 'button' }).hello();
+  assert.equal(frame.contentWindow.posted[0][0].placement, 'button',
+    'the frame is not told where it was put');
 });
 
 /* ---- what it refuses to be --------------------------------------------- */

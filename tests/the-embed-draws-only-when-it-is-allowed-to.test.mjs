@@ -145,6 +145,64 @@ test('THE LICENCE LINE IS NOT HIDDEN BY THE EMBED LAYOUT', () => {
     + 'the footer rules happen to do');
 });
 
+/* ---- back is not close -- QBP-635 -------------------------------------- */
+
+test('BACK TO THE FORM DOES NOT DISMISS THE FORM', () => {
+  /*
+   * THE DEFECT THIS IS WRITTEN FROM. One control said "Back to the form"
+   * and sent one message, `collapse`, which the loader read as "this
+   * modal is finished" wherever the form had no resting place in the
+   * page. A visitor who read the prices and pressed Back to change their
+   * coverage lost the form and everything typed into it.
+   *
+   * So back only collapses where collapsing IS going back -- in the
+   * partner's own layout. In front of their page it is a change of view
+   * and the frame must not move.
+   */
+  const at = JS.indexOf('function backToForm(');
+  assert.ok(at > 0, 'the way back to the form is gone');
+  const body = JS.slice(at, JS.indexOf('\n  }', at));
+  assert.match(body, /restsOverTheirPage\(\)/,
+    'back behaves the same wherever the form was put, so one of the two '
+    + 'placements is wrong');
+  const guard = body.indexOf('restsOverTheirPage()');
+  const sends = body.indexOf('send(COLLAPSE)');
+  assert.ok(sends > guard,
+    'the frame is collapsed before anybody has asked where the form rests');
+});
+
+test('AND THERE IS A SEPARATE WAY OUT, ONLY WHERE THERE IS SOMETHING TO LEAVE',
+  () => {
+    /* In the partner's layout the form is part of their page: hiding the
+       prices puts the page back as it was, and a Close would be a control
+       that removes a section of somebody's own website. */
+    const at = JS.indexOf('function addControls(');
+    assert.ok(at > 0, 'the controls are gone');
+    const body = JS.slice(at, JS.indexOf('\n  }', at));
+    assert.match(body, /if \(!restsOverTheirPage\(\)\) return;/,
+      'a close control is drawn even where the form lives in the page');
+    const dismiss = JS.indexOf('function dismiss(');
+    assert.ok(dismiss > 0, 'nothing dismisses the frame');
+    assert.match(JS.slice(dismiss, JS.indexOf('\n  }', dismiss)), /send\(COLLAPSE\)/,
+      'closing never tells the host, so the frame stays over their page');
+  });
+
+test('the placement is read strictly, and anything else rests in the page', () => {
+  /*
+   * It arrives in a message body, which a hostile host writes. The
+   * failure to avoid is a value we do not draw for leaving a visitor with
+   * no way out at all, so an unknown one falls to the placement that
+   * cannot strand anybody.
+   */
+  const at = JS.indexOf('onAllowed: function (_origin, said)');
+  assert.ok(at > 0, 'the greeting body is no longer read');
+  const body = JS.slice(at, at + 420);
+  assert.match(body, /told === 'button' \|\| told === 'bar'/,
+    'any placement a host names is believed');
+  assert.match(JS, /var placement = 'page';/,
+    'the placement does not default to the one with a form in the page');
+});
+
 /* ---- what the host is told -------------------------------------------- */
 
 test('NOTHING IS POSTED TO EVERY ORIGIN', () => {

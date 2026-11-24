@@ -126,6 +126,37 @@ html.qb-embed.qb-embed-open .qb-embed-back { display: block; }
 html.qb-embed .qb-embed-back:hover { border-color: #9aa1ad; }
 
 /*
+ * AND THE WAY OUT ALTOGETHER -- QBP-635, drawn only where there is one.
+ *
+ * Where the form rests in the partner's own layout there is nothing to
+ * close: hiding the prices puts their page back as it was. Where it only
+ * ever appears in front of their page, Back and Close are different
+ * things, and one control doing both is how a visitor pressed "Back to
+ * the form" and lost the form.
+ *
+ * Visible whenever we are in front of their page, not only over the
+ * prices -- somebody who opens the form and changes their mind needs the
+ * same way out as somebody who has read the prices.
+ */
+html.qb-embed .qb-embed-close {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 12px;
+  z-index: 2147483001;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid #d6d9e0;
+  background: #fff;
+  color: #1f2430;
+  border-radius: 999px;
+  font: 700 16px/1 inherit;
+  cursor: pointer;
+}
+html.qb-embed.qb-embed-overlay .qb-embed-close { display: block; }
+html.qb-embed .qb-embed-close:hover { border-color: #9aa1ad; }
+
+/*
  * THE FULFILMENT NOTICE STAYS, and is pinned under the form rather than
  * left at the bottom of a footer that is no longer drawn.
  */

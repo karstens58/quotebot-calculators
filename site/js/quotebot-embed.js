@@ -51,6 +51,27 @@
 
   var hostOrigin = null;
 
+  /**
+   * Where the host put us, as the loader said in its greeting -- QBP-635.
+   *
+   * 'page' means the form has a resting place in their layout, so there is
+   * nothing to dismiss: the only way out of the prices is back to the form,
+   * which is also back to our resting size.
+   *
+   * 'bar' and 'button' mean the form is only ever in front of their page.
+   * Then Back and Close are different things -- back to the form, or out
+   * altogether -- and one control doing both is the bug this exists to fix:
+   * a visitor who pressed "Back to the form" lost the form.
+   *
+   * A HINT, NOT A PERMISSION. It arrives in the body of a message, which a
+   * hostile host writes. The worst it can do is put the wrong control on
+   * our own page; the gate is the stamped origin and has not moved.
+   */
+  var placement = 'page';
+  function restsOverTheirPage() {
+    return placement === 'button' || placement === 'bar';
+  }
+
   function guard() {
     return root && root.QuoteBotEmbedGuard;
   }
@@ -147,11 +168,29 @@
     try { root.scrollTo(0, 0); } catch (e) { /* not fatal */ }
   }
 
-  function closeResults() {
+  /**
+   * Back to the form.
+   *
+   * The results are hidden either way. The frame only moves when the form
+   * has somewhere to go back TO in their page -- otherwise it stays exactly
+   * where it is, showing the form the visitor already filled in.
+   */
+  function backToForm() {
     DOC.documentElement.classList.remove('qb-embed-open');
+    if (restsOverTheirPage()) {
+      /* Still in front of their page, now showing the form. Nothing to
+         tell the host: its frame is already the size it should be. */
+      return;
+    }
     send(COLLAPSE);
     lastSent = 0;
     reportHeight();
+  }
+
+  /** Out altogether. Only reachable where there is no form in their page. */
+  function dismiss() {
+    DOC.documentElement.classList.remove('qb-embed-open');
+    send(COLLAPSE);
   }
 
   /**
@@ -172,13 +211,32 @@
     }).observe(panel, { attributes: true, attributeFilter: ['class'] });
   }
 
-  function addBackButton() {
+  /**
+   * The way out of the prices, which is two ways when we are in front of
+   * their page -- QBP-635.
+   *
+   * Back always means back to the form. Where we rest in their layout that
+   * is also a return to our resting size, so it collapses; where we rest in
+   * front of their page it is a change of view and the frame does not move.
+   * Close exists only in the second case, because in the first there is
+   * nothing to close -- the form is part of their page.
+   */
+  function addControls() {
     var back = DOC.createElement('button');
     back.type = 'button';
     back.className = 'qb-embed-back';
     back.textContent = 'Back to the form';
-    back.addEventListener('click', closeResults);
+    back.addEventListener('click', backToForm);
     DOC.body.appendChild(back);
+
+    if (!restsOverTheirPage()) return;
+    var close = DOC.createElement('button');
+    close.type = 'button';
+    close.className = 'qb-embed-close';
+    close.setAttribute('aria-label', 'Close');
+    close.textContent = '\u00d7';
+    close.addEventListener('click', dismiss);
+    DOC.body.appendChild(close);
   }
 
   /** Let the page be seen. */
@@ -250,7 +308,12 @@
 
   function start() {
     reveal();
-    addBackButton();
+    /* Marked once, so the stylesheet can draw the way out wherever we are
+       in front of their page rather than only over the prices. */
+    if (restsOverTheirPage()) {
+      DOC.documentElement.classList.add('qb-embed-overlay');
+    }
+    addControls();
     watchResults();
     watchHeight();
     send(READY, { px: height() });
@@ -307,13 +370,23 @@
           method: 'GET', credentials: 'omit',
         }).then(function (res) { return res.json(); });
       },
-      onAllowed: function () { whenReady(start); },
+      onAllowed: function (_origin, said) {
+        /* Strictly one of the three we draw for. A host that sends
+           anything else gets the resting-in-their-page behaviour, which
+           is the one that cannot strand a visitor. */
+        var told = String((said && said.placement) || '');
+        if (told === 'button' || told === 'bar') placement = told;
+        whenReady(start);
+      },
       onRefused: function (why) { whenReady(function () { refuse(why); }); },
     });
   }
 
   return {
     boot: boot,
+    /* For the tests, which drive these without a browser. */
+    _placement: function () { return placement; },
+    _restsOverTheirPage: restsOverTheirPage,
     READY: READY, HEIGHT: HEIGHT, EXPAND: EXPAND,
     COLLAPSE: COLLAPSE, REFUSED: REFUSED,
     PORTAL: PORTAL,

@@ -188,23 +188,35 @@
       try { win.removeEventListener('message', listen); } catch (e) { /* gone */ }
     }
 
-    function settle(ok, why, origin) {
+    function settle(ok, why, origin, said) {
       if (settled) return;
       settled = true;
       stop();
-      if (ok) onAllowed(origin); else onRefused(why);
+      if (ok) onAllowed(origin, said); else onRefused(why);
     }
 
     function listen(event) {
       if (settled) return;
       var origin = hostOriginOf(event, win);
       if (!origin) return;
+      /*
+       * THE GREETING'S BODY IS CARRIED, AND IT DECIDES NOTHING -- QBP-635.
+       *
+       * The host says which placement it used, so the page knows whether
+       * it rests in their layout or over it, and can tell Back from
+       * Close. That is a hint about drawing and carries no authority:
+       * permission still comes from the origin the BROWSER stamped on
+       * this event, which the sender does not write, and from the server
+       * answering about that origin. A host that lies here changes where
+       * a button sits, and nothing else.
+       */
+      var said = (event.data && typeof event.data === 'object') ? event.data : {};
       /* The greeting is answered only after the server agrees, so a site
          that is not registered never even learns that it reached us. */
       Promise.resolve()
         .then(function () { return ask(origin); })
         .then(function (answer) {
-          if (mayDraw(answer)) settle(true, null, origin);
+          if (mayDraw(answer)) settle(true, null, origin, said);
           else settle(false, 'not-registered', origin);
         })
         .catch(function () { settle(false, 'unreachable', origin); });

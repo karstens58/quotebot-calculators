@@ -114,9 +114,19 @@
     var open = false;
     var heldOverflow = null;
 
+    /*
+     * THE GREETING SAYS WHERE WE PUT IT -- QBP-635.
+     *
+     * The frame has to tell Back from Close, and only this side knows
+     * whether the form has a resting place in the page or only ever
+     * appears in front of it. It is a hint about drawing: the frame's
+     * permission to draw at all comes from the origin the browser stamps
+     * on this message, which we do not write.
+     */
     function hello() {
       try {
-        frame.contentWindow.postMessage({ type: HELLO }, TOOLS);
+        frame.contentWindow.postMessage(
+          { type: HELLO, placement: options.placement || 'page' }, TOOLS);
       } catch (e) { /* the frame is not there yet */ }
     }
 
@@ -137,6 +147,15 @@
       if (options.onExpand) options.onExpand();
     }
 
+    /**
+     * Back to our resting state, whatever that is here -- QBP-635.
+     *
+     * ONE MEANING, AND THIS SIDE DECIDES WHAT IT IS. In the page, resting
+     * is the panel at content height. From a button, there is no resting
+     * state at all and the caller's onCollapse takes the frame away. The
+     * frame no longer has to know the difference, which is what let it
+     * send "finished" when the visitor had asked to go back.
+     */
     function collapse() {
       if (!open) return;
       open = false;
@@ -216,6 +235,7 @@
       frame = makeFrame(code, title, doc);
       var wired = wire(frame, {
         window: doc.defaultView || root,
+        placement: 'button',
         onCollapse: function () {
           /* Out of the modal placement means GONE, not back to a panel
              nobody asked for -- and the frame goes with it, so the next
