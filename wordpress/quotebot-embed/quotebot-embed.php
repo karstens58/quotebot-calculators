@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Quote Bot embedded quote form
  * Description:       Puts your co-branded Quote Bot life insurance quote form on your own site, with a shortcode or a block.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Quote Bot
@@ -119,6 +119,25 @@ function quotebot_embed_markup(array $atts): string {
         }
     }
 
+    /*
+     * WHERE THE VISITOR REACHES THE FORM FROM -- QBP-637.
+     *
+     * Three words and no others. The loader falls back to the page for
+     * anything it does not recognise, which is the right behaviour there
+     * -- it is running on somebody's live site and has to leave
+     * something useful behind. Here we are reading an attribute a person
+     * typed into wp-admin, where a quiet fallback is just a setting that
+     * did not work, so a misspelling is dropped rather than passed on.
+     *
+     * The page is the default and says nothing, because that is what the
+     * loader does with no attribute at all -- and an attribute written
+     * on every embed is one more thing to keep in step.
+     */
+    $placement = strtolower(trim((string) ($atts['placement'] ?? '')));
+    if ($placement === 'bar' || $placement === 'button') {
+        $data['data-placement'] = $placement;
+    }
+
     $attributes = '';
     foreach ($data as $name => $value) {
         $attributes .= ' ' . esc_attr($name) . '="' . esc_attr($value) . '"';
@@ -137,7 +156,7 @@ function quotebot_embed_markup(array $atts): string {
 }
 
 /**
- * [quotebot] and [quotebot code="DOE-TERM"].
+ * [quotebot], [quotebot code="DOE-TERM"], [quotebot placement="bar"].
  *
  * The code is optional because most partners have one, set once in
  * settings. It is accepted per shortcode because some have several -- a
@@ -147,7 +166,10 @@ function quotebot_embed_markup(array $atts): string {
  */
 function quotebot_embed_shortcode($atts): string {
     $atts = shortcode_atts(
-        array('code' => '', 'open' => '', 'target' => '', 'title' => '', 'label' => ''),
+        array(
+            'code' => '', 'placement' => '', 'open' => '', 'target' => '',
+            'title' => '', 'label' => '',
+        ),
         $atts,
         'quotebot'
     );

@@ -28,6 +28,8 @@ const PLUGIN_DIR = join(root, 'wordpress/quotebot-embed');
 const PHP = readFileSync(join(PLUGIN_DIR, 'quotebot-embed.php'), 'utf8');
 const BLOCK = JSON.parse(readFileSync(join(PLUGIN_DIR, 'block/block.json'), 'utf8'));
 const LOADER = readFileSync(join(root, 'site/js/quotebot-embed-loader.js'), 'utf8');
+const EDITOR = readFileSync(join(PLUGIN_DIR, 'block/editor.js'), 'utf8');
+const README = readFileSync(join(PLUGIN_DIR, 'readme.txt'), 'utf8');
 
 /* ---- the two halves name the same things ------------------------------ */
 
@@ -75,6 +77,68 @@ test('the block declares the same settings the renderer reads', () => {
     Object.keys(BLOCK.attributes).sort(), [...declared].sort(),
     'the block and the shortcode offer different settings, so one of them '
     + 'silently ignores what somebody typed');
+});
+
+test('the plugin says one version of itself', () => {
+  /*
+   * WordPress reads the header to decide whether an installed copy is
+   * out of date, and a partner reads the readme. Two numbers that drift
+   * mean a partner on an old copy is never told there is a new one --
+   * and nothing about that looks wrong from either side.
+   */
+  const header = /^ \* Version:\s+(\S+)$/m.exec(PHP)?.[1];
+  const stable = /^Stable tag:\s+(\S+)$/m.exec(README)?.[1];
+  assert.ok(header, 'the plugin header has no version');
+  assert.equal(header, stable,
+    'the plugin header and the readme claim different versions');
+});
+
+test('THE THREE PLACEMENTS ARE THE SAME THREE ON BOTH SIDES -- QBP-637', () => {
+  /*
+   * The loader falls back to the page for anything it does not
+   * recognise, which is right on somebody's live website: it has to
+   * leave something useful behind. That same forgiveness is what makes
+   * a typo here invisible -- "botton" would render, publish, and quietly
+   * be the page placement on every page a partner put it on.
+   *
+   * So the plugin emits only words the loader tests for, and this reads
+   * both lists rather than trusting either.
+   */
+  const loaderKnows = new Set(
+    [...LOADER.matchAll(/placement (?:!==|===) '(\w+)'/g)].map((m) => m[1]));
+  assert.deepEqual([...loaderKnows].sort(), ['bar', 'button'],
+    'the loader now recognises a different set of placements');
+
+  const pluginEmits = new Set(
+    [...PHP.matchAll(/\$placement === '(\w+)'/g)].map((m) => m[1]));
+  assert.deepEqual([...pluginEmits].sort(), [...loaderKnows].sort(),
+    'the plugin passes a placement word the loader does not test for, which '
+    + 'is silently the page placement on every page it is used');
+});
+
+test('and anything else a person types is dropped rather than passed on', () => {
+  /*
+   * The whitelist is the point: an attribute written straight through
+   * would reach the page as data-placement="botton" and behave like a
+   * setting that did not work, with nothing anywhere saying why.
+   */
+  assert.ok(!/'placement' => 'data-placement'/.test(PHP),
+    'placement is being copied through the generic attribute map, so an '
+    + 'unrecognised word reaches the page');
+  assert.match(PHP, /\$data\['data-placement'\] = \$placement;/,
+    'the plugin no longer writes a checked placement');
+});
+
+test('the editor offers exactly those, and the page as the empty one', () => {
+  /*
+   * The empty string, deliberately: it is what the loader does with no
+   * attribute at all, so the commonest choice writes nothing and there
+   * is one less value to keep in step.
+   */
+  const offered = [...EDITOR.matchAll(/\{ value: '(\w*)', label:/g)].map((m) => m[1]);
+  assert.deepEqual(offered, ['', 'bar', 'button'],
+    'the block editor offers a different set of placements than the plugin '
+    + 'emits, so an author picks something that does nothing');
 });
 
 test('AND THE BLOCK HAS AN EDITOR SCRIPT THAT EXISTS', () => {

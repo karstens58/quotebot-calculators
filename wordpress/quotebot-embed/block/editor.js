@@ -29,6 +29,26 @@
     });
   }
 
+  /*
+   * WHERE THE VISITOR REACHES THE FORM FROM -- QBP-637.
+   *
+   * The same three the portal offers, in the same words, because a
+   * partner reads the portal's Marketing screen and then comes here. The
+   * page is the empty value: it is what the loader does with no
+   * attribute, so choosing it writes nothing.
+   */
+  var PLACEMENTS = [
+    { value: '', label: __('On the page', 'quotebot-embed') },
+    { value: 'bar', label: __('A bar', 'quotebot-embed') },
+    { value: 'button', label: __('From your own button', 'quotebot-embed') },
+  ];
+
+  var ABOUT = {
+    '': __('The form sits where you put this block. In a narrow column it opens over the page instead.', 'quotebot-embed'),
+    bar: __('A strip for a header or footer: one line and a button. The form opens over the page.', 'quotebot-embed'),
+    button: __('Nothing sits in the page. A button of yours opens the form.', 'quotebot-embed'),
+  };
+
   blocks.registerBlockType('quotebot/embed', {
     edit: function (props) {
       var atts = props.attributes;
@@ -54,11 +74,26 @@
               __('Leave empty to use the code saved under Settings, Quote Bot.', 'quotebot-embed'),
               atts.code, set('code')
             ),
-            field(
-              __('Open from a button', 'quotebot-embed'),
-              __('A CSS selector for a button you already have, such as .my-quote-button. The form then opens over the page instead of sitting in it.', 'quotebot-embed'),
-              atts.open, set('open')
-            ),
+            el(components.SelectControl, {
+              label: __('Where it is reached from', 'quotebot-embed'),
+              help: ABOUT[atts.placement || ''],
+              value: atts.placement || '',
+              options: PLACEMENTS,
+              onChange: set('placement'),
+              __nextHasNoMarginBottom: true,
+            }),
+            /*
+             * Only with the button, because it means nothing otherwise --
+             * and left empty it is the class the portal hands out, which
+             * is what most partners will have put on their button.
+             */
+            (atts.placement === 'button' || atts.open)
+              ? field(
+                __('Your button', 'quotebot-embed'),
+                __('Leave empty to use the class qb-quote, which is the one your Quote Bot portal gives you. Or name your own, such as .my-quote-button.', 'quotebot-embed'),
+                atts.open, set('open')
+              )
+              : null,
             field(
               __('Link text', 'quotebot-embed'),
               __('Shown to anyone whose browser does not run the form.', 'quotebot-embed'),
@@ -74,8 +109,8 @@
             {
               icon: 'shield',
               label: __('Quote Bot quote form', 'quotebot-embed'),
-              instructions: atts.open
-                ? __('Opens over the page when a visitor clicks your button.', 'quotebot-embed')
+              instructions: (atts.placement === 'button' || atts.open)
+                ? __('Opens over the page when a visitor clicks your button. Nothing is drawn here.', 'quotebot-embed')
                 : __('The form appears here when somebody views this page. It is not shown while editing, because the editor is not one of the websites you registered.', 'quotebot-embed'),
             },
             atts.code

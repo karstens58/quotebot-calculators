@@ -9,11 +9,12 @@
   "textdomain": "quotebot-embed",
   "editorScript": "file:./editor.js",
   "attributes": {
-    "code":   { "type": "string", "default": "" },
-    "open":   { "type": "string", "default": "" },
-    "target": { "type": "string", "default": "" },
-    "title":  { "type": "string", "default": "" },
-    "label":  { "type": "string", "default": "" }
+    "code":      { "type": "string", "default": "" },
+    "placement": { "type": "string", "default": "" },
+    "open":      { "type": "string", "default": "" },
+    "target":    { "type": "string", "default": "" },
+    "title":     { "type": "string", "default": "" },
+    "label":     { "type": "string", "default": "" }
   },
   "supports": { "html": false, "align": ["wide", "full"] }
 }
