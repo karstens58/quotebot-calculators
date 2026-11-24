@@ -17,7 +17,23 @@ frontend:
         # and it fails the deploy rather than the customer.
         - node --test tests/*.test.mjs
     build:
-      commands: []
+      commands:
+        # THE PLUGIN, PACKAGED AT DEPLOY TIME -- QBP-637.
+        #
+        # The portal's Marketing screen hands partners a Download the
+        # plugin button pointing at this path. Built here rather than
+        # committed because *.zip is ignored on purpose: a committed
+        # archive is a stale copy of the PHP beside it the first time
+        # anybody edits the plugin and forgets to rebuild, and what makes
+        # that bad is that it fails silently on somebody else's
+        # WordPress.
+        #
+        # Zipped from INSIDE wordpress/, so the archive contains the
+        # folder quotebot-embed/ and WordPress installs it as a plugin.
+        # Zipping the folder's contents instead is the same mistake that
+        # took the site down on 24 September, one directory over.
+        - mkdir -p site/wordpress
+        - cd wordpress && zip -qr ../site/wordpress/quotebot-embed.zip quotebot-embed -x '*.DS_Store' && cd ..
   artifacts:
     baseDirectory: site
     files:
