@@ -279,7 +279,11 @@ test('and it queries the host DOM only for what the tag named', () => {
      * added to this file has to be argued for in this test.
      */
     assert.ok(/^(opener|where|fallback)$/.test(arg)
-      || arg === "'[data-quotebot-embed]'",
+      || arg === "'[data-quotebot-embed]'"
+      /* The class we hand them to put on their own button, used when they
+         did not name a selector of their own -- QBP-636. Still something
+         the partner chose: they added it to the button. */
+      || arg === "opener || '.qb-quote'",
       `the loader looks up "${arg}" on the host page, which the partner `
       + 'did not name in their snippet');
   }
@@ -407,6 +411,32 @@ test('and the fallback link is hidden only once we are running', () => {
   const body = SRC.slice(at, at + 400);
   assert.match(body, /display['"]?,\s*['"]none/,
     'the fallback link is not hidden when the script runs');
+});
+
+test('THE PLACEMENT COMES OFF THE TAG -- QBP-636', () => {
+  /*
+   * Three, and the questions are the same in all of them. Found by a
+   * mutation: deleting the whole data-placement read left every test
+   * passing, because nothing asked the loader what it had decided.
+   */
+  const bar = placeholder({ 'data-code': 'DOE-TERM', 'data-placement': 'bar' });
+  assert.equal(loader.boot(bar, fakeDoc([bar])).placement, 'bar');
+
+  const page = placeholder({ 'data-code': 'DOE-TERM' });
+  assert.equal(loader.boot(page, fakeDoc([page])).placement, 'page',
+    'a tag that says nothing does not default to the form on the page');
+
+  /* Anything we do not draw for falls to the page, which leaves
+     something useful behind whatever the column turns out to be. */
+  const odd = placeholder({ 'data-code': 'DOE-TERM', 'data-placement': 'carousel' });
+  assert.equal(loader.boot(odd, fakeDoc([odd])).placement, 'page');
+});
+
+test('and data-open on its own still means a button', () => {
+  /* That snippet is already in partners' pages and it said exactly
+     this; it must not quietly become a form in their layout. */
+  const el = placeholder({ 'data-code': 'DOE-TERM', 'data-open': '.hero-cta' });
+  assert.equal(loader.boot(el, fakeDoc([el])).placement, 'button');
 });
 
 test('the modal builds its frame on the click, not on page load', () => {

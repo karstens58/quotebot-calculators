@@ -145,6 +145,96 @@ test('THE LICENCE LINE IS NOT HIDDEN BY THE EMBED LAYOUT', () => {
     + 'the footer rules happen to do');
 });
 
+/* ---- three placements, one form -- QBP-636 ----------------------------- */
+
+test('THE QUESTIONS NEVER CHANGE, WHEREVER THE FORM IS REACHED FROM', () => {
+  /*
+   * The point of the whole design. The fields are what the carriers price
+   * on, so a placement that asked fewer of them would be a different,
+   * lesser form that then had to hand its answers over. Nothing here may
+   * hide or add a field: the placements differ in where the form is
+   * drawn, never in what it asks.
+   */
+  const stripped = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  const hiding = stripped.split('}')
+    .filter((r) => /display:\s*none|visibility:\s*hidden/.test(r))
+    .map((r) => r.split('{')[0].trim());
+  for (const selector of hiding) {
+    /* The whole panel may be hidden -- that is what showing the prices
+       does. What must never be hidden is a FIELD inside it. */
+    assert.ok(!/\binput\b|\bselect\b|\blabel\b|\.field|#dob|#state|#coverage|#email|#phone/
+      .test(selector),
+      `${selector} hides part of the form, so a placement asks different `
+      + 'questions from the others');
+  }
+  /* And the opener asks nothing, so nothing is answered twice. */
+  const at = JS.indexOf('function addOpener(');
+  assert.ok(at > 0, 'the invitation is gone');
+  const body = JS.slice(at, JS.indexOf('\n  }', at));
+  assert.ok(!/createElement\('(input|select|textarea)'\)/.test(body),
+    'the invitation asks a question, so its answer has to be carried into '
+    + 'the form and the handoff is back');
+});
+
+test('A COLUMN TOO NARROW FOR THE FORM OPENS IT OVER THE PAGE', () => {
+  /*
+   * The form does not shrink, because the questions cannot. Below the
+   * floor it goes in front of the page, where it has the whole viewport,
+   * and leaves an invitation in the column.
+   */
+  assert.equal(typeof embed.NARROW, 'number');
+  assert.ok(embed.NARROW >= 240 && embed.NARROW <= 480,
+    `the floor is ${embed.NARROW}px, which is not a column width`);
+  const at = JS.indexOf('function formRestsInPage(');
+  assert.ok(at > 0, 'nothing decides whether the form fits');
+  const body = JS.slice(at, JS.indexOf('\n  }', at));
+  assert.match(body, /placement === 'page'/, 'the floor ignores the placement');
+  assert.match(body, /!narrow\(\)/, 'the width is never asked about');
+});
+
+test('and a width it cannot measure is treated as room, not as narrow', () => {
+  /* A form in a column that turns out to be tight is a worse day than an
+     invitation where there was space. It is not a broken page either way,
+     and guessing "narrow" would put an invitation on every page that
+     blocks the measurement. */
+  const at = JS.indexOf('function narrow(');
+  /* Comments stripped: the reason this returns false is written in one,
+     and a window counted in characters would be measuring the prose. */
+  const body = JS.slice(at, JS.indexOf('\n  }', at))
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(body, /catch[\s\S]{0,60}return false;/,
+    'a window it cannot measure is treated as a narrow column');
+});
+
+test('A BUTTON OPENS STRAIGHT INTO THE FORM', () => {
+  /* The loader already put the frame in front of their page before the
+     visitor saw anything, so inviting them to something they just asked
+     for would be a second click for nothing. */
+  const at = JS.indexOf('function start(');
+  const body = JS.slice(at, JS.indexOf('\n  }', at));
+  assert.match(body, /placement === 'button'[\s\S]{0,160}qb-embed-overlay/,
+    'a button-opened frame does not show the form');
+  assert.match(body, /addOpener\(\)/,
+    'nothing is left in the page where the form does not rest');
+});
+
+test('AND THE LICENCE LINE IS PINNED WHERE THE FORM COVERS THE PAGE', () => {
+  /*
+   * In that state the panel and the prices are both fixed across the
+   * whole window, so a notice below them in the flow would be behind
+   * them. Being unreachable by the host's CSS is the entire argument for
+   * the form living in a frame, and it is worth nothing if our own
+   * layout hides it.
+   */
+  const stripped = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(stripped,
+    /qb-embed-overlay \.footer-fulfilment[\s\S]{0,240}position:\s*fixed/,
+    'the licence line is not pinned while the form is over their page');
+  assert.match(stripped,
+    /qb-embed-open \.footer-fulfilment[\s\S]{0,240}position:\s*fixed/,
+    'the licence line is not pinned while the prices are over their page');
+});
+
 /* ---- back is not close -- QBP-635 -------------------------------------- */
 
 test('BACK TO THE FORM DOES NOT DISMISS THE FORM', () => {

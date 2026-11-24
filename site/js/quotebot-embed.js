@@ -68,8 +68,45 @@
    * our own page; the gate is the stamped origin and has not moved.
    */
   var placement = 'page';
+
+  /**
+   * The narrowest column we will put the whole form into -- QBP-636.
+   *
+   * Below it the form does not shrink, because the questions cannot: they
+   * are what the carriers price on. It opens over the page instead, where
+   * it has the whole viewport, and leaves an invitation in the column.
+   *
+   * A STARTING NUMBER, to be judged against real partner sites rather
+   * than argued about. Scott, 24 November: "I'd start around 320px and
+   * look at it on real sites."
+   */
+  var NARROW = 320;
+
+  function narrow() {
+    try {
+      return root.innerWidth > 0 && root.innerWidth < NARROW;
+    } catch (e) {
+      /* Cannot measure, so assume there is room: a form drawn in a column
+         that turns out to be tight is a worse day than an invitation in a
+         column that had space, but it is not a broken page. */
+      return false;
+    }
+  }
+
+  /**
+   * Does the FORM have a resting place in the partner's own layout?
+   *
+   * Only where they asked for it on the page AND there is room for it.
+   * Everywhere else the form is only ever in front of their page, which
+   * is what decides whether there is a Close to draw: in their layout,
+   * hiding the form would be removing a section of somebody's website.
+   */
+  function formRestsInPage() {
+    return placement === 'page' && !narrow();
+  }
+
   function restsOverTheirPage() {
-    return placement === 'button' || placement === 'bar';
+    return !formRestsInPage();
   }
 
   function guard() {
@@ -178,8 +215,9 @@
   function backToForm() {
     DOC.documentElement.classList.remove('qb-embed-open');
     if (restsOverTheirPage()) {
-      /* Still in front of their page, now showing the form. Nothing to
-         tell the host: its frame is already the size it should be. */
+      /* Still in front of their page, now showing the form they filled
+         in. Nothing to tell the host: its frame is already the size it
+         should be, and the form is still there to change. */
       return;
     }
     send(COLLAPSE);
@@ -187,10 +225,20 @@
     reportHeight();
   }
 
-  /** Out altogether. Only reachable where there is no form in their page. */
+  /**
+   * Out of the form, back to whatever rests in their page.
+   *
+   * For a bar or a narrow column that is the invitation; for a button it
+   * is nothing at all, and the loader takes the frame away. Either way
+   * this side says the same thing -- I am done being in front of your
+   * page -- and the loader decides what resting means there.
+   */
   function dismiss() {
     DOC.documentElement.classList.remove('qb-embed-open');
+    DOC.documentElement.classList.remove('qb-embed-overlay');
     send(COLLAPSE);
+    lastSent = 0;
+    reportHeight();
   }
 
   /**
@@ -306,12 +354,59 @@
     reportHeight();
   }
 
+  /**
+   * What sits in their layout when the form does not.
+   *
+   * IT ASKS NOTHING. A heading and a button, so no question is answered
+   * twice and there is nothing to carry into the form when it opens. That
+   * is the whole reason the questions could stay the same in every
+   * placement.
+   *
+   * The bar is the same thing laid out across a header or a footer rather
+   * than down a column; they differ by a class and by one line of copy.
+   */
+  function addOpener() {
+    var box = DOC.createElement('div');
+    box.className = 'qb-embed-opener ' + (placement === 'bar' ? 'bar' : 'card');
+
+    var head = DOC.createElement('b');
+    head.textContent = placement === 'bar'
+      ? 'See what cover costs' : 'What would cover cost?';
+
+    var line = DOC.createElement('span');
+    line.textContent = 'Real rates in about a minute';
+
+    var go = DOC.createElement('button');
+    go.type = 'button';
+    go.className = 'qb-embed-go';
+    go.textContent = 'Get a quote';
+    go.addEventListener('click', openForm);
+
+    box.appendChild(head);
+    box.appendChild(line);
+    box.appendChild(go);
+    DOC.body.appendChild(box);
+  }
+
+  /** The form, in front of their page. */
+  function openForm() {
+    if (DOC.documentElement.classList.contains('qb-embed-overlay')) return;
+    DOC.documentElement.classList.add('qb-embed-overlay');
+    send(EXPAND);
+    try { root.scrollTo(0, 0); } catch (e) { /* not fatal */ }
+  }
+
   function start() {
     reveal();
-    /* Marked once, so the stylesheet can draw the way out wherever we are
-       in front of their page rather than only over the prices. */
-    if (restsOverTheirPage()) {
+    /*
+     * A BUTTON OPENS STRAIGHT INTO THE FORM. The loader already put the
+     * frame in front of their page before the visitor could see
+     * anything, so there is nothing to invite them to -- they asked.
+     */
+    if (placement === 'button') {
       DOC.documentElement.classList.add('qb-embed-overlay');
+    } else if (!formRestsInPage()) {
+      addOpener();
     }
     addControls();
     watchResults();
@@ -385,8 +480,10 @@
   return {
     boot: boot,
     /* For the tests, which drive these without a browser. */
+    NARROW: NARROW,
     _placement: function () { return placement; },
     _restsOverTheirPage: restsOverTheirPage,
+    _formRestsInPage: formRestsInPage,
     READY: READY, HEIGHT: HEIGHT, EXPAND: EXPAND,
     COLLAPSE: COLLAPSE, REFUSED: REFUSED,
     PORTAL: PORTAL,

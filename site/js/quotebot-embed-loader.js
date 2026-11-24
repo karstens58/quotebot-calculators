@@ -341,6 +341,22 @@
     var opener = attr(tag, ['data-open']);
 
     /*
+     * WHERE THE VISITOR REACHES THE FORM FROM -- QBP-636.
+     *
+     * Three, and the questions are the same in all of them: page, bar,
+     * button. Anything else named here falls to the page, which is the
+     * one that leaves something useful behind whatever the column turns
+     * out to be.
+     *
+     * `data-open` on its own still means a button, because that is the
+     * snippet already in partners' pages and it said exactly that.
+     */
+    var placement = attr(tag, ['data-placement']).toLowerCase();
+    if (placement !== 'bar' && placement !== 'button') {
+      placement = opener ? 'button' : 'page';
+    }
+
+    /*
      * THE LINK THE SNIPPET SHIPPED WITH. A partner pastes an anchor
      * alongside this tag so that a stripped script leaves something that
      * works. We are running, so it is ours to take away -- otherwise
@@ -354,23 +370,32 @@
       }
     }
 
-    /* Placement two: their button, and no form in the layout. */
-    if (opener) {
+    /* Their button, and nothing of ours in the layout. */
+    if (placement === 'button') {
       var openNow = openable(code, title, doc);
-      var buttons = doc.querySelectorAll(opener);
+      /* The class we hand them, unless they named one of their own. */
+      var buttons = doc.querySelectorAll(opener || '.qb-quote');
       for (var b = 0; b < buttons.length; b += 1) {
         buttons[b].addEventListener('click', openNow);
       }
       return { placement: 'button', buttons: buttons.length };
     }
 
-    /* Placement one: inline, where the tag is or where it points. */
+    /*
+     * In their layout: the form on the page, or a bar across it. Both
+     * mount the same way -- what differs is what the frame draws, and
+     * the frame is told which in the greeting.
+     *
+     * A column too narrow for the form is NOT a placement. The frame
+     * measures itself and opens over the page instead, because only it
+     * knows how wide it ended up.
+     */
     var where = attr(tag, ['data-target']);
     var host = where ? doc.querySelector(where) : null;
     var frame = makeFrame(code, title, doc);
     /* The window that owns this document, rather than whichever global
        this file happens to have been evaluated against. */
-    wire(frame, { window: doc.defaultView || root });
+    wire(frame, { window: doc.defaultView || root, placement: placement });
     if (host) {
       host.appendChild(frame);
     } else if (tag.getAttribute('data-quotebot-embed') !== null) {
@@ -385,7 +410,7 @@
     } else {
       doc.body.appendChild(frame);
     }
-    return { placement: 'inline', frame: frame };
+    return { placement: placement, frame: frame };
   }
 
   return {

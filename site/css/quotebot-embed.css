@@ -82,6 +82,64 @@ html.qb-embed .inputs-panel {
 html.qb-embed .results-panel { display: none; }
 
 /*
+ * THE FORM, IN FRONT OF THEIR PAGE -- QBP-636.
+ *
+ * Where it has no resting place in their layout -- a bar, a column too
+ * narrow for it, a button of theirs -- the form is only ever shown over
+ * the page, where it has the whole viewport. The questions never change;
+ * only where they are answered does.
+ */
+html.qb-embed.qb-embed-overlay .inputs-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  border-radius: 0;
+  /* Room at the top for the way out, and at the bottom for the licence
+     line, which is pinned there in this state. */
+  padding: 54px 18px 72px;
+}
+html.qb-embed.qb-embed-overlay .qb-embed-opener { display: none; }
+
+/*
+ * WHAT SITS IN THEIR LAYOUT WHEN THE FORM DOES NOT.
+ *
+ * It asks nothing -- a heading and a button -- so no question is answered
+ * twice and there is nothing to carry into the form when it opens.
+ *
+ * The button takes --primary, which the co-branding script substitutes
+ * for the partner's own, so the invitation on their site is in their
+ * colour rather than ours.
+ */
+html.qb-embed .qb-embed-opener {
+  border: 1px solid var(--border, #e3e6eb);
+  border-radius: 10px;
+  background: var(--gray-light, #f4f6f9);
+  padding: 14px 16px;
+  display: flex;
+  gap: 4px 14px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+html.qb-embed .qb-embed-opener.card { flex-direction: column; align-items: stretch; }
+html.qb-embed .qb-embed-opener b { font-size: 15px; }
+html.qb-embed .qb-embed-opener span { font-size: 12.5px; opacity: .75; }
+html.qb-embed .qb-embed-go {
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary, #1a3d6b);
+  color: #fff;
+  font: 700 14px/1 inherit;
+  padding: 11px 18px;
+  cursor: pointer;
+}
+html.qb-embed .qb-embed-opener.bar .qb-embed-go { margin-left: auto; }
+html.qb-embed .qb-embed-opener.card .qb-embed-go { margin-top: 10px; width: 100%; }
+html.qb-embed .qb-embed-go:hover { filter: brightness(1.08); }
+
+/*
  * THE RESULTS, OVER THE HOST PAGE.
  *
  * The iframe is told to take the whole viewport before this is shown, so
@@ -100,7 +158,7 @@ html.qb-embed.qb-embed-open .results-panel {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background: #fff;
-  padding: 56px 18px 28px;
+  padding: 56px 18px 72px;
 }
 
 html.qb-embed.qb-embed-open .inputs-panel { display: none; }
@@ -175,6 +233,28 @@ html.qb-embed .footer-fulfilment-ids {
   font-size: 10.5px;
   line-height: 1.5;
   color: #6b7280;
+}
+
+/*
+ * AND IT STAYS VISIBLE IN FRONT OF THEIR PAGE TOO.
+ *
+ * The panel and the prices are both fixed across the whole window in that
+ * state, so a notice sitting below them in the flow would be behind them.
+ * Pinned to the bottom, above both, because it is the one thing that must
+ * be readable wherever the form is -- and being unreachable by their CSS
+ * is the entire argument for the form living in a frame.
+ */
+html.qb-embed.qb-embed-overlay .footer-fulfilment,
+html.qb-embed.qb-embed-open .footer-fulfilment {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147483002;
+  margin: 0;
+  padding: 9px 18px calc(9px + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border-top: 1px solid #e3e6eb;
 }
 
 /*
