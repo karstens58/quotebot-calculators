@@ -956,6 +956,10 @@
       var img = document.querySelector('.brand-header .brand-logo-img');
       if (!img) return;
       img.src = url;
+      /* Theirs is in the box: nothing is hiding it any more. Set here as
+         well as in showLogo so the mark appears in the same frame as the
+         swap rather than one call later. */
+      if (img.setAttribute) img.setAttribute('data-qb-swapped', '1');
       /*
        * AND WHERE THE MARK NOW GOES -- QBP-615.
        *
@@ -1046,7 +1050,23 @@
     try {
       var style = document.getElementById && document.getElementById(LOGO_HOLD);
       if (style && style.parentNode) style.parentNode.removeChild(style);
+      /*
+       * AND THE SERVER'S HOLD, which is a rule rather than an element --
+       * `:not([data-qb-swapped])` in the stylesheet linked before the
+       * first paint. One attribute releases both, so there is one answer
+       * to "may our mark be seen" and not two that can disagree.
+       */
+      markSettled();
     } catch (e) { log('logo release failed', e); }
+  }
+
+  /** The mark is whatever it is going to be. Stop hiding it. */
+  function markSettled() {
+    try {
+      var img = document.querySelector
+        && document.querySelector('.brand-header .brand-logo-img');
+      if (img && img.setAttribute) img.setAttribute('data-qb-swapped', '1');
+    } catch (e) { log('mark release failed', e); }
   }
 
   /*
@@ -1350,9 +1370,21 @@
    * doing on every page and not only a co-branded one: the capture POST
    * goes to the same host on every lead.
    */
+  /**
+   * The host the endpoint is on, or '' if it is not a URL.
+   *
+   * The brand reads sit at the root of it rather than under /lead --
+   * their own cached behaviour at the edge, which the writes must not
+   * share. See the block on '/brand*' in the backend's backend.ts.
+   */
+  function apiOrigin() {
+    try { return new window.URL(config.endpoint).origin; } catch (e) { return ''; }
+  }
+
   function preconnect() {
     try {
-      var origin = new window.URL(config.endpoint).origin;
+      var origin = apiOrigin();
+      if (!origin) return;
       var link = document.createElement('link');
       link.rel = 'preconnect';
       link.href = origin;
@@ -1362,6 +1394,82 @@
       var head = document.head || document.documentElement;
       if (head && head.appendChild) head.appendChild(link);
     } catch (e) { log('preconnect failed', e); }
+  }
+
+  var BRAND_CSS = 'qb-brand-css';
+
+  /*
+   * HOW LONG THE FIRST PAINT MAY WAIT ON IT.
+   *
+   * A stylesheet in the head blocks painting -- which is the entire point
+   * of linking one, and also the entire risk. Without this the page's
+   * first paint depends on api.quote-bot.com being up, which it never did
+   * before: a slow host would turn a flash into a white screen, and that
+   * is a worse failure than the one being fixed.
+   *
+   * Past this, the link is moved to a media it does not match, which
+   * takes it out of the render-blocking set and lets the page draw in
+   * ours. If it then arrives, onload puts it back and the colours change
+   * -- a flash, in the one case where the alternative was a blank page.
+   */
+  var BRAND_CSS_MS = 1200;
+
+  /*
+   * THEIR PALETTE AS A STYLESHEET, BEFORE THE FIRST PAINT -- QBP-649.
+   *
+   * The JSON answer cannot arrive before the page has painted, however
+   * early it is asked for: these pages carry Quote Bot's palette in their
+   * own :root and a script cannot beat the parser to it. So a first-time
+   * visitor on a partner's link always watched our colours become theirs
+   * -- and a first-time visitor is every one of a partner's customers.
+   *
+   * A <link> is the one thing that CAN beat it, because the browser will
+   * not paint with a stylesheet outstanding. The server answers the same
+   * palette it puts in the JSON, as six declarations on :root.
+   *
+   * ONLY WHERE NOTHING IS CACHED. A returning visitor is painted inline
+   * from their own store before this would have been asked for, and
+   * inline beats a stylesheet anyway -- so the request would buy nothing
+   * and cost a round trip.
+   *
+   * A CODE WITH NO CO-BRANDING GETS AN EMPTY STYLESHEET, which is most of
+   * them, and the cost to those pages is one cached request from the same
+   * host they were about to ask anyway. Not a flash: nothing changes.
+   */
+  function linkBrandCss(code) {
+    try {
+      if (!document.getElementById || document.getElementById(BRAND_CSS)) return;
+      var link = document.createElement('link');
+      link.id = BRAND_CSS;
+      link.rel = 'stylesheet';
+      var origin = apiOrigin();
+      if (!origin) return;
+      link.href = origin + '/brand.css?qb=' + encodeURIComponent(code);
+
+      var late = false;
+      var timer = window.setTimeout(function () {
+        late = true;
+        /* Not a matching medium, so it stops holding the paint. The
+           request carries on; this only says the page may draw. */
+        link.media = 'print';
+      }, BRAND_CSS_MS);
+
+      link.onload = function () {
+        window.clearTimeout(timer);
+        /* Only when it was stood down. Touching media on the normal path
+           is a write for the sake of symmetry on the critical path. */
+        if (late) link.media = 'all';
+      };
+      link.onerror = function () {
+        window.clearTimeout(timer);
+        /* Nothing to apply and nothing to wait for. Taken out so the
+           page does not carry a dead link for a reader to puzzle over. */
+        if (link.parentNode) link.parentNode.removeChild(link);
+      };
+
+      var head = document.head || document.documentElement;
+      if (head && head.appendChild) head.appendChild(link);
+    } catch (e) { log('brand stylesheet failed', e); }
   }
 
   function beginBrand() {
@@ -1379,6 +1487,8 @@
         if (hit.logoUrl) holdLogo();
         return;
       }
+      /* The stylesheet first: it is the one the first paint waits on. */
+      linkBrandCss(code);
       brandWanted = fetchBrand(code);
     } catch (e) { log('brand start failed', e); }
   }
