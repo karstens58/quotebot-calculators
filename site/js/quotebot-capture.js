@@ -997,6 +997,59 @@
   }
 
   /*
+   * ONE BOX, TWO DRAWINGS -- QBP-648.
+   *
+   * The reserved line and the real strip have to occupy exactly the same
+   * space or reserving it buys nothing. Everything that decides the
+   * height lives here; only the colours differ between the two.
+   */
+  var STRIP_BOX = [
+    'font:500 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'padding:8px 16px', 'text-align:center', 'letter-spacing:.01em',
+  ].join(';');
+
+  var LOGO_HOLD = 'qb-logo-hold';
+
+  /*
+   * OUR MARK, HELD BACK WHERE WE KNOW THEIRS IS COMING -- QBP-648.
+   *
+   * Only where we KNOW: a cached answer that carries a logoUrl. Then the
+   * swap is certain and the only question is whether the visitor watches
+   * it happen. Held invisible rather than removed, so the header keeps
+   * its height and nothing reflows when their mark lands in the box.
+   *
+   * Never speculatively. A plain affiliate link -- most of them -- keeps
+   * our mark for ever, and hiding it on the chance that a lookup might
+   * replace it would put a blank box on pages that were never going to
+   * change at all.
+   */
+  function holdLogo() {
+    try {
+      if (!document.getElementById || document.getElementById(LOGO_HOLD)) return;
+      var style = document.createElement('style');
+      style.id = LOGO_HOLD;
+      style.textContent = '.brand-header .brand-logo-img{visibility:hidden}';
+      var head = document.head || document.documentElement;
+      if (head && head.appendChild) head.appendChild(style);
+    } catch (e) { log('logo hold failed', e); }
+  }
+
+  /*
+   * ALWAYS CALLED, on every path out of the lookup.
+   *
+   * A partner whose answer carries no mark, a lookup that failed, a code
+   * nobody claims: in each of those our mark is the right one and it has
+   * to come back. A hold released on the happy path only is a header with
+   * a permanent blank in it for everybody else.
+   */
+  function showLogo() {
+    try {
+      var style = document.getElementById && document.getElementById(LOGO_HOLD);
+      if (style && style.parentNode) style.parentNode.removeChild(style);
+    } catch (e) { log('logo release failed', e); }
+  }
+
+  /*
    * Inserted at the top of <body> in normal flow, not fixed or floating: these
    * thirteen pages were laid out without it, and a bar that overlays the top
    * of the document would cover a heading on one and a nav on another. Pushing
@@ -1006,24 +1059,41 @@
     try {
       var name = brand && brand.name;
       var partnership = brand && brand.partnership;
-      if (!name || document.getElementById('qb-cobrand')) return;
+      if (!name) return;
       var body = document.body;
       if (!body) return;
+
+      /*
+       * THE SHELL IS UPGRADED, NOT REPLACED -- QBP-648.
+       *
+       * reserveStrip has already put a line of exactly this height at the
+       * top of the page, so the words arriving move nothing. Removing it
+       * and inserting a fresh bar would be the push-down it is there to
+       * prevent, performed twice.
+       *
+       * Anything else already carrying this id is a strip that has been
+       * drawn, and a second one is how a disclosure reads as a mistake.
+       */
+      var existing = document.getElementById('qb-cobrand');
+      if (existing && !(existing.getAttribute
+        && existing.getAttribute('data-qb-shell'))) return;
 
       /* The strip takes the partner's quiet surface where there is one,
          and Quote Bot's where there is not. Both pairs are ground-and-ink
          decided on the server, so neither can come out unreadable. */
       var paint = brand && brand.paint;
-      var bar = document.createElement('div');
+      var bar = existing || document.createElement('div');
       bar.id = 'qb-cobrand';
       bar.setAttribute('role', 'note');
-      bar.style.cssText = [
-        'font:500 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
-        'color:' + ((paint && paint.ink) || '#2c3e58'),
-        'background:' + ((paint && paint.tint) || '#eef1f6'),
-        'border-bottom:1px solid ' + ((paint && paint.line) || '#d8e2f0'),
-        'padding:8px 16px', 'text-align:center', 'letter-spacing:.01em',
-      ].join(';');
+      if (existing) {
+        bar.removeAttribute('data-qb-shell');
+        bar.removeAttribute('aria-hidden');
+        while (bar.firstChild) bar.removeChild(bar.firstChild);
+      }
+      bar.style.cssText = STRIP_BOX + ';'
+        + 'color:' + ((paint && paint.ink) || '#2c3e58') + ';'
+        + 'background:' + ((paint && paint.tint) || '#eef1f6') + ';'
+        + 'border-bottom:1px solid ' + ((paint && paint.line) || '#d8e2f0');
 
       /*
        * TWO SENTENCES, AND THEY ARE NOT THE SAME KIND OF THING.
@@ -1051,8 +1121,54 @@
         bar.appendChild(lead);
         bar.appendChild(who);
       }
-      body.insertBefore(bar, body.firstChild);
+      if (!existing) body.insertBefore(bar, body.firstChild);
     } catch (e) { log('co-brand strip failed', e); }
+  }
+
+  /*
+   * THE STRIP'S LINE, HELD OPEN BEFORE THERE ARE WORDS FOR IT -- QBP-648.
+   *
+   * The strip is inserted at the top of the body in normal flow, which is
+   * the right behaviour on thirteen pages laid out without it -- and it
+   * means that on a slow lookup the whole page visibly drops by a line the
+   * moment the answer lands. Reserving the line first makes the arrival a
+   * change of words rather than a change of layout.
+   *
+   * SAME BOX, SHARED CONSTANT. A shell whose padding or line-height had
+   * drifted from the real strip's would reserve the wrong height, which
+   * is a smaller version of the same jump and much harder to notice.
+   *
+   * Only on the path that waits: a cached partner draws the real strip in
+   * the same frame as everything else, so there is nothing to hold open.
+   */
+  function reserveStrip() {
+    try {
+      var body = document.body;
+      if (!body || !body.insertBefore) return;
+      if (document.getElementById && document.getElementById('qb-cobrand')) return;
+      var bar = document.createElement('div');
+      bar.id = 'qb-cobrand';
+      bar.setAttribute('data-qb-shell', '1');
+      /* Nothing to read yet, and a screen reader should not be told there
+         is. The words arrive with the role when drawStrip upgrades it. */
+      bar.setAttribute('aria-hidden', 'true');
+      bar.style.cssText = STRIP_BOX
+        + ';color:transparent'
+        + ';background:var(--gray-light,#eef1f6)'
+        + ';border-bottom:1px solid var(--border,#d8e2f0)';
+      /* A non-breaking space, so the line has a line's height. */
+      bar.textContent = '\u00a0';
+      body.insertBefore(bar, body.firstChild);
+    } catch (e) { log('strip reserve failed', e); }
+  }
+
+  /** Nothing to say after all: take the reserved line back. */
+  function dropShell() {
+    try {
+      var bar = document.getElementById && document.getElementById('qb-cobrand');
+      if (bar && bar.getAttribute && bar.getAttribute('data-qb-shell')
+        && bar.parentNode) bar.parentNode.removeChild(bar);
+    } catch (e) { log('strip release failed', e); }
   }
 
   /*
@@ -1129,16 +1245,24 @@
 
   function loadBrand() {
     var code = brandCode();
-    if (!code || !endpointOk()) return;
+    if (!code || !endpointOk()) { showLogo(); return; }
 
     /* PAINT BEFORE THE STRIP, on both paths. The strip sits inside the
        colours; drawing it first would show it in ours and then repaint. */
     var hit = cachedBrand(code);
     if (hit) {
+      /*
+       * THE COLOURS ARE ALREADY ON -- beginBrand put them there while the
+       * head was still parsing, so a returning visitor's first paint is
+       * their partner's. Painting again here costs nothing and is not
+       * redundant: this function is also the public QuoteBot.brand(),
+       * which a page may call after rendering its own markup.
+       */
       paintPage(hit.paint);
       swapLogo(hit.logoUrl, hit.name, hit.site);
       drawStrip(hit);
       nameThePartner(hit.name);
+      showLogo();
       /*
        * AND THEN GO AND CHECK, WITHOUT TOUCHING THIS PAGE.
        *
@@ -1152,15 +1276,111 @@
       return;
     }
 
-    /* Nothing cached: fetch and paint, as before. */
-    fetchBrand(code).then(function (brand) {
-      if (!brand) return;
-      paintPage(brand && brand.paint);
-      swapLogo(brand && brand.logoUrl, brand && brand.name,
-        brand && brand.site);
+    /*
+     * NOTHING CACHED, so this visitor is waiting on a round trip -- and
+     * it is already in flight: beginBrand started it at parse time rather
+     * than here. What is left for DOMContentLoaded is the half of the
+     * answer that needs somewhere to put it.
+     *
+     * brandWanted is absent only when this was called by hand after the
+     * page loaded, which QuoteBot.brand() allows.
+     */
+    var wanted = brandWanted || fetchBrand(code);
+    reserveStrip();
+    wanted.then(function (brand) {
+      if (!brand || !brand.name) {
+        /* A code nobody claims, or a lookup that failed. The page is ours
+           and was always going to be: take the line back and show our
+           mark. */
+        dropShell();
+        showLogo();
+        return;
+      }
+      paintPage(brand.paint);
+      swapLogo(brand.logoUrl, brand.name, brand.site);
       drawStrip(brand);
-      nameThePartner(brand && brand.name);
+      nameThePartner(brand.name);
+      showLogo();
     });
+  }
+
+  /* ======================================================================
+   * THE LOOKUP STARTS WHILE THE HEAD IS STILL PARSING -- QBP-648.
+   *
+   * Scott, 25 November, relaying Redbird Advisors and Protectmyspouse:
+   * "the tool links show the Quote Bot colors then flip to their
+   * branding."
+   *
+   * These pages are static files carrying our palette in their own :root
+   * and our mark in their markup, and nothing knew the page was somebody
+   * else's until this script read ?qb= and asked the endpoint -- an ask
+   * that did not START until DOMContentLoaded. So a visitor watched the
+   * finished Quote Bot page for a whole round trip.
+   *
+   * NOBODY HERE SEES IT, which is why it took a partner to report it: the
+   * answer is cached for six hours, so only the first page of a visit
+   * flashes. Every one of a partner's customers is a first page.
+   *
+   * TWO THINGS MOVE EARLIER, and neither costs anybody anything:
+   *
+   *   A CACHED PARTNER IS PAINTED BEFORE THE FIRST PAINT. paintPage only
+   *   touches documentElement, which exists while the head is parsing --
+   *   so their colours are on the page before the body is read, and the
+   *   flash is gone entirely for the second page of any visit and for
+   *   anybody returning within six hours.
+   *
+   *   A NEW PARTNER'S LOOKUP IS IN FLIGHT EARLIER, by however long the
+   *   rest of the head and the whole body take to parse. It does not
+   *   remove that visitor's flash -- only painting before the first paint
+   *   can, and on a first visit there is nothing to paint from -- but it
+   *   is the cheapest part of the gap to close.
+   *
+   * Nothing here is held back or neutralised: a page that cannot yet know
+   * whose it is stays ours, which is what it is until told otherwise.
+   * ================================================================== */
+
+  /** The lookup started at parse time, for loadBrand to attach to. */
+  var brandWanted = null;
+
+  /*
+   * ONE ROUND TRIP'S WORTH OF HANDSHAKE, DONE IN ADVANCE.
+   *
+   * The origin comes from the configured endpoint rather than being
+   * typed, so a staging build does not quietly warm production. Worth
+   * doing on every page and not only a co-branded one: the capture POST
+   * goes to the same host on every lead.
+   */
+  function preconnect() {
+    try {
+      var origin = new window.URL(config.endpoint).origin;
+      var link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = origin;
+      /* The brand GET is a CORS request, and a preconnect without this
+         warms a different connection from the one it will use. */
+      link.crossOrigin = '';
+      var head = document.head || document.documentElement;
+      if (head && head.appendChild) head.appendChild(link);
+    } catch (e) { log('preconnect failed', e); }
+  }
+
+  function beginBrand() {
+    try {
+      var code = brandCode();
+      if (!code || !endpointOk()) return;
+      preconnect();
+
+      var hit = cachedBrand(code);
+      if (hit) {
+        /* Their colours, before anything has been drawn in ours. The mark
+           and the strip still want a body, so they wait for boot -- and
+           the mark is held back until it can arrive with them. */
+        paintPage(hit.paint);
+        if (hit.logoUrl) holdLogo();
+        return;
+      }
+      brandWanted = fetchBrand(code);
+    } catch (e) { log('brand start failed', e); }
   }
 
   function fetchBrand(code) {
@@ -1548,6 +1768,11 @@
    * the class of bug, not just the two pages that had it.
    */
   var attrAtLoad = resolveAttribution();
+
+  /* For the same reason, one line up: this needs no DOM either, and every
+     millisecond it waits is a millisecond of somebody else's page wearing
+     our colours. See the block on beginBrand. */
+  beginBrand();
 
   function boot() {
     drainQueue();
