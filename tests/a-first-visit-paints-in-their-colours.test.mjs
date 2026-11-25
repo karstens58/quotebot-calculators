@@ -69,11 +69,17 @@ function page({ href, cached, endpoint = 'https://api.quote-bot.com/lead/' }) {
     querySelectorAll: () => [], getElementsByTagName: () => [],
     querySelector: () => null,
     getElementById: (id) => head.children.find((c) => c.id === id) ?? null,
-    createElement: () => ({
-      id: '', style: { cssText: '' }, children: [], parentNode: null,
-      setAttribute() {}, getAttribute: () => null, removeAttribute() {},
-      appendChild() {},
-    }),
+    createElement: () => {
+      const node = {
+        id: '', style: { cssText: '' }, children: [], parentNode: null,
+        attrs: {},
+        setAttribute(k, v) { node.attrs[k] = String(v); },
+        getAttribute: (k) => (k in node.attrs ? node.attrs[k] : null),
+        removeAttribute(k) { delete node.attrs[k]; },
+        appendChild() {},
+      };
+      return node;
+    },
     currentScript: { getAttribute: (k) =>
       (k === 'data-endpoint' ? endpoint : '') },
   };
@@ -174,6 +180,24 @@ test('a code with no co-branding costs one cached request and no flash', () => {
 
 /* ======================================== it does not hold the page hostage */
 
+test('IT IS DECLARED RENDER-BLOCKING, OR IT IS DECORATION', () => {
+  /*
+   * The one the live page caught. Measured on tools.quote-bot.com, the
+   * stylesheet finished 900ms AFTER first-contentful-paint and the page
+   * had painted perfectly happily without it -- which is the whole
+   * approach doing nothing at all.
+   *
+   * A stylesheet the PARSER finds in the head blocks rendering. One added
+   * by a script does not: Chromium stopped treating those as
+   * render-blocking, and this attribute is the platform's answer to
+   * exactly that. Without it the link is an ordinary late stylesheet.
+   */
+  const p = page({ href: CO });
+  assert.equal(p.sheet().getAttribute('blocking'), 'render',
+    'the stylesheet does not hold the paint, so the first paint is ours '
+    + 'and the whole approach is decoration');
+});
+
 test('THE FIRST PAINT IS NOT HELD FOR EVER', () => {
   /*
    * The risk this whole approach carries. Before it, a slow or dead
@@ -189,6 +213,9 @@ test('THE FIRST PAINT IS NOT HELD FOR EVER', () => {
   timer.fn();
   assert.equal(p.sheet().media, 'print',
     'the link still matches, so it is still holding the paint');
+  assert.equal(p.sheet().getAttribute('blocking'), null,
+    'the render-blocking attribute is still set, so the medium change '
+    + 'released nothing and the page is still waiting');
 });
 
 test('and if it then arrives it is put back', () => {
@@ -206,6 +233,9 @@ test('the usual path does not touch media at all', () => {
   p.sheet().onload();
   assert.equal(p.sheet().media, undefined);
   assert.ok(p.timers.some((t) => t.cleared), 'the stand-down timer still runs');
+  assert.equal(p.sheet().getAttribute('blocking'), null,
+    'a sheet that has already arrived is left declared render-blocking, '
+    + 'which is harmless today and a trap for the next reader');
 });
 
 test('A STYLESHEET THAT FAILS IS TAKEN OUT RATHER THAN LEFT', () => {

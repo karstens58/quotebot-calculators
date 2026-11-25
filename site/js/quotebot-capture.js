@@ -1446,11 +1446,35 @@
       if (!origin) return;
       link.href = origin + '/brand.css?qb=' + encodeURIComponent(code);
 
+      /*
+       * blocking="render" IS WHAT MAKES THIS WORK AT ALL, and leaving it
+       * out is why the first measurement on the live page showed the
+       * stylesheet finishing 900ms AFTER first paint while the page had
+       * painted perfectly happily without it.
+       *
+       * A stylesheet the PARSER finds in the head blocks rendering. One
+       * added by a script does not -- Chromium stopped treating those as
+       * render-blocking, which is the reason this attribute was added to
+       * the platform. Without it this link is an ordinary late-arriving
+       * stylesheet and the whole approach is decoration.
+       *
+       * Unsupported elsewhere, where the page paints early and a first
+       * visit flashes exactly as it does today. That is the floor, not a
+       * regression.
+       */
+      if (link.setAttribute) link.setAttribute('blocking', 'render');
+
       var late = false;
       var timer = window.setTimeout(function () {
         late = true;
-        /* Not a matching medium, so it stops holding the paint. The
-           request carries on; this only says the page may draw. */
+        /*
+         * BOTH, because they are two separate holds. The attribute is
+         * what blocks rendering; the medium is what decides whether the
+         * rules apply. Dropping one and not the other leaves the page
+         * either still waiting or painted in colours it should not have
+         * had yet.
+         */
+        if (link.removeAttribute) link.removeAttribute('blocking');
         link.media = 'print';
       }, BRAND_CSS_MS);
 
@@ -1459,6 +1483,10 @@
         /* Only when it was stood down. Touching media on the normal path
            is a write for the sake of symmetry on the critical path. */
         if (late) link.media = 'all';
+        /* Nothing is waiting on it any more either way. Left set, it is
+           a render-blocking attribute on a sheet that has already
+           arrived -- harmless today and a trap for the next reader. */
+        if (link.removeAttribute) link.removeAttribute('blocking');
       };
       link.onerror = function () {
         window.clearTimeout(timer);
