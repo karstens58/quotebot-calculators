@@ -234,9 +234,6 @@ async function loadPanel(){
     console.warn('[quote-bot] the Assurity rider panel could not be reached', err);
   }
   renderRiders();
-  /* The classes come from the same answer and for the same reason -- see
-     the note on `classes` in the panel. */
-  renderClasses();
 }
 
 /*
@@ -259,46 +256,52 @@ async function loadPanel(){
 /* Assurity's own names for their five classes. Shown only when the class we
    priced is not the one that was asked for. */
 /*
- * THE NAMES ARE THE PANEL'S -- there is no copy here any more.
+ * The words Assurity use, read off the control rather than kept twice.
  *
- * There was one, and it had already drifted: this file said "Preferred Plus
- * Non-Tobacco" where the server says "Preferred Plus, non-tobacco". Two
- * vocabularies for five classes, on the page whose subject is that carrier.
- *
- * Read through classLabel() so a missing panel shows the raw class rather
- * than "undefined", which is what a lookup into an absent table gives.
+ * There used to be a table here, and it had already drifted: this file said
+ * "Preferred Plus Non-Tobacco" where the server says "Preferred Plus,
+ * non-tobacco". The markup is now the single copy on this page, and a test
+ * holds it to the server's.
  */
 function classLabel(value) {
-  const found = (panel && panel.classes ? panel.classes : [])
-    .find((c) => c.value === value);
-  return found ? found.label : String(value || '');
+  const opt = document.querySelector('#health option[value="' + value + '"]');
+  return opt ? opt.textContent.trim() : String(value || '');
 }
 
 /*
- * ONLY THE CLASSES THIS CARRIER WRITES, and only the ones that match the
- * tobacco answer beside them.
+ * WHICH OF THE FIVE ARE ON OFFER, from the tobacco answer beside them.
  *
- * Assurity fold tobacco into the class -- five of them, three non-tobacco
- * and two tobacco -- so the two controls cannot be allowed to contradict
- * each other. The tobacco question stays because it is a question a visitor
- * expects and the lead carries it; it now decides which classes are on
- * offer rather than being mapped alongside them.
+ * Assurity fold tobacco into the class -- three non-tobacco, two tobacco --
+ * so two controls that can disagree are two controls that will. The tobacco
+ * question stays because a visitor expects it and the lead carries it; it
+ * decides which classes can be chosen rather than being mapped alongside
+ * them.
+ *
+ * THE OPTIONS ARE HIDDEN, NOT REBUILT. Rebuilding meant the control was
+ * empty until something filled it, which is how the field came up blank on
+ * a page where no state had been chosen. All five are in the markup; this
+ * only decides which are selectable.
  */
 function renderClasses() {
   const sel = document.getElementById('health');
   if (!sel) return;
   const smokes = (document.querySelector('#tobaccoSeg .active') || {}).dataset?.val === 'Yes';
-  const offered = (panel && panel.classes ? panel.classes : [])
-    .filter((c) => c.tobacco === smokes);
 
-  const had = sel.value;
-  sel.innerHTML = offered
-    .map((c) => '<option value="' + c.value + '">' + c.label + '</option>')
-    .join('');
-  /* Keep their choice across a tobacco change where it still exists; the
-     worst class otherwise, which is the safe end to land on. */
-  if (offered.some((c) => c.value === had)) sel.value = had;
-  else if (offered.length) sel.value = offered[offered.length - 1].value;
+  let last = null;
+  for (const opt of sel.options) {
+    /* A tobacco class is every one whose value does not end NonTobacco --
+       all five end in "Tobacco", and reading it the other way offers a
+       smoker the non-tobacco ladder and quotes them a price they cannot
+       have. */
+    const isTobacco = !/NonTobacco$/.test(opt.value);
+    opt.hidden = isTobacco !== smokes;
+    opt.disabled = opt.hidden;
+    if (!opt.hidden) last = opt.value;
+  }
+  /* Their choice stands where it still applies; otherwise the worst class
+     that does, which is the safe end to land on. */
+  const chosen = sel.selectedOptions[0];
+  if ((!chosen || chosen.hidden) && last) sel.value = last;
 }
 const money0 = (n) => '$' + Number(n).toLocaleString('en-US');
 const riderAmounts = new Map();
@@ -987,3 +990,11 @@ function editInputs(){
    a Content-Security-Policy without 'unsafe-inline' blocks those. Only what
    is registered here can be reached from an attribute. */
 window.qbActions.register({ editInputs: editInputs });
+
+/*
+ * ONCE AT LOAD, so the control matches the tobacco answer the form starts
+ * on rather than offering all five until somebody touches it. The markup
+ * carries every class; this is the first thing that decides which of them
+ * can be picked.
+ */
+renderClasses();

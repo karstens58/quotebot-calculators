@@ -789,17 +789,32 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
         <div class="field">
           <label>Health Class <span class="req">*</span></label>
           <!--
-            EMPTY ON PURPOSE -- filled from the panel, in Assurity's own
-            words. This page features their product, so a class they do not
-            write has no business being offerable here: it used to offer
-            Compulife's four and then print "they do not write the class you
-            selected" under the price.
+            ASSURITY'S OWN FIVE, in their own words, because this page
+            features their product: a class they do not write has no
+            business being offerable here. It used to offer Compulife's
+            four and then print "they do not write the class you selected"
+            under the price.
 
-            It stays empty until the panel answers, which is the same rule
-            the riders follow. A hardcoded fallback is a list that drifts,
-            and this one already had.
+            HERE AND NOT FETCHED, which is the correction to the first
+            attempt at this. They were moved onto the rider panel, which
+            answers per state -- so on a page where no state has been
+            chosen yet there was no panel, and the field rendered empty.
+            The riders have to come from the panel because they vary by
+            state. These do not: the same five everywhere, which the
+            backend's own panel test asserted while the page was waiting
+            on one.
+
+            Held to the server's wording character-for-character by
+            tests/the-featured-carriers-own-classes.test.mjs. Tobacco
+            decides which of them are offered -- see renderClasses.
           -->
-          <select id="health"></select>
+          <select id="health">
+            <option value="PreferredPlusNonTobacco">Preferred Plus, non-tobacco</option>
+            <option value="PreferredNonTobacco">Preferred, non-tobacco</option>
+            <option value="StandardNonTobacco" selected>Standard, non-tobacco</option>
+            <option value="PreferredTobacco">Preferred, tobacco</option>
+            <option value="StandardTobacco">Standard, tobacco</option>
+          </select>
         </div>
 
         <div class="field-divider"></div>

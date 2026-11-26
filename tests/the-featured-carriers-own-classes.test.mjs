@@ -27,7 +27,7 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -42,8 +42,46 @@ test('COMPULIFE\'S CLASSES ARE NOT OFFERED ON THIS PAGE', () => {
   assert.ok(control, 'the health control is gone');
   assert.doesNotMatch(control[1], /Standard Plus/,
     'the page still offers a class Assurity do not write');
-  assert.doesNotMatch(control[1], /<option/,
-    'the classes are typed into the page again rather than coming from the panel');
+});
+
+test('AND THE CONTROL IS FILLED BEFORE ANYTHING IS ASKED OF THE NETWORK', async () => {
+  /*
+   * The correction to the first attempt at this. The five were moved onto
+   * the rider panel, which answers per state -- so on a page where no
+   * state had been chosen there was no panel, and the field rendered
+   * empty. Scott, in Safari: "the health class field does not show."
+   *
+   * The riders must come from the panel because they vary by state. These
+   * do not, and the backend's own panel test said so while the page was
+   * waiting on one.
+   *
+   * Held to the server's wording here, character for character, because a
+   * second copy is only safe while something compares it.
+   */
+  const control = /<select id="health">([\s\S]*?)<\/select>/.exec(HTML);
+  const offered = [...control[1].matchAll(/<option value="([^"]+)"[^>]*>([^<]+)<\/option>/g)]
+    .map((m) => [m[1], m[2].trim()]);
+
+  assert.deepEqual(offered, [
+    ['PreferredPlusNonTobacco', 'Preferred Plus, non-tobacco'],
+    ['PreferredNonTobacco', 'Preferred, non-tobacco'],
+    ['StandardNonTobacco', 'Standard, non-tobacco'],
+    ['PreferredTobacco', 'Preferred, tobacco'],
+    ['StandardTobacco', 'Standard, tobacco'],
+  ], 'the page no longer offers Assurity\'s five, best first, in their words');
+
+  const BACKEND = join(ROOT, '..', 'quotebot-backend',
+    'amplify/functions/shared/underwriting.ts');
+  if (!existsSync(BACKEND)) {
+    console.log('  (quotebot-backend is not checked out beside this repo '
+      + '\u2014 skipped; the words above are still pinned)');
+    return;
+  }
+  const uw = readFileSync(BACKEND, 'utf8');
+  for (const [value, label] of offered) {
+    assert.ok(uw.includes(`${value}: '${label}'`),
+      `${value} reads "${label}" here and something else on the server`);
+  }
 });
 
 test('AND THE PAGE HOLDS NO LIST OF THEIR CLASS NAMES', () => {
@@ -59,7 +97,7 @@ test('AND THE PAGE HOLDS NO LIST OF THEIR CLASS NAMES', () => {
   assert.doesNotMatch(JS, /PreferredPlusNonTobacco\s*:/,
     'a class-name table is back in the page');
   assert.match(JS, /function classLabel\(/,
-    'nothing reads the names out of the panel');
+    'nothing reads the names off the control');
 });
 
 test('THE CLASS IS SENT AS CHOSEN, NOT MAPPED', () => {
@@ -88,10 +126,14 @@ test('THE TOBACCO ANSWER DECIDES WHICH CLASSES EXIST', () => {
   const at = JS.indexOf('function renderClasses(');
   assert.ok(at > 0, 'nothing builds the control from the panel');
   const body = JS.slice(at, JS.indexOf('\n}', at));
-  assert.match(body, /c\.tobacco === smokes/,
+  assert.match(body, /isTobacco !== smokes/,
     'the control does not match the tobacco answer beside it');
-  assert.doesNotMatch(body, /endsWith\(['"]Tobacco['"]\)/,
-    'filtering on the name marks all five as tobacco classes');
+  assert.match(body, /NonTobacco\$/,
+    'a tobacco class is decided some other way than by what the value is '
+    + 'NOT -- all five end in "Tobacco", and reading it the other way '
+    + 'offers a smoker the non-tobacco ladder');
+  assert.doesNotMatch(body, /sel\.innerHTML/,
+    'the options are rebuilt again, which is how the field came up empty');
 
   /* And it is rebuilt when that answer changes. */
   const seg = JS.slice(JS.indexOf(".inputs-panel .seg"));
