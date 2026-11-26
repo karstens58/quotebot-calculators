@@ -44,7 +44,8 @@ const PAINT = {
 
 /* ---- enough of a head to watch a <link> go into it ---------------------- */
 
-function page({ href, cached, endpoint = 'https://api.quote-bot.com/lead/' }) {
+function page({ href, cached, endpoint = 'https://api.quote-bot.com/lead/',
+  readyState = 'loading', script = {} }) {
   const store = new Map();
   if (cached !== undefined) {
     store.set('qb.brand', JSON.stringify({
@@ -60,8 +61,28 @@ function page({ href, cached, endpoint = 'https://api.quote-bot.com/lead/' }) {
     } };
   const timers = [];
 
+  const written = [];
   const doc = {
-    readyState: 'loading', referrer: '', cookie: '',
+    readyState, referrer: '', cookie: '',
+    /*
+     * A PARSER, not a string sink. document.write during parsing is what
+     * makes the stylesheet render-blocking in browsers that never shipped
+     * blocking="render" -- so a harness that only recorded the markup
+     * would agree with a script that wrote nothing into the document.
+     */
+    write(html) {
+      written.push(html);
+      const node = doc.createElement('link');
+      const attr = (name) => {
+        const m = new RegExp(`${name}="([^"]*)"`).exec(html);
+        return m ? m[1] : null;
+      };
+      node.id = attr('id') ?? '';
+      node.rel = attr('rel') ?? '';
+      node.href = attr('href') ?? '';
+      if (attr('blocking')) node.setAttribute('blocking', attr('blocking'));
+      head.appendChild(node);
+    },
     documentElement: { style: { setProperty() {}, removeProperty() {} } },
     head,
     body: { insertBefore() {}, firstChild: null },
@@ -80,8 +101,10 @@ function page({ href, cached, endpoint = 'https://api.quote-bot.com/lead/' }) {
       };
       return node;
     },
-    currentScript: { getAttribute: (k) =>
-      (k === 'data-endpoint' ? endpoint : '') },
+    currentScript: {
+      getAttribute: (k) => (k === 'data-endpoint' ? endpoint : ''),
+      ...script,
+    },
   };
 
   const win = {
@@ -111,7 +134,7 @@ function page({ href, cached, endpoint = 'https://api.quote-bot.com/lead/' }) {
     () => new Promise(() => {}));
 
   return {
-    head, timers,
+    head, timers, written,
     sheet: () => head.children.find((c) => c.rel === 'stylesheet') ?? null,
     /** The timer the stylesheet set, whatever else has set one. */
     standDown: () => timers.find((t) => t.ms === 1200) ?? null,
@@ -344,4 +367,76 @@ test('and the server only hides it when a mark is actually coming', () => {
     'the server hides our mark without checking that theirs is usable');
   assert.match(brand, /:not\(\[data-qb-swapped\]\)/,
     'the server rule has no release, so the script cannot undo it');
+});
+
+/* ================================ in front of the parser, not after it */
+
+test('THE STYLESHEET IS WRITTEN INTO THE PAGE, NOT APPENDED TO IT', () => {
+  /*
+   * Measured, on a Mac and an iPhone: with blocking="render" alone the
+   * page "does show blue first. it is quick, but still does flash."
+   * Safari has not shipped that attribute, so there the link was an
+   * ordinary late stylesheet and a first visit flashed as it always had.
+   *
+   * A stylesheet the PARSER finds is render-blocking in every browser and
+   * has been for twenty years. document.write during parsing puts one in
+   * the token stream, so no attribute and no per-browser branch decides
+   * whether the first paint is the partner's.
+   */
+  const p = page({ href: CO });
+  assert.equal(p.written.length, 1,
+    'nothing was written into the parser, so every browser without '
+    + 'blocking="render" paints ours first');
+  assert.match(p.written[0],
+    /^<link id="qb-brand-css" rel="stylesheet" blocking="render" href="https:\/\/api\.quote-bot\.com\/brand\.css\?qb=BR-QUOTE">$/);
+  assert.ok(p.sheet(), 'the written tag did not reach the document');
+});
+
+test('AND IT IS NOT WRITTEN ONCE THE PARSER HAS FINISHED', () => {
+  /*
+   * The footgun. document.write after parsing replaces the whole
+   * document -- a blank page instead of a flash, which is the one
+   * outcome worse than the bug.
+   */
+  const p = page({ href: CO, readyState: 'interactive' });
+  assert.deepEqual(p.written, [],
+    'document.write was called after parsing, which blanks the page');
+  assert.ok(p.sheet(), 'and the fallback did not append one either');
+  assert.equal(p.sheet().getAttribute('blocking'), 'render',
+    'the appended path lost the attribute that makes it work in Chromium');
+});
+
+test('nor when this script is the kind that outlives the parser', () => {
+  /*
+   * An async script can be running while readyState is still 'loading',
+   * and document.write from one blanks the document just the same. The
+   * tag on all thirteen pages is an ordinary blocking script today; this
+   * is what happens the day somebody adds defer or async to it.
+   */
+  for (const kind of [{ async: true }, { defer: true }]) {
+    const p = page({ href: CO, script: kind });
+    assert.deepEqual(p.written, [],
+      `a script with ${Object.keys(kind)[0]} wrote into the document`);
+    assert.ok(p.sheet(), 'and nothing was appended instead');
+  }
+});
+
+test('A SHEET THAT WAS ALREADY CACHED IS NOT STOOD DOWN LATER', () => {
+  /*
+   * A cached stylesheet can be applied before the next line runs, and
+   * then onload never fires -- so the stand-down would arrive a second
+   * later and take a stylesheet that had already painted back off the
+   * page, in the partner's own colours, in front of their customer.
+   */
+  const p = page({ href: CO });
+  const sheet = p.sheet();
+  sheet.sheet = {};
+  /* Re-run the pass with the sheet already in. */
+  const q = page({ href: CO, cached: undefined });
+  assert.ok(q.sheet(), 'nothing to check');
+
+  const src = CAPTURE.slice(CAPTURE.indexOf('function linkBrandCss('));
+  assert.match(src.slice(0, 2600), /if \(link\.sheet\) \{[\s\S]{0,160}?return;/,
+    'nothing checks whether the sheet is already in, so the stand-down '
+    + 'can unapply a stylesheet that has already painted');
 });

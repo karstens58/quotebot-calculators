@@ -1436,33 +1436,83 @@
    * them, and the cost to those pages is one cached request from the same
    * host they were about to ask anyway. Not a flash: nothing changes.
    */
+  /*
+   * PUT IN FRONT OF THE PARSER, NOT HANDED TO THE DOM -- QBP-650.
+   *
+   * blocking="render" made this hold the paint in Chromium and nowhere
+   * else. Scott, on a Mac and an iPhone: "it does show blue first. it is
+   * quick, but still does flash." Safari has not shipped the attribute,
+   * so there the link was an ordinary late stylesheet and a first visit
+   * flashed exactly as it always had.
+   *
+   * A stylesheet the PARSER finds is render-blocking in every browser,
+   * and has been since long before that attribute existed. document.write
+   * during parsing puts one into the token stream, so the browser
+   * discovers it the same way it discovers the ones written into the
+   * page -- no attribute, no feature detection, no per-browser branch.
+   *
+   * THE FOOTGUN IS REAL AND IS GUARDED. document.write after parsing has
+   * finished replaces the whole document, and an async script can be
+   * executing while readyState is still 'loading'. So this runs only when
+   * the parser is still going AND this script is the ordinary blocking
+   * one it is written as. Add defer or async to the tag on any of the
+   * thirteen pages and this quietly stops writing and goes back to
+   * appending, which is a slower page rather than a blank one.
+   */
+  function parserWrite(href) {
+    var canWrite = document.readyState === 'loading'
+      && typeof document.write === 'function'
+      && SCRIPT && !SCRIPT.async && !SCRIPT.defer;
+    if (!canWrite) return null;
+    /* The origin comes from a URL object and the code through
+       encodeURIComponent, so neither can carry a quote. Escaped anyway:
+       this is the one line here that builds markup. */
+    document.write('<link id="' + BRAND_CSS + '" rel="stylesheet" '
+      + 'blocking="render" href="' + href.replace(/"/g, '%22') + '">');
+    return document.getElementById(BRAND_CSS);
+  }
+
   function linkBrandCss(code) {
     try {
       if (!document.getElementById || document.getElementById(BRAND_CSS)) return;
-      var link = document.createElement('link');
-      link.id = BRAND_CSS;
-      link.rel = 'stylesheet';
       var origin = apiOrigin();
       if (!origin) return;
-      link.href = origin + '/brand.css?qb=' + encodeURIComponent(code);
+      var href = origin + '/brand.css?qb=' + encodeURIComponent(code);
 
       /*
-       * blocking="render" IS WHAT MAKES THIS WORK AT ALL, and leaving it
-       * out is why the first measurement on the live page showed the
-       * stylesheet finishing 900ms AFTER first paint while the page had
-       * painted perfectly happily without it.
+       * blocking="render" IS WHAT MAKES AN APPENDED ONE WORK AT ALL, and
+       * leaving it out is why the first measurement on the live page
+       * showed the stylesheet finishing 900ms AFTER first paint while the
+       * page had painted perfectly happily without it. Chromium stopped
+       * treating script-added stylesheets as render-blocking, and this
+       * attribute is the platform's answer to exactly that.
        *
-       * A stylesheet the PARSER finds in the head blocks rendering. One
-       * added by a script does not -- Chromium stopped treating those as
-       * render-blocking, which is the reason this attribute was added to
-       * the platform. Without it this link is an ordinary late-arriving
-       * stylesheet and the whole approach is decoration.
-       *
-       * Unsupported elsewhere, where the page paints early and a first
-       * visit flashes exactly as it does today. That is the floor, not a
-       * regression.
+       * It is on the written tag too, where it is redundant -- a
+       * parser-discovered sheet blocks anyway -- and harmless, and one
+       * less difference between the two paths for a reader to hold in
+       * their head.
        */
-      if (link.setAttribute) link.setAttribute('blocking', 'render');
+      var link = parserWrite(href);
+      if (!link) {
+        link = document.createElement('link');
+        link.id = BRAND_CSS;
+        link.rel = 'stylesheet';
+        link.href = href;
+        if (link.setAttribute) link.setAttribute('blocking', 'render');
+        var head = document.head || document.documentElement;
+        if (head && head.appendChild) head.appendChild(link);
+      }
+
+      /*
+       * ALREADY IN. A sheet the browser had cached can be applied before
+       * the next line runs, and then onload never fires -- so the
+       * stand-down below would come along and take a stylesheet that had
+       * already painted back off the page.
+       */
+      if (link.sheet) {
+        if (link.removeAttribute) link.removeAttribute('blocking');
+        return;
+      }
 
       var late = false;
       var timer = window.setTimeout(function () {
@@ -1494,9 +1544,6 @@
            page does not carry a dead link for a reader to puzzle over. */
         if (link.parentNode) link.parentNode.removeChild(link);
       };
-
-      var head = document.head || document.documentElement;
-      if (head && head.appendChild) head.appendChild(link);
     } catch (e) { log('brand stylesheet failed', e); }
   }
 
