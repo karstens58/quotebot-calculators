@@ -139,11 +139,21 @@ function renderPrice(){
      meant walking down from the class that was asked for. Saying so here is
      the whole point of the route returning it: better now than at
      underwriting. */
+  /*
+   * SHOWN WHENEVER THERE IS A CLASS, not only when one was approximated.
+   *
+   * It was built to confess an approximation, and with the control offering
+   * Assurity's own five there is never one to confess -- which would have
+   * left this element permanently hidden and the code behind it dead. On a
+   * page featuring this carrier, naming the class their price is for is
+   * worth saying in its own right.
+   */
   const uw = document.getElementById('priceClass');
-  uw.hidden = !currentUnderwriting?.approximated;
-  if (currentUnderwriting?.approximated){
-    uw.textContent = 'Priced at Assurity\u2019s ' + ASSURITY_CLASS_NAMES[currentUnderwriting.riskClass]
-      + ' \u2014 they do not write the class you selected.';
+  uw.hidden = !currentUnderwriting?.riskClass;
+  if (currentUnderwriting?.riskClass){
+    /* It can only be the class they picked now, so this says so rather
+       than apologising for a class this page can no longer offer. */
+    uw.textContent = 'Priced at Assurity\u2019s ' + classLabel(currentUnderwriting.riskClass) + '.';
   }
   document.getElementById('ptMonthly').classList.toggle('active', billing==='monthly');
   document.getElementById('ptYearly').classList.toggle('active', billing==='yearly');
@@ -224,6 +234,9 @@ async function loadPanel(){
     console.warn('[quote-bot] the Assurity rider panel could not be reached', err);
   }
   renderRiders();
+  /* The classes come from the same answer and for the same reason -- see
+     the note on `classes` in the panel. */
+  renderClasses();
 }
 
 /*
@@ -245,13 +258,48 @@ async function loadPanel(){
  */
 /* Assurity's own names for their five classes. Shown only when the class we
    priced is not the one that was asked for. */
-const ASSURITY_CLASS_NAMES = {
-  PreferredPlusNonTobacco: 'Preferred Plus Non-Tobacco',
-  PreferredNonTobacco: 'Preferred Non-Tobacco',
-  StandardNonTobacco: 'Standard Non-Tobacco',
-  PreferredTobacco: 'Preferred Tobacco',
-  StandardTobacco: 'Standard Tobacco',
-};
+/*
+ * THE NAMES ARE THE PANEL'S -- there is no copy here any more.
+ *
+ * There was one, and it had already drifted: this file said "Preferred Plus
+ * Non-Tobacco" where the server says "Preferred Plus, non-tobacco". Two
+ * vocabularies for five classes, on the page whose subject is that carrier.
+ *
+ * Read through classLabel() so a missing panel shows the raw class rather
+ * than "undefined", which is what a lookup into an absent table gives.
+ */
+function classLabel(value) {
+  const found = (panel && panel.classes ? panel.classes : [])
+    .find((c) => c.value === value);
+  return found ? found.label : String(value || '');
+}
+
+/*
+ * ONLY THE CLASSES THIS CARRIER WRITES, and only the ones that match the
+ * tobacco answer beside them.
+ *
+ * Assurity fold tobacco into the class -- five of them, three non-tobacco
+ * and two tobacco -- so the two controls cannot be allowed to contradict
+ * each other. The tobacco question stays because it is a question a visitor
+ * expects and the lead carries it; it now decides which classes are on
+ * offer rather than being mapped alongside them.
+ */
+function renderClasses() {
+  const sel = document.getElementById('health');
+  if (!sel) return;
+  const smokes = (document.querySelector('#tobaccoSeg .active') || {}).dataset?.val === 'Yes';
+  const offered = (panel && panel.classes ? panel.classes : [])
+    .filter((c) => c.tobacco === smokes);
+
+  const had = sel.value;
+  sel.innerHTML = offered
+    .map((c) => '<option value="' + c.value + '">' + c.label + '</option>')
+    .join('');
+  /* Keep their choice across a tobacco change where it still exists; the
+     worst class otherwise, which is the safe end to land on. */
+  if (offered.some((c) => c.value === had)) sel.value = had;
+  else if (offered.length) sel.value = offered[offered.length - 1].value;
+}
 const money0 = (n) => '$' + Number(n).toLocaleString('en-US');
 const riderAmounts = new Map();
 const occupation = { grossMonthlyIncome: null, isSelfEmployed: false,
@@ -469,9 +517,15 @@ function buildAsk(){
     faceAmount: COV_STOPS[sliderIndex],
     age: inp.age,
     gender: inp.gender,
-    /* Compulife's eight, sent as collected. The route maps them to
-       Assurity's five and tells us which one it actually priced. */
-    healthClass: inp.health,
+    /*
+     * ASSURITY'S OWN, SENT AS CHOSEN. The control offers nothing else, so
+     * there is nothing to map and nothing to approximate -- the route takes
+     * a riskClass as given and answers approximated: false.
+     *
+     * The tobacco answer still goes with it. It decided which classes were
+     * on offer, and the lead carries it.
+     */
+    riskClass: inp.health,
     tobacco: inp.tobacco === 'Yes',
     riders,
     ...(needsOcc ? { occupation } : {}),
@@ -855,6 +909,10 @@ document.querySelectorAll('.inputs-panel .seg').forEach(seg => {
     if (e.target.tagName !== 'BUTTON') return;
     seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
+    /* Tobacco decides which of Assurity's five are on offer, so the control
+       is rebuilt before anything is priced from it. Harmless on the gender
+       toggle beside it, and cheaper than knowing which seg was clicked. */
+    renderClasses();
     if (shown()) { renderAll(); priceImmediately(); }
   });
 });

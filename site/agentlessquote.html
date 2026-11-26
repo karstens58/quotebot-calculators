@@ -788,12 +788,18 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
 
         <div class="field">
           <label>Health Class <span class="req">*</span></label>
-          <select id="health">
-            <option value="Preferred Plus">Preferred Plus</option>
-            <option value="Preferred">Preferred</option>
-            <option value="Standard Plus">Standard Plus</option>
-            <option value="Standard" selected>Standard</option>
-          </select>
+          <!--
+            EMPTY ON PURPOSE -- filled from the panel, in Assurity's own
+            words. This page features their product, so a class they do not
+            write has no business being offerable here: it used to offer
+            Compulife's four and then print "they do not write the class you
+            selected" under the price.
+
+            It stays empty until the panel answers, which is the same rule
+            the riders follow. A hardcoded fallback is a list that drifts,
+            and this one already had.
+          -->
+          <select id="health"></select>
         </div>
 
         <div class="field-divider"></div>
