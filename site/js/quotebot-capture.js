@@ -1182,6 +1182,29 @@
     } catch (e) { log('strip reserve failed', e); }
   }
 
+  /*
+   * AND THE PALETTE COMES OFF WITH IT -- QBP-650.
+   *
+   * The stylesheet is cached at the edge for an hour and servable stale
+   * for a day, which is what stops a first visit waiting on a cold
+   * Lambda. That window is only safe because of this: the moment the
+   * JSON says there is no partner behind this code -- deactivated, link
+   * retired, co-branding switched off -- the sheet is taken off the
+   * page, whatever the edge still holds.
+   *
+   * Without it the longest-cached answer in the system would be the one
+   * deciding how long a former partner's colours stay on a consumer
+   * page, and nothing on the page would correct it: paintPage is never
+   * called when there is no brand, so the stale colours would simply
+   * stay, under Quote Bot's name, with no strip and no mark.
+   */
+  function dropBrandCss() {
+    try {
+      var link = document.getElementById && document.getElementById(BRAND_CSS);
+      if (link && link.parentNode) link.parentNode.removeChild(link);
+    } catch (e) { log('brand stylesheet release failed', e); }
+  }
+
   /** Nothing to say after all: take the reserved line back. */
   function dropShell() {
     try {
@@ -1310,9 +1333,10 @@
     wanted.then(function (brand) {
       if (!brand || !brand.name) {
         /* A code nobody claims, or a lookup that failed. The page is ours
-           and was always going to be: take the line back and show our
-           mark. */
+           and was always going to be: take the line back, take their
+           colours off, and show our mark. */
         dropShell();
+        dropBrandCss();
         showLogo();
         return;
       }

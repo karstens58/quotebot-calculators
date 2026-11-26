@@ -440,3 +440,23 @@ test('A SHEET THAT WAS ALREADY CACHED IS NOT STOOD DOWN LATER', () => {
     'nothing checks whether the sheet is already in, so the stand-down '
     + 'can unapply a stylesheet that has already painted');
 });
+
+test('A CODE WITH NO PARTNER BEHIND IT TAKES THE PALETTE BACK OFF', () => {
+  /*
+   * What makes an hour at the edge safe. The stylesheet is cached far
+   * longer than anything else here, so without this the longest-cached
+   * answer in the system would be the one deciding how long a former
+   * partner's colours stay on a consumer page -- and nothing would
+   * correct it, because paintPage is never called when there is no
+   * brand. The stale colours would simply stay, under Quote Bot's name,
+   * with no strip and no mark to say whose they were.
+   */
+  const at = CAPTURE.indexOf('function dropBrandCss(');
+  assert.ok(at > 0, 'nothing takes the stylesheet off when the partner is gone');
+
+  const load = CAPTURE.slice(CAPTURE.indexOf('function loadBrand('));
+  const refused = load.slice(load.indexOf('if (!brand || !brand.name)'));
+  assert.match(refused.slice(0, 300), /dropBrandCss\(\)/,
+    'a deactivated partner keeps their colours on the page for as long as '
+    + 'the edge holds the stylesheet');
+});
