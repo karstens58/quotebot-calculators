@@ -239,11 +239,47 @@ function carrierLogo(name, url){
   return '<div class="logo">' + fallback + '</div>';
 }
 
+/*
+ * THE FIGURE THE COMPARISON IS MEASURED AGAINST -- BASE COVER ONLY.
+ *
+ * NOT the price in the box above, which carries whatever riders the
+ * visitor has switched on. The Compulife rows are base term and nothing
+ * else, so measuring a rider-loaded Assurity policy against them reports a
+ * saving nobody is being offered: switch on Return of Premium and every
+ * carrier below appears fifty dollars a month cheaper, when in truth they
+ * would charge for it too.
+ *
+ * It also settles a question that had no good answer -- Scott, 27 November.
+ * Riders moved the delta without moving a single Compulife figure, so the
+ * comparison drifted while the thing being compared stood still. Base
+ * against base takes riders out of it entirely rather than choosing
+ * between a delta that misleads and one frozen at an arbitrary moment.
+ *
+ * ONE CAVEAT THIS DOES NOT FIX, and should not pretend to: Assurity's
+ * figures already include their $70 annual policy fee (assurityquote.ts
+ * says so, from Scott on 13 November). A Compulife row is only like-for-
+ * like if it includes its own.
+ */
+function baseMonthly(){
+  const rows = (currentQuote && currentQuote.coverages) || [];
+  const base = rows.find((c) => String(c.lookup).toLowerCase() === 'base');
+  const v = base && base.premium ? Number(base.premium.Monthly) : NaN;
+  return v > 0 ? v : null;
+}
+
 function renderComparison(){
   const sec = document.getElementById('altSec');
   if (!sec) return;
   const rows = Array.isArray(COMPARE) ? COMPARE : [];
-  const mine = currentQuote ? Number(currentQuote.total.Monthly) : null;
+  const mine = baseMonthly();
+  /* What the riders add, for the line that explains why this figure is not
+     the one in the box above. Their total minus their base, never summed
+     from the rider rows -- assurityquote.ts derives it the same way. */
+  const loaded = currentQuote ? Number(currentQuote.total.Monthly) : null;
+  const riders = (loaded > 0 && mine > 0) ? loaded - mine : 0;
+  const riderNote = riders > 0.005
+    ? '<span class="dsub">base cover only \u00b7 riders add ' + fmt2(riders) + '</span>'
+    : '';
   /*
    * NOTHING TRUE TO SAY, SO NOTHING SHOWN. An empty or failed /quote, or a
    * page with no Assurity price yet to measure against, leaves the section
@@ -263,7 +299,8 @@ function renderComparison(){
     + '<div class="cprod">Term Life \u00b7 agentless \u2014 your quote</div></div></div></td>'
     + '<td><span class="tag-self">No agent needed</span></td>'
     + '<td><span class="uwcell"><span class="tag-uw instant">Instant decision</span></span></td>'
-    + '<td class="num"><span class="mo">' + fmt2(mine) + '<small>/mo</small></span></td>'
+    + '<td class="num"><span class="mo">' + fmt2(mine) + '<small>/mo</small></span>'
+    + riderNote + '</td>'
     + '<td class="num"><span class="delta base">\u2014<span class="dsub">this is the baseline</span></span></td>'
     + '<td></td></tr>';
 
@@ -292,7 +329,9 @@ function renderComparison(){
     + '<div class="acard-pills"><span class="tag-self">No agent needed</span></div></div>'
     + '<div class="acard-uw"><span class="tag-uw instant">Instant decision</span></div>'
     + '<div class="acard-mid"><div><div class="bigdelta flat">Your quote</div>'
-    + '<div class="dlabel">the baseline below</div></div>'
+    + '<div class="dlabel">' + (riders > 0.005
+        ? 'base cover only \u00b7 riders add ' + fmt2(riders)
+        : 'the baseline below') + '</div></div>'
     + '<div class="permo"><div class="v">' + fmt2(mine) + '</div>'
     + '<div class="l">per month</div></div></div></div>';
 
@@ -317,7 +356,8 @@ function renderComparison(){
   document.getElementById('altFoot').textContent =
     'Compared at ' + fmtCov(COV_STOPS[sliderIndex]) + ' of ' + selectedTerm
     + '-year term, ' + classLabel(document.getElementById('health').value).toLowerCase()
-    + '. Final rates depend on underwriting.';
+    + ', base cover with no riders on either side. Final rates depend on '
+    + 'underwriting.';
 }
 /* ---------- RIDERS (from the carrier, via quote-engine) ---------- */
 /*

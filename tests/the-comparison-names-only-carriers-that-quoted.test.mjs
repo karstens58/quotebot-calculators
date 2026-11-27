@@ -36,6 +36,43 @@ const render = (() => {
   return JS.slice(at, end === -1 ? at + 12000 : end);
 })();
 
+test('THE DELTA IS BASE AGAINST BASE, SO RIDERS CANNOT MOVE IT', () => {
+  /*
+   * The Compulife rows are base term and nothing else. Measuring a
+   * rider-loaded Assurity policy against them reports a saving nobody is
+   * being offered -- switch on Return of Premium and every carrier appears
+   * fifty dollars a month cheaper, when in truth they would charge for it
+   * too.
+   *
+   * It is also what stops the delta drifting while the thing being
+   * compared stands still: riders moved the number without moving a single
+   * Compulife figure.
+   */
+  assert.match(render, /const mine = baseMonthly\(\);/,
+    'the comparison measures against the price in the box, which carries '
+    + "whatever riders are switched on, against carrier rows that carry none");
+  assert.ok(!/const mine = .*currentQuote\.total/.test(render),
+    'the rider-loaded total is back as the baseline');
+  assert.match(JS, /c\.lookup\).toLowerCase\(\) === 'base'/,
+    'the base premium is no longer read off the carrier\'s own coverage '
+    + 'rows, so it is being computed here instead');
+});
+
+test('AND IT SAYS WHY ITS FIGURE IS NOT THE ONE IN THE BOX ABOVE', () => {
+  /*
+   * With riders on, the anchor row shows a smaller number than the price
+   * box. Unexplained that reads as a bug; the line is what makes the
+   * anchor row carry its own weight.
+   */
+  assert.match(render, /base cover only \\u00b7 riders add/,
+    'the anchor row shows a different figure from the price box with '
+    + 'nothing saying why');
+  assert.match(render, /riders > 0\.005/,
+    'the note shows even with no riders on, where it explains nothing');
+  assert.match(JS, /base cover with no riders on either side/,
+    'the footnote no longer says what was compared');
+});
+
 test('NOTHING IS DRAWN WITHOUT BOTH ROWS AND A BASELINE', () => {
   /*
    * Two conditions, not one. Rows with no Assurity price to measure
