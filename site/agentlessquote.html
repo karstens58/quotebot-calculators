@@ -447,17 +447,115 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 .included-pill { padding: 5px 12px; border-radius: 100px; background: var(--green-light); color: var(--green); font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
 .rider-empty { font-size: 13px; color: var(--gray-mid); line-height: 1.5; }
 
-.other-title { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 18px; }
-.term-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.term-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 2px 12px rgba(26,61,107,0.05); overflow: hidden; transition: border-color var(--transition), box-shadow var(--transition); }
-.term-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
-.term-card-head { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--primary); text-align: center; padding: 18px; border-bottom: 1px solid var(--gray-light); }
-.term-row { text-align: center; padding: 13px; border-bottom: 1px solid var(--gray-light); }
-.term-row .lbl { font-size: 11px; font-weight: 700; color: var(--gray-mid); text-transform: uppercase; letter-spacing: 0.06em; }
-.term-row .val { font-size: 16px; font-weight: 700; color: var(--text); margin-top: 3px; }
-.term-row.total .val { color: var(--accent); font-family: 'Fraunces', serif; font-size: 22px; }
-.term-select { display: block; width: calc(100% - 32px); margin: 16px; padding: 10px; border: 1.5px solid var(--green); border-radius: 8px; background: #fff; color: var(--green); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all var(--transition); }
-.term-select:hover { background: var(--green); color: #fff; }
+/* ---- THE CARRIER RAIL -- QBP-653 ---------------------------------------
+ *
+ * Sits directly above the Continue button, which is the point. "No Agent
+ * Required" provokes a question -- if nobody is holding my hand, who is
+ * this company? -- and this is the answer, at the moment it is asked.
+ *
+ * EVERY FIGURE HERE IS A CLAIM ASSURITY HAS TO STAND BEHIND. A rating
+ * moves, and a stale one on a page carrying their mark is their problem
+ * before it is ours. Confirm with the carrier before changing any of it.
+ *
+ * The mark is set in type until their logo asset lands. White interior
+ * with the outline in their red rather than our neutral border: on a white
+ * card the outline is the only thing grouping the strip, and it must not
+ * compete with the green button underneath.
+ */
+.carrier-rail { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-bottom: 20px; padding: 15px 20px; background: #fff; border: 1.5px solid rgba(200,16,46,0.24); border-radius: var(--radius-lg); box-shadow: 0 1px 3px rgba(26,61,107,0.05); }
+.rail-mark { font-family: 'Fraunces', serif; font-weight: 700; font-size: 28px; color: #C8102E; letter-spacing: -0.015em; line-height: 1; white-space: nowrap; }
+.rail-mark sup { font-size: 0.42em; vertical-align: super; letter-spacing: 0.02em; }
+.rail-creds { display: flex; gap: 22px; flex-wrap: wrap; flex: 1; min-width: 240px; margin: 0; }
+.rail-creds div { position: relative; padding-left: 22px; }
+.rail-creds div::before { content: ''; position: absolute; left: 0; top: 3px; width: 13px; height: 13px; border-radius: 50%; background: #C8102E; opacity: 0.34; }
+.rail-creds dt { font-size: 13.5px; font-weight: 800; color: var(--primary); line-height: 1.25; }
+.rail-creds dd { margin: 0; font-size: 11px; font-weight: 600; color: var(--gray-mid); text-transform: uppercase; letter-spacing: 0.07em; }
+
+/* ---- OTHER CARRIERS, WITH AN AGENT -- QBP-653 --------------------------
+ *
+ * Replaced three cards showing THIS carrier at other term lengths. They
+ * compared the product to itself; this compares it to the market, and the
+ * delta column is what makes the section worth its space.
+ *
+ * TWO AXES, AND THEY ARE INDEPENDENT. How you buy it is either/or and gets
+ * one pill. How you are underwritten is a set and gets as many as the
+ * carrier offers. Foresters' Strong Foundation is instant-decision AND
+ * needs an agent; one pill could not have said that.
+ *
+ * Only the directly-quoted product may wear "No Agent Required" -- the
+ * distinction has to survive a screenshot, which is how it reaches
+ * Assurity's compliance reviewer.
+ */
+.alt-sec { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); overflow: hidden; }
+.alt-head { padding: 22px 26px 18px; border-bottom: 1px solid var(--gray-light); }
+.alt-head h2 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--primary); line-height: 1.2; }
+.alt-head p { font-size: 13.5px; color: var(--gray-dark); max-width: 70ch; margin-top: 5px; line-height: 1.6; }
+.uw-legend { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 13px; }
+.uw-legend .l { display: inline-flex; align-items: center; gap: 7px; font-size: 10.8px; color: var(--gray-mid); line-height: 1.3; }
+
+.alt-scroll { overflow-x: visible; }
+.alt-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+.alt-table th { padding: 11px 16px; background: var(--off-white); border-bottom: 1px solid var(--border); font-size: 9.8px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); text-align: left; white-space: nowrap; }
+.alt-table th.num, .alt-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.alt-table td { padding: 14px 16px; border-bottom: 1px solid var(--gray-light); vertical-align: middle; }
+.alt-table tr:last-child td { border-bottom: 0; }
+.alt-table tbody tr:hover { background: var(--off-white); }
+.alt-table tr.anchor td { background: var(--accent-light); border-bottom: 2px solid var(--accent); }
+.cwho { display: flex; align-items: center; gap: 12px; }
+.cwho .logo { font-size: 12px; font-weight: 800; color: var(--gray-dark); line-height: 1.2; }
+.cname { font-size: 14.5px; font-weight: 800; color: var(--text); line-height: 1.2; }
+.cprod { margin-top: 2px; font-size: 11.8px; color: var(--gray-mid); line-height: 1.3; }
+.mo { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--primary); line-height: 1; }
+.mo small { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 700; color: var(--gray-mid); }
+.delta { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.delta.save { color: #15803d; }
+.delta.more { color: var(--gold); }
+.delta.base { color: var(--gray-mid); }
+.dsub { display: block; font-size: 10.5px; font-weight: 600; color: var(--gray-mid); text-transform: uppercase; letter-spacing: 0.05em; }
+.tag-agent, .tag-self { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 100px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.tag-agent { color: var(--gold); background: var(--gold-light); }
+.tag-self { color: #15803d; background: var(--green-light); }
+.uwcell { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; max-width: 270px; }
+.tag-uw { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 0; border-radius: 100px; font-family: inherit; font-size: 10px; font-weight: 800; white-space: nowrap; cursor: help; }
+.tag-uw.instant { color: var(--primary-mid); background: var(--accent-light); }
+.tag-uw.accelerated { color: #0f766e; background: var(--teal-light); }
+.tag-uw.traditional { color: #475569; background: #e8edf4; }
+.tag-uw .ic { opacity: 0.5; flex: none; }
+.pick { padding: 7px 14px; background: #fff; border: 1.5px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 12.5px; font-weight: 800; color: var(--primary); white-space: nowrap; cursor: pointer; transition: all var(--transition); }
+.pick:hover { border-color: var(--accent); background: var(--accent-light); }
+.alt-foot { padding: 14px 26px; background: var(--off-white); font-size: 11.5px; color: var(--gray-mid); line-height: 1.5; }
+
+/* The helper. Hover on a mouse, tap on a phone, Esc to dismiss -- an
+   information icon is the only affordance a touch screen gets, which is
+   why the three carrier pills carry one and Assurity's does not. */
+.uw-wrap { position: relative; display: inline-block; }
+.uw-tip { position: absolute; top: calc(100% + 8px); left: 0; z-index: 60; width: 272px; max-width: min(272px, 72vw); padding: 11px 13px; background: var(--primary-dark); color: #fff; border-radius: 10px; font-size: 11.8px; font-weight: 500; line-height: 1.5; letter-spacing: 0; text-transform: none; white-space: normal; box-shadow: 0 12px 32px rgba(15,37,64,0.34); opacity: 0; visibility: hidden; transition: opacity 0.15s; }
+.uw-tip::before { content: ''; position: absolute; bottom: 100%; left: 16px; border: 6px solid transparent; border-bottom-color: var(--primary-dark); }
+.uw-wrap:hover .uw-tip, .uw-wrap.open .uw-tip, .uw-wrap:focus-within .uw-tip { opacity: 1; visibility: visible; }
+
+/* Phone: the table cannot survive 390px, and scrolling it sideways hides
+   the column that matters. Cards, with the saving set large. */
+.alt-cards { display: none; flex-direction: column; gap: 10px; padding: 13px 12px; }
+.acard { padding: 12px 13px; background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); }
+.acard.anchor { background: var(--accent-light); border-color: var(--accent); }
+.acard-top { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 11px; align-items: center; margin-bottom: 11px; }
+.acard-top .logo { font-size: 11px; font-weight: 800; color: var(--gray-dark); }
+.acard-pills { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.acard-pills .tag-agent, .acard-pills .tag-self { font-size: 9.3px; padding: 3px 8px; }
+.acard-uw { position: relative; display: flex; gap: 5px; flex-wrap: wrap; margin: -2px 0 11px; }
+.acard-uw .uw-wrap { position: static; }
+.acard-uw .uw-tip { left: 0; right: auto; width: 100%; min-width: 220px; }
+.acard-uw .tag-uw { font-size: 9.3px; padding: 3px 8px; }
+.acard-mid { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid var(--gray-light); }
+.bigdelta { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: #15803d; line-height: 1; font-variant-numeric: tabular-nums; }
+.bigdelta.more { color: var(--gold); }
+.bigdelta.flat { color: var(--gray-mid); font-size: 19px; }
+.dlabel { margin-top: 4px; font-size: 9.6px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--gray-mid); line-height: 1.3; }
+.permo { text-align: right; }
+.permo .v { font-size: 17px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.permo .l { font-size: 9.6px; font-weight: 700; color: var(--gray-mid); text-transform: uppercase; letter-spacing: 0.06em; }
+.acard-bot { margin-top: 12px; }
+.acard-bot .pick { width: 100%; padding: 9px 13px; }
 
 .legal-strip { background: var(--primary-dark); margin-top: 48px; padding: 40px 32px 0; }
 .legal-strip-inner { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 13px; }
@@ -471,10 +569,29 @@ select { cursor: pointer; appearance: none; background-image: url("data:image/sv
 
 @media (max-width: 980px) {
   .cov-body { grid-template-columns: 1fr; gap: 28px; }
-  .term-cards { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
   .cov-card { padding: 24px 18px 28px; }
+  /* The rail stacks: mark on its own rule, credentials three-up. */
+  .carrier-rail { display: block; padding: 13px 14px; }
+  .rail-mark { display: block; font-size: 23px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid rgba(200,16,46,0.18); }
+  .rail-creds { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; min-width: 0; }
+  .rail-creds div { padding-left: 0; text-align: center; }
+  .rail-creds div::before { display: none; }
+  .rail-creds dt { font-size: 11.5px; line-height: 1.2; }
+  .rail-creds dd { font-size: 8.8px; letter-spacing: 0.04em; line-height: 1.25; }
+  /* The table goes, the cards come. Not both, ever. The min-width has to
+     go with it: display:none hides the overflow but mobile-overrides-win
+     reads the stylesheet, not the render, and it is right to -- a rule
+     that wide surviving the breakpoint is one refactor from a sideways
+     scrollbar on every phone. */
+  .alt-scroll { display: none; }
+  .alt-table { min-width: 0; }
+  .alt-cards { display: flex; }
+  .alt-head { padding: 16px 15px 14px; }
+  .alt-head h2 { font-size: 18px; }
+  .alt-head p { font-size: 12.2px; }
+  .alt-foot { padding: 12px 15px; font-size: 10.5px; }
   .cov-left-top { flex-direction: column; }
   .cov-fields { width: 100%; }
   /* Thirteen coverage labels do not fit a phone rail: at 390px they wanted
@@ -895,6 +1012,14 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           </div>
           <div class="cov-body">
             <div class="cov-left">
+              <div class="carrier-rail">
+                <span class="rail-mark">Assurity<sup>&reg;</sup></span>
+                <dl class="rail-creds">
+                  <div><dt>A&#8209;&nbsp;(Excellent)</dt><dd>A.M. Best</dd></div>
+                  <div><dt>Since 1890</dt><dd>136 years</dd></div>
+                  <div><dt>Lincoln, NE</dt><dd>Mutual holding co.</dd></div>
+                </dl>
+              </div>
               <div class="cov-left-top">
                 <div class="cov-fields">
                   <div class="field">
@@ -931,11 +1056,38 @@ footer { background: var(--primary-dark); padding: 40px 32px; margin-top: 48px; 
           </div>
         </div>
 
-        <!-- OTHER TERM OPTIONS -->
-        <div class="other-terms">
-          <h2 class="other-title">Other term options</h2>
-          <div class="term-cards" id="termCards"></div>
-        </div>
+        <!-- OTHER CARRIERS, WITH AN AGENT -- QBP-653 -->
+        <!--
+          HIDDEN UNTIL IT HAS SOMETHING TRUE TO SAY. Empty, failed, or a
+          /quote that returned nothing all leave this out of the page
+          entirely rather than showing a frame with no rows in it. There is
+          no placeholder row and no invented carrier: a visitor who sees a
+          premium under a carrier's name has been quoted by that carrier.
+        -->
+        <section class="alt-sec" id="altSec" hidden>
+          <div class="alt-head">
+            <h2>Other carriers, with an agent</h2>
+            <p>These go through one of our agents instead of finishing online &mdash; more carriers to compare, and usually a lower rate. How quickly you get an answer depends on the product, not on the agent.</p>
+            <div class="uw-legend" id="uwLegend"></div>
+          </div>
+          <div class="alt-scroll">
+            <table class="alt-table">
+              <thead>
+                <tr>
+                  <th>Carrier</th>
+                  <th>How you buy it</th>
+                  <th>Underwriting</th>
+                  <th class="num">Monthly</th>
+                  <th class="num">vs. your instant price</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="altRows"></tbody>
+            </table>
+          </div>
+          <div class="alt-cards" id="altCards"></div>
+          <p class="alt-foot" id="altFoot"></p>
+        </section>
 
       </div>
 

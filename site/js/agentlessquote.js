@@ -158,23 +158,166 @@ function renderPrice(){
   document.getElementById('ptMonthly').classList.toggle('active', billing==='monthly');
   document.getElementById('ptYearly').classList.toggle('active', billing==='yearly');
 }
-function renderTermCards(){
-  const cov = COV_STOPS[sliderIndex];
-  const others = [10,15,20,30].filter(t => t !== selectedTerm);
-  document.getElementById('termCards').innerHTML = others.map(t => `
-    <div class="term-card">
-      <div class="term-card-head">${t} Year Term</div>
-      <div class="term-row"><div class="lbl">Policy Term</div><div class="val">${t} Years</div></div>
-      <div class="term-row"><div class="lbl">Base Coverage</div><div class="val">${fmtCov(cov)}</div></div>
-      <div class="term-row total"><div class="lbl">Total</div><div class="val">${termPrice(t)}</div></div>
-      <button class="term-select" type="button" data-term="${t}">Select</button>
-    </div>`).join('');
-  document.querySelectorAll('.term-select').forEach(b => b.addEventListener('click', () => {
-    selectedTerm = parseInt(b.dataset.term);
-    document.getElementById('termLength').value = selectedTerm;
-    renderPrice(); renderTermCards(); loadPanel(); priceImmediately();
-    document.querySelector('.cov-card').scrollIntoView({ behavior:'smooth', block:'start' });
-  }));
+/* ---------- OTHER CARRIERS, WITH AN AGENT -- QBP-653 ----------
+ *
+ * Replaced three cards showing THIS carrier at other term lengths. Those
+ * compared the product to itself; this compares it to the market, which is
+ * what the space below the fold is actually worth.
+ *
+ * THE DELTA IS THE POINT. A column of prices with nothing to measure them
+ * against is a list. "vs. your instant price" makes it an argument: here is
+ * what waiting three weeks is worth, per month and per year.
+ */
+const UW = {
+  instant: {
+    label: 'Instant decision',
+    sub: 'An answer in minutes',
+    tip: 'Complete your application with an agent and the carrier will try to '
+       + 'provide a decision the same day, often within minutes. Your agent '
+       + 'will confirm the decision.',
+  },
+  accelerated: {
+    label: 'Accelerated',
+    sub: 'No exam if you qualify \u00b7 days',
+    tip: 'Complete your application with an agent and the carrier will try to '
+       + 'underwrite you without an exam and make an offer within a few days. '
+       + 'Your agent will confirm the decision.',
+  },
+  traditional: {
+    label: 'Traditional',
+    sub: 'Exam and records \u00b7 2\u20136 weeks',
+    tip: 'Complete your application with an agent. The carrier will review '
+       + 'your medical records and usually ask for a short exam before making '
+       + 'an offer, which commonly takes two to six weeks. Your agent will '
+       + 'confirm the decision.',
+  },
+};
+/* Fastest first. The order is ours, not each row's: a table where one row
+   reads instant/accelerated and the next accelerated/instant cannot be
+   scanned down. Mirrors shared/underwritingroutes.ts ROUTE_ORDER. */
+const UW_ORDER = ['instant', 'accelerated', 'traditional'];
+const INFO_ICON =
+  '<svg class="ic" width="9" height="9" viewBox="0 0 24 24" aria-hidden="true">'
+  + '<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.8"/>'
+  + '<rect x="10.7" y="10.4" width="2.6" height="7.4" rx="1.3" fill="currentColor"/>'
+  + '<circle cx="12" cy="6.9" r="1.5" fill="currentColor"/></svg>';
+
+/* `esc` is the page's own, defined with the rider rendering below. */
+
+/*
+ * A PILL PER ROUTE THE CARRIER WILL CONSIDER.
+ *
+ * `routes` is whatever /quote sent, filtered to the three we know and put
+ * in our order. An unrecorded product sends an empty array and gets no
+ * pills at all -- which is correct, because nothing has been checked. It
+ * must never fall back to "traditional": that asserts a route on a
+ * carrier's behalf from the absence of information.
+ */
+function uwPills(routes){
+  const have = Array.isArray(routes) ? routes : [];
+  return UW_ORDER.filter((k) => have.indexOf(k) !== -1).map((k) =>
+    '<span class="uw-wrap"><button type="button" class="tag-uw ' + k + '" data-tip="1">'
+    + esc(UW[k].label) + INFO_ICON + '</button>'
+    + '<span class="uw-tip" role="tooltip">' + esc(UW[k].tip) + '</span></span>').join('');
+}
+
+function uwLegend(){
+  return UW_ORDER.map((k) =>
+    '<span class="l"><span class="tag-uw ' + k + '">' + esc(UW[k].label)
+    + '</span>' + esc(UW[k].sub) + '</span>').join('');
+}
+
+/** Their logo if Compulife host one, else the first words of the name. */
+function carrierLogo(name, url){
+  const safe = esc(name);
+  const fallback = esc(String(name || '').split(' ').slice(0, 2).join(' '));
+  if (url) {
+    return '<img src="' + esc(url) + '" alt="' + safe + '" '
+      + 'style="max-height:32px;max-width:92px;object-fit:contain" '
+      + 'onerror="this.outerHTML=\'<div class=&quot;logo&quot;>' + fallback + '</div>\'">';
+  }
+  return '<div class="logo">' + fallback + '</div>';
+}
+
+function renderComparison(){
+  const sec = document.getElementById('altSec');
+  if (!sec) return;
+  const rows = Array.isArray(COMPARE) ? COMPARE : [];
+  const mine = currentQuote ? Number(currentQuote.total.Monthly) : null;
+  /*
+   * NOTHING TRUE TO SAY, SO NOTHING SHOWN. An empty or failed /quote, or a
+   * page with no Assurity price yet to measure against, leaves the section
+   * out of the page rather than drawing an empty frame.
+   */
+  if (!rows.length || !(mine > 0)) { sec.hidden = true; return; }
+  sec.hidden = false;
+
+  document.getElementById('uwLegend').innerHTML = uwLegend();
+
+  /* The anchor. The ONLY row that may wear "No agent needed" -- the whole
+     distinction has to survive a screenshot, which is how it reaches
+     Assurity's compliance reviewer. */
+  const anchor =
+    '<tr class="anchor"><td><div class="cwho">' + carrierLogo('Assurity', null)
+    + '<div><div class="cname">Assurity</div>'
+    + '<div class="cprod">Term Life \u00b7 agentless \u2014 your quote</div></div></div></td>'
+    + '<td><span class="tag-self">No agent needed</span></td>'
+    + '<td><span class="uwcell"><span class="tag-uw instant">Instant decision</span></span></td>'
+    + '<td class="num"><span class="mo">' + fmt2(mine) + '<small>/mo</small></span></td>'
+    + '<td class="num"><span class="delta base">\u2014<span class="dsub">this is the baseline</span></span></td>'
+    + '<td></td></tr>';
+
+  document.getElementById('altRows').innerHTML = anchor + rows.map((r) => {
+    const diff = mine - r.monthly;
+    const cheaper = diff > 0;
+    return '<tr><td><div class="cwho">' + carrierLogo(r.carrierName, r.logoUrl)
+      + '<div><div class="cname">' + esc(r.carrierName) + '</div>'
+      + '<div class="cprod">' + esc(r.productName) + '</div></div></div></td>'
+      + '<td><span class="tag-agent">With an agent</span></td>'
+      + '<td><span class="uwcell">' + uwPills(r.underwritingRoutes) + '</span></td>'
+      + '<td class="num"><span class="mo">' + fmt2(r.monthly) + '<small>/mo</small></span></td>'
+      + '<td class="num"><span class="delta ' + (cheaper ? 'save' : 'more') + '">'
+      + (cheaper ? '\u2212' : '+') + fmt2(Math.abs(diff)) + '/mo'
+      + '<span class="dsub">' + fmtCov(Math.round(Math.abs(diff) * 12))
+      + (cheaper ? ' a year' : ' more a year') + '</span></span></td>'
+      + '<td class="num"><button class="pick" type="button">Get this quote</button></td></tr>';
+  }).join('');
+
+  /* The phone half. Same rows, and the saving leads rather than the price:
+     on a 390px screen the delta is the only reason to keep scrolling. */
+  const anchorCard =
+    '<div class="acard anchor"><div class="acard-top">' + carrierLogo('Assurity', null)
+    + '<div><div class="cname">Assurity</div>'
+    + '<div class="cprod">Term Life \u00b7 agentless</div></div>'
+    + '<div class="acard-pills"><span class="tag-self">No agent needed</span></div></div>'
+    + '<div class="acard-uw"><span class="tag-uw instant">Instant decision</span></div>'
+    + '<div class="acard-mid"><div><div class="bigdelta flat">Your quote</div>'
+    + '<div class="dlabel">the baseline below</div></div>'
+    + '<div class="permo"><div class="v">' + fmt2(mine) + '</div>'
+    + '<div class="l">per month</div></div></div></div>';
+
+  document.getElementById('altCards').innerHTML = anchorCard + rows.map((r) => {
+    const diff = mine - r.monthly;
+    const cheaper = diff > 0;
+    return '<div class="acard"><div class="acard-top">'
+      + carrierLogo(r.carrierName, r.logoUrl)
+      + '<div><div class="cname">' + esc(r.carrierName) + '</div>'
+      + '<div class="cprod">' + esc(r.productName) + '</div></div>'
+      + '<div class="acard-pills"><span class="tag-agent">With an agent</span></div></div>'
+      + '<div class="acard-uw">' + uwPills(r.underwritingRoutes) + '</div>'
+      + '<div class="acard-mid"><div><div class="bigdelta' + (cheaper ? '' : ' more') + '">'
+      + (cheaper ? '\u2212' : '+') + fmt2(Math.abs(diff)) + '</div>'
+      + '<div class="dlabel">a month \u00b7 ' + fmtCov(Math.round(Math.abs(diff) * 12))
+      + ' a year</div></div>'
+      + '<div class="permo"><div class="v">' + fmt2(r.monthly) + '</div>'
+      + '<div class="l">per month</div></div></div>'
+      + '<div class="acard-bot"><button class="pick" type="button">Get this quote</button></div></div>';
+  }).join('');
+
+  document.getElementById('altFoot').textContent =
+    'Compared at ' + fmtCov(COV_STOPS[sliderIndex]) + ' of ' + selectedTerm
+    + '-year term, ' + classLabel(document.getElementById('health').value).toLowerCase()
+    + '. Final rates depend on underwriting.';
 }
 /* ---------- RIDERS (from the carrier, via quote-engine) ---------- */
 /*
@@ -585,7 +728,7 @@ async function priceNow(){
      and should not spend a carrier request to learn it twice. */
   if (PRICED.has(key)){
     applyQuote(PRICED.get(key));
-    priceOtherTerms(ask);
+    loadComparison();
     return;
   }
 
@@ -619,7 +762,7 @@ async function priceNow(){
 
     PRICED.set(key, data);
     applyQuote(data);
-    priceOtherTerms(ask);
+    loadComparison();
   } catch (err) {
     if (seq !== priceSeq) return;
     priceState = 'failed';
@@ -630,43 +773,99 @@ async function priceNow(){
 }
 
 /*
- * THE OTHER THREE TERM CARDS, PRICED AFTER THE ONE ON SCREEN.
+ * THE COMPARISON, FETCHED AFTER THE PRICE ON SCREEN -- QBP-653.
  *
- * Assurity price ONE TERM PER REQUEST -- the term rides on the Base
- * coverage -- so there is no equivalent of Compulife's single request
- * returning a whole table. Four terms are four calls.
+ * One request to /quote, the same endpoint the Quote Tool uses, which
+ * returns every carrier Compulife prices for this profile in one go. It
+ * goes SECOND and never in the way: the Assurity price is what the visitor
+ * came for, and this fills in behind it.
  *
- * So they go second, never in the way: the term the visitor is actually
- * looking at is asked for on its own and rendered the moment it lands, and
- * the comparison cards fill in behind it. A card with no price yet shows a
- * dash rather than a guess, and an exact repeat is served from the same
- * cache as everything else, so moving the slider back and forth costs
- * nothing.
+ * ONE FETCH PER PROFILE, NOT PER RENDER. Riders and the monthly/yearly
+ * toggle change the Assurity figure but not the profile, so they re-render
+ * the delta without spending a Compulife request. Only state, date of
+ * birth, gender, tobacco, class, coverage or term send a new one, and an
+ * exact repeat is held here as well as cached server-side.
+ *
+ * FAILS SILENTLY, ON PURPOSE. This is the section below the fold. If it
+ * cannot be had the visitor keeps their quote and simply sees no
+ * comparison -- never an error where carriers should be, and never a
+ * placeholder row.
  */
-const TERM_YEARS = [10, 15, 20, 30];
-function priceOtherTerms(ask){
-  for (const years of TERM_YEARS){
-    if (years === selectedTerm) continue;
-    const other = { ...ask, term: TERM_PERIODS[years] };
-    const key = JSON.stringify(other);
-    if (PRICED.has(key)) continue;
-    const endpoint = (window.QB_QUOTE_ENDPOINT || '').replace(/\/$/, '');
-    fetch(endpoint + '/assurity-quote', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: key,
-    }).then((r) => (r.ok ? r.json() : null)).then((d) => {
-      if (!d?.quote) return;
-      PRICED.set(key, d);
-      renderTermCards();
-    }).catch(() => {});
-  }
+let COMPARE = null;        // the rows /quote last returned
+let COMPARE_KEY = '';      // the profile they were for
+
+/*
+ * THE CLASS COMPULIFE IS ASKED FOR, READ OFF THE CONTROL.
+ *
+ * Assurity fold tobacco into the class and Compulife take it as its own
+ * flag, so the two have to be split apart before the comparison can be
+ * asked for. The split is done on the LABEL the control is already
+ * showing -- "Standard, non-tobacco" -> "Standard" -- and the tobacco
+ * answer comes from the tobacco control, which the visitor set.
+ *
+ * NO SECOND TABLE OF CLASS NAMES IN THIS FILE. There was one once and it
+ * had already drifted from the server's wording; the-featured-carriers-
+ * own-classes.test.mjs exists to stop it coming back, and a map keyed by
+ * the carrier's class names would be the same mistake wearing a different
+ * hat. The names live in the markup, which is where classLabel reads them.
+ *
+ * The comparison is therefore quoted at the same NAMED class as the
+ * Assurity price above it. What that name MEANS still differs by carrier,
+ * which is the point shared/underwriting.ts makes at length.
+ */
+function compulifeClassOf(riskClass){
+  const label = classLabel(riskClass);
+  if (!label) return '';
+  return String(label).split(',')[0].trim();
 }
 
-/** The carrier's monthly figure for one term, or a dash. */
-function termPrice(years){
-  const ask = buildAsk();
-  if (!ask) return '\u2014';
-  const held = PRICED.get(JSON.stringify({ ...ask, term: TERM_PERIODS[years] }));
-  return held ? fmt2(held.quote.total.Monthly) + '/mo' : '\u2014';
+function loadComparison(){
+  const endpoint = (window.QB_QUOTE_ENDPOINT || '').replace(/\/$/, '');
+  if (!/^https?:\/\//i.test(endpoint)) return;
+  const inp = getInputs();
+  const healthClass = compulifeClassOf(inp.health);
+  if (!inp.state || !inp.dob || !healthClass) return;
+
+  const body = {
+    product: 'TERM',
+    termYears: selectedTerm,
+    faceAmount: COV_STOPS[sliderIndex],
+    dateOfBirth: inp.dob,
+    gender: inp.gender,
+    healthClass,
+    tobacco: inp.tobacco === 'Yes',
+    state: inp.state,
+    toolKey: 'agentless',
+    sessionId: (window.QuoteBot && typeof window.QuoteBot.sessionId === 'function')
+      ? window.QuoteBot.sessionId() : undefined,
+  };
+  const key = JSON.stringify(body);
+  if (key === COMPARE_KEY) return;
+  COMPARE_KEY = key;
+
+  fetch(endpoint + '/quote', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: key,
+  }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+    if (!d || !d.ok || !Array.isArray(d.quotes)) return;
+    if (key !== COMPARE_KEY) return;          // a later ask has overtaken this one
+    /*
+     * ONLY ROWS WITH A REAL MONTHLY FIGURE. A carrier that came back
+     * without a premium has not quoted this person, and a row with a dash
+     * where the saving goes is worse than no row at all.
+     */
+    COMPARE = d.quotes
+      .filter((q) => Number(q.monthlyPremium) > 0)
+      .map((q) => ({
+        carrierName: q.carrierName,
+        productName: q.productName,
+        logoUrl: q.logoUrl,
+        monthly: Number(q.monthlyPremium),
+        underwritingRoutes: q.underwritingRoutes,
+      }))
+      .sort((x, y) => x.monthly - y.monthly)
+      .slice(0, 5);
+    renderComparison();
+  }).catch(() => {});
 }
 
 function applyQuote(data){
@@ -675,7 +874,7 @@ function applyQuote(data){
   quoteProblem = null;
   priceState = 'priced';
   renderPrice();
-  renderTermCards();
+  renderComparison();
 }
 
 /*
@@ -892,7 +1091,7 @@ function renderWelcome(){
   document.getElementById('welcomeName').textContent = `Welcome ${name}!`;
 }
 function renderAll(){
-  renderWelcome(); renderTicks(); renderSliderFill(); renderPrice(); renderTermCards();
+  renderWelcome(); renderTicks(); renderSliderFill(); renderPrice(); renderComparison();
 }
 
 /* ---------- SEED FROM INTAKE & REVEAL ---------- */
@@ -944,7 +1143,7 @@ const slider = document.getElementById('covSlider');
 slider.addEventListener('input', () => {
   sliderIndex = parseInt(slider.value);
   document.getElementById('covAmount').value = COV_STOPS[sliderIndex].toLocaleString();
-  renderTicks(); renderSliderFill(); renderPrice(); renderTermCards(); pricePresently();
+  renderTicks(); renderSliderFill(); renderPrice(); renderComparison(); pricePresently();
 });
 document.getElementById('covDown').addEventListener('click', () => { if (sliderIndex>0){ sliderIndex--; slider.value=sliderIndex; slider.dispatchEvent(new Event('input')); } });
 document.getElementById('covUp').addEventListener('click', () => { if (sliderIndex<COV_STOPS.length-1){ sliderIndex++; slider.value=sliderIndex; slider.dispatchEvent(new Event('input')); } });
@@ -953,12 +1152,12 @@ document.getElementById('covUp').addEventListener('click', () => { if (sliderInd
 document.getElementById('covAmount').addEventListener('input', e => {
   const n = e.target.value.replace(/[^0-9]/g,'');
   e.target.value = n ? parseInt(n).toLocaleString() : '';
-  if (n) { sliderIndex = nearestStop(parseInt(n)); slider.value = sliderIndex; renderTicks(); renderSliderFill(); renderPrice(); renderTermCards(); pricePresently(); }
+  if (n) { sliderIndex = nearestStop(parseInt(n)); slider.value = sliderIndex; renderTicks(); renderSliderFill(); renderPrice(); renderComparison(); pricePresently(); }
 });
 // term length select (card)
 document.getElementById('termLength').addEventListener('change', e => {
   selectedTerm = parseInt(e.target.value);
-  renderPrice(); renderTermCards(); loadPanel(); priceImmediately();
+  renderPrice(); renderComparison(); loadPanel(); priceImmediately();
 });
 // monthly/yearly toggle
 document.getElementById('ptMonthly').addEventListener('click', () => { billing='monthly'; renderPrice(); });
@@ -998,3 +1197,28 @@ window.qbActions.register({ editInputs: editInputs });
  * can be picked.
  */
 renderClasses();
+
+/*
+ * THE UNDERWRITING HELPERS -- QBP-653.
+ *
+ * Hover does the work on a mouse. A touch screen has no hover at all, so
+ * the information icon is the whole affordance and the pill has to be a
+ * real button that opens on tap. One open at a time, dismissed by tapping
+ * anywhere else or pressing Escape.
+ *
+ * Delegated, because the rows are redrawn on every price change and
+ * listeners bound to them would be thrown away with the markup.
+ */
+function closeTips(){
+  document.querySelectorAll('.uw-wrap.open').forEach((w) => w.classList.remove('open'));
+}
+document.addEventListener('click', (e) => {
+  const hit = e.target.closest ? e.target.closest('[data-tip]') : null;
+  if (!hit) { closeTips(); return; }
+  const wrap = hit.closest('.uw-wrap');
+  const wasOpen = wrap.classList.contains('open');
+  closeTips();
+  if (!wasOpen) wrap.classList.add('open');
+  e.stopPropagation();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeTips(); });

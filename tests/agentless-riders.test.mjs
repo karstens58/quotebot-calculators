@@ -221,13 +221,16 @@ function sandbox({ state = 'Colorado', term = 20, pointer = 'fine' } = {}) {
     function getInputs(){ return { state: WHERE.state, age: 48, gender: 'Male',
       health: 'Standard', tobacco: 'No' }; }
     function renderPrice(){ RECORD.push(['renderPrice', priceState]); }
-    /* The page's own currency formatter, which termPrice uses. */
+    /* The page's own currency formatter. */
     const fmt2 = (n) => '$' + Number(n).toFixed(2);
-    function renderTermCards(){}
+    const fmtCov = (n) => '$' + Number(n).toLocaleString();
+    /* Both live above the slice this sandbox cuts, and both are called
+       from inside it. Stubs, as renderTermCards was before them. */
+    function renderComparison(){}
+    function loadComparison(){}
     ${source}
     return { loadPanel, renderRiders, chosenRiders, riderAmounts, occupation,
              buildAsk, settleAmount, priceNow, priceImmediately, pricePresently, PRICED,
-             termPrice,
              state: () => ({ priceState, currentQuote, currentUnderwriting }),
              read: () => panel };
   `;
@@ -995,23 +998,6 @@ test('THE SPINNER IS NEVER LEFT TURNING OVER A REQUEST NOBODY MADE', () => {
     'something enters the pricing state outside the two functions that then ask');
 });
 
-test('A TERM CARD WITH NO CARRIER PRICE SHOWS A DASH, NOT A GUESS', async () => {
-  /*
-   * Assurity price one term per request, so the three comparison cards fill
-   * in behind the one on screen. Until each lands there is nothing to show
-   * -- and the page has no engine left to invent one with, which is the
-   * whole point of removing it.
-   */
-  const s = sandbox();
-  await s.loadPanel();
-  assert.equal(s.termPrice(30), '\u2014', 'an unpriced term card showed a figure');
-
-  s.setResponse(async () => ({ ok: true, status: 200, headers: new Map(),
-    json: async () => ({ quote: { total: { Monthly: 185.49, Annual: 2132 }, coverages: [] },
-      underwriting: { riskClass: 'StandardNonTobacco', approximated: false } }) }));
-  await s.priceNow();
-  assert.match(s.termPrice(20), /^\$\d/, 'the term actually priced still shows no figure');
-});
 
 test('APPLY IS WHAT PUTS THE RIDER IN THE QUOTE', () => {
   /*
